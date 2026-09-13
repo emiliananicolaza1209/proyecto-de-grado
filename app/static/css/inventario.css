@@ -1,0 +1,9 @@
+.model-combobox { position: relative; }
+#model-options { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; max-height: 280px; overflow-y: auto; background: white; border: 1px solid #bac9ef; border-radius: 12px; box-shadow: 0 10px 25px #15254620; }
+#model-options [role=option], #model-options p { padding: 12px 16px; margin: 0; cursor: pointer; }
+#model-options [role=option]:hover, #model-options .highlight { background: #e9efff; color: #2449cd; }
+.reference-counts { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.warranty-field { grid-column: 1 / -1; padding: 16px 0; }
+.warranty-field label { cursor: pointer; }
+#warranty-fields { max-width: 400px; margin-top: 16px; }
+[hidden] { display: none !important; }

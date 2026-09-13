@@ -1,0 +1,5 @@
+{% extends 'layouts/base.html' %}{% block content %}
+<a class="back-link" href="/ventas">← Ventas, pagos y pasamano</a><div class="heading"><div><p class="eyebrow">CONTROL COMERCIAL</p><h1>{{ product.model }}</h1><p>{{ product.imei }} · {{ product.capacity }} GB · {{ product.color }}</p></div><a class="btn btn-light" href="{{ url_for('inventory.detail',product_id=product.id) }}">Datos de compra y bodega</a></div>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+<div id="operaciones"></div>{% include 'inventario/operaciones.html' %}
+{% include 'inventario/historial.html' %}{% endblock %}
