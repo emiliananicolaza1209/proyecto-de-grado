@@ -22,6 +22,8 @@ class Producto(db.Model):
     status = db.Column(db.String(30), nullable=False, default='Disponible')
     responsible = db.Column(db.String(120))
     seller = db.Column(db.String(120))
+    loan_handler = db.Column(db.String(120))
+    loan_price_cents = db.Column(db.Integer)
     loan_date = db.Column(db.String)
     sale_date = db.Column(db.String)
     last_note = db.Column(db.String)

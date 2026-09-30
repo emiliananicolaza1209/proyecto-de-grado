@@ -26,7 +26,7 @@ class ModuleTests(unittest.TestCase):
             self.assertEqual(stats()['total'],2)
             pid,revision=products[0].id,products[0].revision
         payload = {'csrf':self.csrf,'revision':str(revision),'action':'handoff','reason':'Entrega de prueba',
-                   'responsible':'LOCAL PRUEBA','purpose':'Venta','due_date':today()}
+                   'loan_handler':'ENCARGADA','responsible':'LOCAL PRUEBA','purpose':'Venta','due_date':today()}
         denied = self.client.post(f'/inventario/{pid}',data=payload)
         self.assertIn('exclusivamente',denied.get_data(as_text=True))
         self.assertEqual(self.client.post(f'/ventas/{pid}',data=payload).status_code,302)

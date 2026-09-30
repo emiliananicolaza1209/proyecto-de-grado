@@ -1,22 +1,23 @@
 {% if not product.archived %}
-<section class="panel"><h2>Seguimiento</h2><p>{{ product.status }} · {{ product.responsible or 'Sin responsable asignado' }} · {{ product.purpose or '' }}</p>
-<p>Pago: {{ product.payment_status }} · Recibido: {{ product.paid_cents / 100 }} COP · Saldo: {{ ((product.sale_value_cents or 0)-product.paid_cents)/100 }} COP</p>
+<section class="panel compact-summary"><h2>Estado actual · {{ product.status }}</h2><p>{{ product.status }} · {{ product.responsible or 'Sin responsable asignado' }} · {{ product.purpose or '' }}</p>
+<p>Encargada del pasamano: {{ product.loan_handler or '—' }} · Precio acordado: {{ product.loan_price_cents/100 if product.loan_price_cents is not none else 'Sin definir' }} COP</p><p>Pago: {{ product.payment_status }} · Cobrado al cliente: {{ product.paid_cents / 100 }} COP · Saldo: {{ ((product.sale_value_cents or 0)-product.paid_cents)/100 }} COP</p>
 {% if product.due_date %}<p>Fecha límite: {{ product.due_date }} {{ '· VENCIDA: revisar' if product.due_date < now_date else '' }}</p>{% endif %}
 {% if product.payment_status=='Por verificar' %}<p>Venta anterior: requiere conciliación de los importes antes de aceptar pagos.</p>{% endif %}</section>
-{% for action,title in operations %}<details class="panel"><summary><b>{{ title }}</b></summary><form method="post">
+<section class="operation-list" aria-label="Acciones del equipo"><h2>¿Qué necesitas hacer?</h2>{% for action,title in operations %}<details class="panel operation-card" data-action="{{ action }}" {% if error and request.form.get('action')==action %}open{% endif %}><summary><b>{{ title }}</b></summary><form method="post" class="sales-form">
 <input type="hidden" name="csrf" value="{{ session.csrf }}"><input type="hidden" name="revision" value="{{ product.revision }}"><input type="hidden" name="action" value="{{ action }}">
-{% if action in ['handoff','reserve','sell'] %}<label>Persona o negocio responsable<input class="form-control" name="responsible" required maxlength="120" value="{{ product.responsible or '' }}"></label>{% endif %}
-{% if action=='sell' %}<label>Vendido por · nombre del vendedor<input class="form-control" name="seller" required minlength="2" maxlength="120" value="{{ product.seller or '' }}"></label>{% endif %}
-{% if action=='handoff' %}<label>Propósito<select class="form-select" name="purpose"><option>Venta</option><option>Reemplazo por garantía</option><option>Otro</option></select></label>{% endif %}
-{% if action in ['handoff','reserve'] %}<label>Fecha límite de devolución o reserva<input class="form-control" type="date" name="due_date" required></label>{% endif %}
+{% if action in ['handoff','reserve','sell'] %}<label>Local o persona que recibe<input class="form-control" name="responsible" required maxlength="120" value="{{ product.responsible or '' }}"></label>{% endif %}
+{% if action=='sell' %}<label>Vendedor de esta venta<input class="form-control" name="seller" required minlength="2" maxlength="120" value="{{ product.seller or '' }}"></label>{% endif %}
+{% if action=='handoff' %}<label>Encargada del pasamano<input class="form-control" name="loan_handler" required minlength="2" maxlength="120"></label><label>Precio acordado del pasamano · COP (opcional)<input class="form-control" name="loan_price" type="number" min="0.01" step="0.01"></label><label>Propósito<select class="form-select" name="purpose"><option>Venta</option><option>Reemplazo por garantía</option><option>Otro</option></select></label>{% endif %}
+{% if action in ['handoff','reserve'] %}<label>Fecha límite<input class="form-control" type="date" name="due_date" required></label>{% endif %}
 {% if action in ['reserve','sell','payment'] %}<label>{{ 'Importe recibido ahora' if action=='payment' else 'Valor acordado' }} · COP<input class="form-control" type="number" step="0.01" min="0.01" max="999999999" name="{{ 'amount' if action=='payment' else 'sale_value' }}" required></label>{% endif %}
+{% if action=='payment' %}{% include 'ventas/medio.html' %}<label>¿Dónde llegó el pago?<select class="form-select" name="destination"><option value="Vendedora">Lo recibió una vendedora</option><option value="Negocio">Llegó directamente al negocio</option></select></label><label>Vendedora que recibió el pago<input class="form-control" name="collector" maxlength="120"></label>{% endif %}
 {% if action in ['return','close_warranty'] %}<label>Bodega de recepción<select class="form-select" name="location_id" required>{% for item in catalog if item.kind=='location' and item.active %}<option value="{{ item.id }}" {{ 'selected' if item.id==product.location_id else '' }}>{{ item.name }}</option>{% endfor %}</select></label>
 <label>Condición recibida<select class="form-select" name="condition">{% for c in conditions %}<option {{ 'selected' if c==product.condition else '' }}>{{ c }}</option>{% endfor %}</select></label>
 <label>Batería % (vacío si no aplica)<input class="form-control" name="battery" type="number" min="0" max="100" value="{{ product.battery if product.battery is not none else '' }}"></label>
 {% if action=='return' %}<label>Resultado<select class="form-select" name="return_condition"><option>Disponible</option><option>Garantía</option></select></label>{% else %}<p>Volverá a {{ product.warranty_previous or 'Disponible' }}. Una garantía de venta conserva el estado Vendido.</p>{% endif %}{% endif %}
-{% if action=='cancel' and product.paid_cents %}<label><input type="checkbox" name="confirm_refund" value="1" required> Confirmo la devolución completa de {{ product.paid_cents/100 }} COP de abonos.</label>{% endif %}
-<label>Fecha del movimiento · Colombia<input class="form-control" type="date" name="movement_date" value="{{ now_date }}" max="{{ now_date }}"></label>
+
+<details class="date-options"><summary>Fecha: {{ now_date }} · Cambiar</summary><label>Fecha del movimiento · Colombia<input class="form-control" type="date" name="movement_date" value="{{ now_date }}" max="{{ now_date }}"></label>
 <label>Motivo si cambias la fecha automática<input class="form-control" name="date_reason" maxlength="500"></label>
-<label>Observación / resultado<textarea class="form-control" name="reason" required minlength="3" maxlength="500"></textarea></label>
+</details><label class="wide-field">Observación / resultado<textarea class="form-control" name="reason" required minlength="3" maxlength="500">{{ title if action not in ['cancel','correct_date'] else '' }}</textarea></label>
 <div><button class="btn btn-primary actions">{{ title }}</button></div>
-</form></details>{% endfor %}{% endif %}
+</form></details>{% endfor %}</section>{% endif %}

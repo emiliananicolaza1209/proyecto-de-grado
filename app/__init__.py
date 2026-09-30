@@ -46,13 +46,14 @@ def create_app(config=None):
     from .routes.ventas_routes import ventas
     from .routes.lote_routes import lotes
     from .routes.informacion_contable_routes import contabilidad_bp
+    from .routes.finanzas_routes import finanzas
     from .security import protect_forms
 
     # CSRF: crea el token en sesión en cada GET y lo exige en cada POST.
     app.before_request(protect_forms)
 
-    # Registro de todos los blueprints incluyendo el contable
-    for blueprint in (main, inventory, catalogos, ventas, lotes, contabilidad_bp):
+    # Registro de todos los blueprints incluyendo contable y finanzas
+    for blueprint in (main, inventory, catalogos, ventas, lotes, contabilidad_bp, finanzas):
         app.register_blueprint(blueprint)
 
     return app

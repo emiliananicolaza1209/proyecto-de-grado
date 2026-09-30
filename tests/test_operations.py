@@ -8,7 +8,7 @@ class OperationTests(ActionsTests):
         self.pid,self.rev=self.prepare()
     def post(self,action,expected=302,**extra):
         with self.app.app_context(): rev=db.session.get(Producto,self.pid).revision
-        response=self.client.post(f'/ventas/{self.pid}',data={'csrf':self.csrf,'revision':str(rev),'reason':'Prueba del movimiento','action':action,'seller':'VENDEDOR PRUEBA',**extra})
+        response=self.client.post(f'/ventas/{self.pid}',data={'csrf':self.csrf,'revision':str(rev),'reason':'Prueba del movimiento','action':action,'seller':'VENDEDOR PRUEBA','loan_handler':'ENCARGADA','destination':'Vendedora','collector':'ANA','method':'Efectivo',**extra})
         self.assertEqual(response.status_code,expected,response.get_data(as_text=True)[:500])
         self.assertEqual(self.client.get(f'/inventario/{self.pid}').status_code,200)
     def snapshot(self):
@@ -33,7 +33,11 @@ class OperationTests(ActionsTests):
         self.post('reserve',responsible='CLIENTE',due_date=today(),sale_value='1000')
         self.post('payment',amount='200')
         self.post('cancel',200)
-        self.post('cancel',confirm_refund='1')
+        self.post('cancel',200,confirm_refund='1')
+        from app.models import Cobro
+        with self.app.app_context(): cid=db.session.scalar(db.select(Cobro.id).where(Cobro.product_id==self.pid))
+        self.post('void_collection',record_id=str(cid))
+        self.post('cancel')
         self.assertEqual(self.snapshot()['paid_cents'],0)
         self.post('warranty')
         self.post('sell',200,sale_value='1000',responsible='VENDEDOR')
