@@ -57,6 +57,43 @@ def upgrade(path):
     upgrade_v6(path)
     upgrade_v7(path)
     upgrade_v8(path)
+    upgrade_v9(path)
+    from .finance import upgrade as finance_upgrade
+    finance_upgrade(path)
+
+
+def upgrade_v9(path):
+    with sqlite3.connect(path) as connection:
+        if connection.execute('SELECT 1 FROM schema_version WHERE version=9').fetchone():
+            return
+        with sqlite3.connect(str(path) + '.antes_MOD03.bak') as backup:
+            connection.backup(backup)
+        connection.execute('BEGIN')
+        connection.execute('ALTER TABLE equipment ADD COLUMN loan_handler TEXT')
+        connection.execute('ALTER TABLE equipment ADD COLUMN loan_price_cents INTEGER')
+        connection.execute("""CREATE TABLE customer_collection (
+            id INTEGER PRIMARY KEY, product_id INTEGER NOT NULL REFERENCES equipment(id),
+            amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+            destination TEXT NOT NULL, collector TEXT NOT NULL, method TEXT NOT NULL,
+            reference TEXT NOT NULL DEFAULT '', effective_date TEXT NOT NULL,
+            note TEXT NOT NULL, legacy BOOLEAN NOT NULL DEFAULT 0,
+            voided BOOLEAN NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+        connection.execute("""CREATE TABLE admin_receipt (
+            id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES customer_collection(id),
+            amount_cents INTEGER NOT NULL CHECK(amount_cents > 0), administrator TEXT NOT NULL,
+            method TEXT NOT NULL, reference TEXT NOT NULL DEFAULT '', effective_date TEXT NOT NULL,
+            note TEXT NOT NULL, voided BOOLEAN NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+        connection.execute('CREATE INDEX ix_customer_collection_product_id ON customer_collection(product_id)')
+        connection.execute('CREATE INDEX ix_admin_receipt_collection_id ON admin_receipt(collection_id)')
+        # Conservar los importes anteriores; no atribuirlos a una persona ni inventar entregas.
+        connection.execute("""INSERT INTO customer_collection
+            (product_id,amount_cents,destination,collector,method,effective_date,note,legacy)
+            SELECT id,paid_cents,'Por verificar','SIN IDENTIFICAR','Por verificar',
+            COALESCE(payment_date,substr(created_at,1,10)),
+            'Saldo anterior a MOD03; falta identificar quién cobró y qué recibió administración.',1
+            FROM equipment WHERE paid_cents > 0""")
+        connection.execute('INSERT INTO schema_version(version) VALUES(9)')
 
 
 def upgrade_v8(path):

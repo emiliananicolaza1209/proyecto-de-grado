@@ -35,8 +35,9 @@ def create_app(config=None):
     from .routes.main_routes import main
     from .routes.ventas_routes import ventas
     from .routes.lote_routes import lotes
+    from .routes.finanzas_routes import finanzas
     from .security import protect_forms
     app.before_request(protect_forms)
-    for blueprint in (main, inventory, catalogos, ventas, lotes):
+    for blueprint in (main, inventory, catalogos, ventas, lotes, finanzas):
         app.register_blueprint(blueprint)
     return app
