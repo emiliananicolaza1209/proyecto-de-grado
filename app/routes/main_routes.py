@@ -11,6 +11,8 @@ def home():
 
 @main.get('/modulos/<name>')
 def module(name):
+    if name == 'finanzas':
+        return redirect(url_for('finanzas.index'))
     if name == 'ventas':
         return redirect(url_for('ventas.index'))
     modules = {'ventas':'Ventas y pagos', 'finanzas':'Finanzas y liquidaciones',

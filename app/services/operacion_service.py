@@ -34,12 +34,15 @@ def day(raw):
 ALLOWED = {
     'Disponible': [('handoff','Entregar equipo'),('reserve','Crear separado'),('sell','Confirmar venta'),('warranty','Ingresar a garantía')],
     'En pasamano': [('return','Registrar devolución'),('sell','Confirmar venta')],
-    'Separado': [('payment','Registrar abono'),('sell','Convertir en venta'),('cancel','Cancelar separado y devolver abonos')],
-    'Vendido': [('payment','Registrar dinero recibido'),('warranty','Ingresar a garantía')],
+    'Separado': [('payment','Registrar abono'),('sell','Convertir en venta'),('cancel','Cancelar separado sin cobros')],
+    'Vendido': [('payment','Registrar cobro del cliente'),('warranty','Ingresar a garantía')],
     'Garantía': [('close_warranty','Cerrar garantía')],
 }
 
 def operate(pid, action, data):
+    if action == 'payment':
+        from .pago_service import collect
+        return collect(pid, data)
     p = db.session.get(Producto, pid)
     if not p: raise ValueError('El equipo no existe.')
     if p.archived or str(p.revision) != data.get('revision'):
@@ -59,6 +62,11 @@ def operate(pid, action, data):
     values = dict(movement_date=effective, last_note=reason)
     if action == 'handoff':
         values['loan_date'] = effective
+        handler = ' '.join(data.get('loan_handler','').upper().split())
+        if not 2 <= len(handler) <= 120:
+            raise ValueError('Indica la vendedora encargada del pasamano.')
+        values['loan_handler'] = handler
+        values['loan_price_cents'] = money(data['loan_price']) if data.get('loan_price','').strip() else None
     if action == 'sell':
         seller = data.get('seller','').strip().upper()
         if not 2 <= len(seller) <= 120:
@@ -67,10 +75,12 @@ def operate(pid, action, data):
     if action=='correct_date':
         event = db.session.scalar(db.select(Movimiento).where(Movimiento.product_id==pid, Movimiento.action.notin_(['Corrección de fecha','Edición','Traslado','Eliminación del inventario','Restauración'])).order_by(Movimiento.id.desc()))
         if not event: raise ValueError('No hay un movimiento para corregir.')
+        if event.action in ('Cobro del cliente','Recepción en administración','Anulación de cobro','Anulación de recepción'):
+            raise ValueError('Corrige el registro de dinero desde su historial: anúlalo y vuelve a registrarlo con la fecha correcta.')
         previous = json.loads(event.before_data).get('movement_date') or created_day(p)
         if previous and effective < previous: raise ValueError('La corrección no puede preceder al movimiento anterior.')
         if p.due_date and effective > p.due_date: raise ValueError('La corrección supera la fecha límite.')
-        if event.action in ('Registrar abono','Registrar dinero recibido'):
+        if event.action in ('Registrar abono','Registrar cobro del cliente'):
             values['payment_date']=effective
         elif event.action=='Entregar equipo':
             values['loan_date']=effective
@@ -100,7 +110,7 @@ def operate(pid, action, data):
         if target_status not in ('Disponible','Garantía'): raise ValueError('Selecciona un resultado válido.')
         if action == 'close_warranty': target_status = p.warranty_previous or 'Disponible'
         values.update(status=target_status,location_id=target.id,location=target.name,condition=condition,battery=int(battery) if battery else None)
-        if action == 'return': values.update(responsible=None,purpose=None,due_date=None,warranty_previous='Disponible' if target_status=='Garantía' else None)
+        if action == 'return': values.update(responsible=None,purpose=None,due_date=None,loan_handler=None,loan_price_cents=None,warranty_previous='Disponible' if target_status=='Garantía' else None)
         else: values['warranty_previous']=None
     elif action == 'sell':
         if p.status == 'En pasamano' and p.purpose != 'Venta': raise ValueError('Devuelve el préstamo de reemplazo antes de vender el equipo.')
@@ -110,14 +120,11 @@ def operate(pid, action, data):
         if not responsible or len(responsible)>120: raise ValueError('Indica el vendedor responsable.')
         values.update(status='Vendido',sale_value_cents=amount,responsible=responsible,due_date=None,purpose=None,
                       payment_status='Pagado' if p.paid_cents==amount else 'Parcial' if p.paid_cents else 'Pendiente')
-    elif action == 'payment':
-        if p.payment_status == 'Por verificar': raise ValueError('Venta anterior sin importes verificables. Requiere conciliación antes de registrar pagos.')
-        amount = money(data.get('amount'))
-        if not p.sale_value_cents or amount > p.sale_value_cents-p.paid_cents: raise ValueError('El importe supera el saldo pendiente.')
-        paid = p.paid_cents+amount
-        values.update(paid_cents=paid,payment_status='Pagado' if paid==p.sale_value_cents else 'Parcial',payment_date=effective)
     elif action == 'cancel':
-        if p.paid_cents and data.get('confirm_refund')!='1': raise ValueError('Confirma la devolución completa de los abonos antes de cancelar.')
+        from ..models import Cobro
+        if db.session.scalar(db.select(Cobro.id).where(Cobro.product_id==pid,Cobro.voided==False)):
+            raise ValueError('Este separado tiene cobros registrados. El reembolso y la cancelación con dinero requieren conciliación; no se borrarán los cobros.')
+        if p.paid_cents: raise ValueError('Concilia los abonos antes de cancelar el separado.')
         values.update(status='Disponible',paid_cents=0,sale_value_cents=None,payment_status='No aplica',payment_date=None,responsible=None,due_date=None)
     elif action == 'warranty':
         values.update(status='Garantía',warranty_previous=p.status)

@@ -108,7 +108,8 @@ def history(product_id):
               'shipping_cents':'Envío COP','subtotal_cents':'Subtotal COP','archived':'Retirado del inventario'}
     labels.update({'status':'Estado del equipo','responsible':'Responsable','movement_date':'Fecha del movimiento',
                    'payment_status':'Estado del pago','sale_value_cents':'Valor de venta COP','payment_date':'Fecha de pago',
-                   'seller':'Vendido por','loan_date':'Fecha del préstamo','sale_date':'Fecha de venta','last_note':'Observación'})
+                   'seller':'Vendido por','loan_handler':'Encargada del pasamano','loan_price_cents':'Precio acordado de pasamano COP',
+                   'detalle_dinero':'Detalle de dinero','loan_date':'Fecha del préstamo','sale_date':'Fecha de venta','last_note':'Observación'})
     for row in rows:
         labels.update({'paid_cents':'Dinero recibido COP','purpose':'Propósito','due_date':'Fecha límite','battery':'Batería %','warranty_previous':'Estado anterior a garantía'})
         before, after = json.loads(row.before_data), json.loads(row.after_data)
