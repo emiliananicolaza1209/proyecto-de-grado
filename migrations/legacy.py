@@ -12,7 +12,7 @@ def normalize(value, kind=''):
 
 def add_item(db, kind, name, parent=0):
     key = normalize(name, kind)
-    db.execute('INSERT OR IGNORE INTO catalog(kind,name,normal_key,parent_id) VALUES(?,?,?,?)',
+    db.execute('INSERT OR IGNORE INTO catalog(kind,name,normal_key,parent_id,active) VALUES(?,?,?,?,1)',
                (kind, name, key, parent))
     return db.execute('SELECT id FROM catalog WHERE kind=? AND normal_key=? AND parent_id=?',
                       (kind, key, parent)).fetchone()['id']

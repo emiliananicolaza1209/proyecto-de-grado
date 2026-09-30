@@ -1,0 +1,288 @@
+{% extends "layouts/base.html" %} 
+<!-- Nota: Si tu archivo base se llama distinto (ej. "layout.html" o "layouts/base.html"), cámbialo en la línea de arriba -->
+
+{% block content %}
+<div class="container-fluid px-4 my-4">
+    <h1 class="mb-4">Información Contable y Tributaria (HU-TRI-001 / HU-TRI-002 / HU-TRI-003)</h1>
+    <p class="text-muted">Consolidado de compras, ventas, ingresos, gastos y consignaciones por periodo para revisión del contador. Apoyo informativo: no determina impuestos ni reemplaza su criterio (RN-TRI-001). Campos pendientes de validación con el contador (P-004).</p>
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">Consolidado por periodo</div>
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3"><label class="form-label">Desde</label><input type="date" name="ini" value="{{ ini }}" class="form-control" required></div>
+                <div class="col-md-3"><label class="form-label">Hasta</label><input type="date" name="fin" value="{{ fin }}" class="form-control" required></div>
+                <div class="col-md-3"><button class="btn btn-primary w-100">Consolidar</button></div>
+                <div class="col-md-3"><a class="btn btn-success w-100" href="{{ url_for('contabilidad.exportar_csv', ini=ini, fin=fin) }}">Exportar CSV</a></div>
+            </form>
+        </div>
+    </div>
+
+    {% if consolidado %}
+    <div class="row mb-4">
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Compras ({{ consolidado.compras.count }})</small><h4>${{ "{:,.0f}".format(consolidado.compras.total_cents/100) }}</h4></div></div></div>
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Ventas ({{ consolidado.ventas.count }})</small><h4>${{ "{:,.0f}".format(consolidado.ventas.total_cents/100) }}</h4><small>Cobrado ${{ "{:,.0f}".format(consolidado.ventas.cobrado_cents/100) }} · Saldo ${{ "{:,.0f}".format(consolidado.ventas.saldo_cents/100) }}</small></div></div></div>
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Utilidad estimada</small><h4>${{ "{:,.0f}".format(consolidado.ventas.utilidad_cents/100) }}</h4><small>Venta menos costo, excluye anuladas</small></div></div></div>
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Ingresos ({{ consolidado.ingresos.count }})</small><h4>${{ "{:,.0f}".format(consolidado.ingresos.total_cents/100) }}</h4></div></div></div>
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Gastos ({{ consolidado.gastos.count }})</small><h4>${{ "{:,.0f}".format(consolidado.gastos.total_cents/100) }}</h4></div></div></div>
+        <div class="col-md-2"><div class="card shadow-sm"><div class="card-body"><small>Consignaciones ({{ consolidado.consignaciones.count }})</small><h4>${{ "{:,.0f}".format(consolidado.consignaciones.total_cents/100) }}</h4></div></div></div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">Detalle {{ ini }} a {{ fin }} (fuente de cada registro)</div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm table-striped">
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Fuente</th><th class="text-end">Valor COP</th></tr></thead>
+                <tbody>
+                {% for r in consolidado.compras.detalle + consolidado.ventas.detalle + consolidado.ingresos.detalle + consolidado.gastos.detalle + consolidado.consignaciones.detalle %}
+                    <tr><td>{{ r.fecha }}</td><td>{{ r.tipo }}</td><td>{{ r.detalle }}</td><td>{{ r.fuente }}</td><td class="text-end">${{ "{:,.0f}".format(r.valor_cents/100) }}</td></tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center text-muted">Sin movimientos en el periodo.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">Registros por revisar (datos faltantes o sin clasificar)</div>
+        <div class="card-body">
+            <ul class="mb-0">
+            {% for f in consolidado.faltantes %}
+                <li>{{ f }}</li>
+            {% else %}
+                <li class="text-muted">Sin pendientes en el periodo.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">Registrar ingreso o gasto (HU-FIN-001 / HU-FIN-002)</div>
+        <div class="card-body">
+            <form action="{{ url_for('contabilidad.registrar_movimiento') }}" method="POST" class="row g-2">
+                <input type="hidden" name="csrf" value="{{ session.csrf }}">
+                <div class="col-md-2"><label class="form-label">Tipo</label><select name="tipo" class="form-select" required><option value="">...</option><option value="INGRESO">Ingreso</option><option value="GASTO">Gasto</option></select></div>
+                <div class="col-md-3"><label class="form-label">Concepto</label><input type="text" name="concepto" class="form-control" required minlength="3" maxlength="120"></div>
+                <div class="col-md-2"><label class="form-label">Categoría</label><select name="categoria" class="form-select">{% for c in categorias %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></div>
+                <div class="col-md-2"><label class="form-label">Valor COP</label><input type="number" step="0.01" min="0.01" name="valor" class="form-control" required></div>
+                <div class="col-md-2"><label class="form-label">Fecha</label><input type="date" name="fecha" class="form-control" required></div>
+                <div class="col-md-2"><label class="form-label">Relación</label><input type="text" name="relacion" class="form-control" placeholder="Lote, equipo o periodo"></div>
+                <div class="col-md-2"><label class="form-label">Soporte</label><input type="text" name="soporte_ref" class="form-control" placeholder="Ref. factura"></div>
+                <div class="col-md-2"><label class="form-label">Responsable</label><input type="text" name="responsable" class="form-control"></div>
+                <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">Ingresos y gastos del periodo (corregir clasificación — HU-TRI-003)</div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm table-striped align-middle">
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Categoría</th><th class="text-end">Valor COP</th><th>Corregir a</th></tr></thead>
+                <tbody>
+                {% for m in movimientos %}
+                    <tr>
+                        <td>{{ m.fecha }}</td><td>{{ m.tipo }}</td><td>{{ m.concepto }}</td><td>{{ m.categoria }}</td>
+                        <td class="text-end">${{ "{:,.0f}".format(m.valor_cents/100) }}</td>
+                        <td><form action="{{ url_for('contabilidad.corregir', ig_id=m.id) }}" method="POST" class="d-flex gap-1">
+                            <input type="hidden" name="csrf" value="{{ session.csrf }}">
+                            <select name="nueva_categoria" class="form-select form-select-sm">{% for c in categorias %}{% if c != m.categoria %}<option value="{{ c }}">{{ c }}</option>{% endif %}{% endfor %}</select>
+                            <input type="text" name="motivo" class="form-control form-control-sm" placeholder="Motivo" required minlength="3" maxlength="500">
+                            <button class="btn btn-sm btn-outline-primary">OK</button>
+                        </form></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center text-muted">Sin ingresos ni gastos en el periodo.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">Correcciones de clasificación (auditoría — anterior → nueva)</div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>#</th><th>Registro</th><th>Anterior</th><th>Nueva</th><th>Motivo</th><th>Actor</th></tr></thead>
+                <tbody>
+                {% for c in correcciones %}
+                    <tr><td>{{ c.id }}</td><td>{{ c.entidad }} #{{ c.entidad_id }}</td><td>{{ c.anterior }}</td><td>{{ c.nueva }}</td><td>{{ c.motivo }}</td><td>{{ c.actor }}</td></tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center text-muted">Sin correcciones registradas.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">Reportes generados (quién y cuándo — HU-TRI-002)</div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>#</th><th>Periodo</th><th>Actor</th><th>Fecha</th></tr></thead>
+                <tbody>
+                {% for r in reportes %}
+                    <tr><td>{{ r.id }}</td><td>{{ r.fecha_ini }} a {{ r.fecha_fin }}</td><td>{{ r.actor }}</td><td>{{ r.created_at }}</td></tr>
+                {% else %}
+                    <tr><td colspan="4" class="text-center text-muted">Aún no se ha exportado ningún reporte.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <h2 class="mt-5 mb-3">Control de consignaciones — alerta UVT (extra)</h2>
+
+    <div class="alert alert-info">
+        <strong>Tope DIAN Consignaciones:</strong> El límite acumulado anual es de 1,400 UVT. Si un individuo supera este valor, queda obligado a declarar renta.
+    </div>
+
+    <!-- SECCIÓN PARA CREAR DESTINATARIOS Y BANCOS RÁPIDAMENTE -->
+    <div class="row mb-4">
+        <!-- Crear Destinatario -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">Registrar Nuevo Destinatario / Persona</div>
+                <div class="card-body">
+                    <form action="{{ url_for('contabilidad.crear_destinatario') }}" method="POST" class="row g-2">
+                        <input type="hidden" name="csrf" value="{{ session.csrf }}">
+                        <div class="col-md-4">
+                            <input type="text" name="nombre" class="form-control" placeholder="Nombre o Razón Social" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="identificacion" class="form-control" placeholder="Identificación / NIT" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="tipo" class="form-select" required>
+                                <option value="">Tipo...</option>
+                                <option value="Natural">Natural</option>
+                                <option value="Juridica">Jurídica</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-outline-secondary w-100">Crear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crear Banco -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">Registrar Nuevo Banco Destino</div>
+                <div class="card-body">
+                    <form action="{{ url_for('contabilidad.crear_banco') }}" method="POST" class="row g-2">
+                        <input type="hidden" name="csrf" value="{{ session.csrf }}">
+                        <div class="col-md-8">
+                            <input type="text" name="nombre_banco" class="form-control" placeholder="Nombre del Banco (Ej. Bancolombia)" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-outline-secondary w-100">Crear Banco</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para Registrar Consignación -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">Registrar Nueva Consignación a Personal/Cliente</div>
+        <div class="card-body">
+            <form action="{{ url_for('contabilidad.registrar_consignacion') }}" method="POST" class="row g-3">
+                <input type="hidden" name="csrf" value="{{ session.csrf }}">
+                <div class="col-md-3">
+                    <label class="form-label">Destinatario</label>
+                    <select name="persona_id" class="form-select" required>
+                        <option value="">Seleccione...</option>
+                        {% for p in destinatarios %}
+                            <option value="{{ p.id }}">{{ p.nombre }} ({{ p.identificacion }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Banco Destino</label>
+                    <select name="banco_id" class="form-select" required>
+                        <option value="">Seleccione banco...</option>
+                        {% for b in bancos %}
+                            <option value="{{ b.id }}">{{ b.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Monto (COP)</label>
+                    <input type="number" step="0.01" name="monto" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Referencia</label>
+                    <input type="text" name="referencia" class="form-control">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Estado del Personal frente a la Renta -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">Estado de Consignaciones por Individuo (Topes DIAN)</div>
+        <div class="card-body">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Identificación</th>
+                        <th>Total Consignado (Año)</th>
+                        <th>Progreso del Tope</th>
+                        <th>Estado DIAN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in reporte_personal %}
+                    <tr>
+                        <td>{{ item.persona.nombre }}</td>
+                        <td>{{ item.persona.identificacion }}</td>
+                        <td>${{ "{:,.2f}".format(item.estado.total_consignado) }}</td>
+                        <td>
+                            <div class="progress">
+                                 <div class="progress-bar {% if item.estado.porcentaje >= 100 %}bg-danger{% else %}bg-success{% endif %}"
+                                      role="progressbar"
+                                      aria-valuenow="{{ item.estado.porcentaje }}"
+                                      aria-valuemin="0"
+                                      aria-valuemax="100"
+                                      data-width="{{ item.estado.porcentaje }}">
+                                     {{ "%.1f"|format(item.estado.porcentaje) }}%
+                                 </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.estado.porcentaje >= 100 %}
+                                <span class="badge bg-danger">Obligado a Renta</span>
+                            {% else %}
+                                <span class="badge bg-success">Seguro</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No hay destinatarios registrados aún.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-width]').forEach(function (bar) {
+        var percentage = Math.min(100, Math.max(0, Number(bar.dataset.width) || 0));
+        bar.style.width = percentage + '%';
+    });
+</script>
+{% endblock %}

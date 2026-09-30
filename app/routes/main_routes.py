@@ -13,6 +13,8 @@ def home():
 def module(name):
     if name == 'ventas':
         return redirect(url_for('ventas.index'))
+    if name == 'tributario':
+        return redirect(url_for('contabilidad.index'))
     modules = {'ventas':'Ventas y pagos', 'finanzas':'Finanzas y liquidaciones',
                'analitica':'Analítica y agente', 'tributario':'Información contable y tributaria',
                'usuarios':'Usuarios y permisos'}

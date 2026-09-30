@@ -57,6 +57,8 @@ def upgrade(path):
     upgrade_v6(path)
     upgrade_v7(path)
     upgrade_v8(path)
+    upgrade_v9(path)
+    upgrade_v10(path)
 
 
 def upgrade_v8(path):
@@ -152,3 +154,46 @@ def upgrade_v5(path):
                 clause = f"ALTER TABLE equipment ADD COLUMN {name} {typ}" + (f" NOT NULL DEFAULT {default}" if default else '')
                 connection.execute(clause)
         connection.execute('INSERT INTO schema_version(version) VALUES(5)')
+
+
+def upgrade_v9(path):
+    """MOD-05 HU-TRI-002: trazabilidad de reportes para el contador. No borra nada."""
+    with sqlite3.connect(path) as connection:
+        if connection.execute('SELECT 1 FROM schema_version WHERE version=9').fetchone():
+            return
+        backup_path = Path(str(path) + '.antes_MOD05.bak')
+        if not backup_path.exists():
+            with sqlite3.connect(backup_path) as backup:
+                connection.backup(backup)
+        connection.execute('BEGIN')
+        connection.execute('''CREATE TABLE IF NOT EXISTS reportes_generados (
+            id INTEGER PRIMARY KEY, fecha_ini TEXT NOT NULL, fecha_fin TEXT NOT NULL,
+            actor TEXT NOT NULL DEFAULT 'Sesión local sin autenticación',
+            totales_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        connection.execute('INSERT INTO schema_version(version) VALUES(9)')
+
+
+def upgrade_v10(path):
+    """MOD-05 culminación: ingresos/gastos (HU-FIN-001/002, HU-TRI-001) y
+    auditoría de correcciones de clasificación (HU-TRI-003). No borra nada."""
+    with sqlite3.connect(path) as connection:
+        if connection.execute('SELECT 1 FROM schema_version WHERE version=10').fetchone():
+            return
+        backup_path = Path(str(path) + '.antes_MOD05b.bak')
+        if not backup_path.exists():
+            with sqlite3.connect(backup_path) as backup:
+                connection.backup(backup)
+        connection.execute('BEGIN')
+        connection.execute('''CREATE TABLE IF NOT EXISTS ingresos_gastos (
+            id INTEGER PRIMARY KEY, tipo TEXT NOT NULL, concepto TEXT NOT NULL,
+            categoria TEXT NOT NULL DEFAULT 'OTRO', valor_cents INTEGER NOT NULL,
+            fecha TEXT NOT NULL, relacion TEXT NOT NULL DEFAULT '',
+            soporte_ref TEXT NOT NULL DEFAULT '', responsable TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        connection.execute('''CREATE TABLE IF NOT EXISTS correcciones_clasificacion (
+            id INTEGER PRIMARY KEY, entidad TEXT NOT NULL DEFAULT 'ingreso_gasto',
+            entidad_id INTEGER NOT NULL, anterior TEXT NOT NULL, nueva TEXT NOT NULL,
+            motivo TEXT NOT NULL, actor TEXT NOT NULL DEFAULT 'Sesión local sin autenticación',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        connection.execute('INSERT INTO schema_version(version) VALUES(10)')

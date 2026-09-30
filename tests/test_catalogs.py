@@ -46,7 +46,17 @@ class CatalogTests(unittest.TestCase):
             self.fields['lot_id'] = lot.id
 
     def tearDown(self):
-        self.temp.cleanup()
+        with self.app.app_context():
+            from app.extensions import db as _db
+            _db.session.remove()
+            try:
+                _db.engine.dispose()
+            except Exception:
+                pass
+        try:
+            self.temp.cleanup()
+        except Exception:
+            pass  # Windows retiene el handle del sqlite; %TEMP% lo reclama.
 
     def imei(self, n):
         prefix = f'49015420323{n:03d}'
