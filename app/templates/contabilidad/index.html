@@ -1,0 +1,342 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 my-4">
+
+    <div class="mb-4">
+        <p class="eyebrow">MÓDULO 06</p>
+        <h1>Información contable</h1>
+        <p class="text-muted">
+            Control de destinatarios, bancos y consignaciones registradas.
+        </p>
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Umbral de control configurado:</strong>
+        ${{ "{:,.0f}".format(tope_limite) }} COP.
+        Este indicador genera una alerta interna de revisión y no reemplaza
+        la evaluación realizada por un contador.
+    </div>
+
+    <!-- REGISTRO DE PERSONAS Y BANCOS -->
+    <div class="row g-4 mb-4">
+
+        <!-- Registrar persona -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-secondary text-white">
+                    Registrar persona o destinatario
+                </div>
+
+                <div class="card-body">
+                    <form
+                        action="{{ url_for('contabilidad.crear_destinatario') }}"
+                        method="POST"
+                        class="row g-3"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf"
+                            value="{{ session.csrf }}"
+                        >
+
+                        <div class="col-md-5">
+                            <label class="form-label" for="nombre">
+                                Nombre o razón social
+                            </label>
+                            <input
+                                id="nombre"
+                                type="text"
+                                name="nombre"
+                                class="form-control"
+                                placeholder="Ej. Sandra Pérez"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="identificacion">
+                                Identificación o NIT
+                            </label>
+                            <input
+                                id="identificacion"
+                                type="text"
+                                name="identificacion"
+                                class="form-control"
+                                placeholder="Número de identificación"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label" for="tipo">
+                                Tipo de persona
+                            </label>
+                            <select
+                                id="tipo"
+                                name="tipo"
+                                class="form-select"
+                                required
+                            >
+                                <option value="">Seleccionar</option>
+                                <option value="Natural">Natural</option>
+                                <option value="Juridica">Jurídica</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-secondary"
+                            >
+                                Registrar persona
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registrar banco -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-secondary text-white">
+                    Registrar banco de destino
+                </div>
+
+                <div class="card-body">
+                    <form
+                        action="{{ url_for('contabilidad.crear_banco') }}"
+                        method="POST"
+                        class="row g-3"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf"
+                            value="{{ session.csrf }}"
+                        >
+
+                        <div class="col-md-8">
+                            <label class="form-label" for="nombre_banco">
+                                Nombre del banco
+                            </label>
+                            <input
+                                id="nombre_banco"
+                                type="text"
+                                name="nombre_banco"
+                                class="form-control"
+                                placeholder="Ej. Bancolombia"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-secondary w-100"
+                            >
+                                Registrar banco
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTRAR CONSIGNACIÓN -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            Registrar consignación
+        </div>
+
+        <div class="card-body">
+            <form
+                action="{{ url_for('contabilidad.registrar_consignacion') }}"
+                method="POST"
+                class="row g-3"
+            >
+                <input
+                    type="hidden"
+                    name="csrf"
+                    value="{{ session.csrf }}"
+                >
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label" for="persona_id">
+                        Persona o destinatario
+                    </label>
+                    <select
+                        id="persona_id"
+                        name="persona_id"
+                        class="form-select"
+                        required
+                    >
+                        <option value="">Seleccionar persona</option>
+
+                        {% for persona in destinatarios %}
+                        <option value="{{ persona.id }}">
+                            {{ persona.nombre }} — {{ persona.identificacion }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label" for="banco_id">
+                        Banco de destino
+                    </label>
+                    <select
+                        id="banco_id"
+                        name="banco_id"
+                        class="form-select"
+                        required
+                    >
+                        <option value="">Seleccionar banco</option>
+
+                        {% for banco in bancos %}
+                        <option value="{{ banco.id }}">
+                            {{ banco.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label" for="monto">
+                        Monto en COP
+                    </label>
+                    <input
+                        id="monto"
+                        type="number"
+                        name="monto"
+                        class="form-control"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="0"
+                        required
+                    >
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label" for="referencia">
+                        Referencia
+                    </label>
+                    <input
+                        id="referencia"
+                        type="text"
+                        name="referencia"
+                        class="form-control"
+                        placeholder="Opcional"
+                    >
+                </div>
+
+                <div class="col-lg-2 d-flex align-items-end">
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100"
+                    >
+                        Guardar consignación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- REPORTE CONTABLE -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            Control de consignaciones por persona
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Identificación</th>
+                            <th>Total consignado</th>
+                            <th>Uso del umbral</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in reporte_personal %}
+                        <tr>
+                            <td>{{ item.persona.nombre }}</td>
+                            <td>{{ item.persona.identificacion }}</td>
+
+                            <td>
+                                ${{ "{:,.2f}".format(
+                                    item.estado.total_consignado
+                                ) }}
+                            </td>
+
+                            <td style="min-width: 220px;">
+                                <div
+                                    class="progress"
+                                    role="progressbar"
+                                    aria-label="Uso del umbral"
+                                    aria-valuenow="{{ item.estado.porcentaje }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                >
+                                    <div
+                                        class="progress-bar
+                                        {% if item.estado.supera_tope %}
+                                            bg-danger
+                                        {% else %}
+                                            bg-success
+                                        {% endif %}"
+                                        data-width="{{ item.estado.porcentaje }}"
+                                    >
+                                        {{ "%.1f"|format(
+                                            item.estado.porcentaje
+                                        ) }}%
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                {% if item.estado.supera_tope %}
+                                <span class="badge bg-danger">
+                                    Requiere revisión
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    Dentro del umbral
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        {% else %}
+                        <tr>
+                            <td
+                                colspan="5"
+                                class="text-center text-muted py-4"
+                            >
+                                Todavía no hay personas registradas.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll("[data-width]").forEach(function (barra) {
+        const porcentaje = Math.min(
+            100,
+            Math.max(0, Number(barra.dataset.width) || 0)
+        );
+
+        barra.style.width = porcentaje + "%";
+    });
+</script>
+{% endblock %}
