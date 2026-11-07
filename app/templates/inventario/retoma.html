@@ -1,0 +1,25 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<a class="back-link" href="{{ url_for('inventory.index') }}">← Volver al inventario</a>
+<div class="heading"><div><p class="eyebrow">COMPRAS E INVENTARIO / POOL</p><h1>Registrar equipo de retoma</h1><p>Compra a cliente en pesos, sin lote. Proveedor CP CELULARES y condición Usado.</p></div><a class="btn btn-light" href="{{ url_for('inventory.new') }}">Compra por lote en USD</a></div>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+<script type="application/json" id="catalog-data">{{ catalog|tojson }}</script>
+<form method="post" id="equipment-form"><input type="hidden" name="csrf" value="{{ session.csrf }}"><input type="hidden" name="entry_type" value="Retoma">
+<section class="panel scan-panel"><h2>01 · Identifica el equipo</h2><label for="imei">IMEI</label><div class="scan-input"><input id="imei" name="imei" class="form-control" inputmode="numeric" pattern="[0-9]{15}" maxlength="15" required autocomplete="off" value="{{ data.get('imei','') }}" placeholder="Escanea o escribe los 15 dígitos"><button type="button" id="focus-scanner" class="btn btn-outline-primary">Preparar lector</button></div><div id="scan-status" class="scan-status" role="status" aria-live="polite">Esperando IMEI.</div></section>
+<section class="panel"><h2>02 · Características y ubicación</h2><div class="form-grid">
+<div><label for="brand">Marca</label><select id="brand" name="brand_id" class="form-select" required><option value="">Seleccionar marca</option>{% for item in catalog if item.kind=='brand' %}<option value="{{ item.id }}" {% if data.get('brand_id')|string==item.id|string %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+{% include 'inventario/modelo.html' %}
+<div><label for="color">Color</label><select id="color" name="color_id" class="form-select" required data-selected="{{ data.get('color_id','') }}"><option value="">Selecciona un modelo</option></select></div>
+<div><label for="capacity">Capacidad</label><select id="capacity" name="capacity_id" class="form-select" required data-selected="{{ data.get('capacity_id','') }}"><option value="">Selecciona un modelo</option></select></div>
+<div><label for="condition">Condición</label><input id="condition" name="condition" class="form-control" value="Usado" readonly></div>
+<div><label>Proveedor</label><input class="form-control" value="CP CELULARES" readonly></div>
+<div><label for="location">Local donde queda el equipo</label><select id="location" name="location_id" class="form-select" required><option value="">Seleccionar local</option>{% for item in catalog if item.kind=='location' and item.name|upper not in ['BODEGA','BODEGA1'] %}<option value="{{ item.id }}" {% if data.get('location_id')|string==item.id|string %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+{% include 'inventario/cobertura.html' %}
+</div></section>
+<section class="panel"><h2>03 · Costo de la retoma en COP</h2><p>El costo total incluye el precio pagado, comisión de compra y reparaciones. Agrega hasta cinco costos. Ningún valor de USD o TRM aplica al POOL.</p>
+<div class="form-grid"><div><label for="purchase_cop">Valor pagado al cliente · COP</label><input id="purchase_cop" name="purchase_cop" class="form-control" type="number" min="0.01" max="999999999" step="0.01" required inputmode="decimal" value="{{ data.get('purchase_cop','') }}"></div></div>
+<div id="retoma-cost-rows">{% for name in data.get('additional_name',[]) %}<div class="form-grid retoma-cost-row"><label>Tipo de costo<input name="additional_name" class="form-control" required maxlength="120" value="{{ name }}" placeholder="Comisión, cambio de batería..."></label><label>Valor · COP<input name="additional_amount" class="form-control" type="number" min="0.01" max="999999999" step="0.01" required value="{{ data.get('additional_amount',[])[loop.index0] if loop.index0 < data.get('additional_amount',[])|length else '' }}"></label><button type="button" class="btn btn-light retoma-remove">Quitar</button></div>{% endfor %}</div>
+<button type="button" id="add-retoma-cost" class="btn btn-outline-primary">+ Comisión o reparación</button><div class="cost-summary" aria-live="polite"><div><span>Valor de compra</span><output id="subtotal-preview">—</output></div><div><span>Costo total del equipo</span><output id="total-preview">—</output></div></div><p id="cost-status" class="muted"></p></section>
+<div class="save-bar"><span>El precio de venta se registra más adelante en Ventas y pagos.</span><div><button type="submit" name="action" value="similar" class="btn btn-outline-primary">Guardar y escanear siguiente</button> <button type="submit" name="action" value="save" class="btn btn-primary">Guardar en el POOL</button></div></div>
+</form><script src="{{ url_for('static',filename='js/retoma.js',v='1') }}"></script>
+{% endblock %}

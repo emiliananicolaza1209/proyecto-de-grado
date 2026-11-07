@@ -1,1 +1,6 @@
-<nav class="panel" aria-label="Secciones de ventas"><a class="btn btn-primary" href="/ventas">Pasamano y cobros</a> <a class="btn btn-light" href="/ventas/recepciones">Recepción de dinero</a><p class="device-meta">Prototipo local: los permisos por usuario todavía están pendientes de implementación.</p></nav>
+<nav class="g-nav" aria-label="Secciones de ventas">
+  {% if can('consulta') %}<a href="{{ url_for('ventas.index') }}" {% if request.endpoint in ['ventas.index','ventas.detail'] %}aria-current="page"{% endif %}>Pasamano y cobros</a>{% endif %}
+  {% if can('admin') %}<a href="{{ url_for('ventas.receipts') }}" {% if request.endpoint in ['ventas.receipts','ventas.receipt_detail'] %}aria-current="page"{% endif %}>Recepción de dinero</a>{% endif %}
+  {% if can('admin') or can('sociedades_consulta') %}<a href="{{ url_for('gestion.sociedades') }}" {% if request.endpoint=='gestion.sociedades' %}aria-current="page"{% endif %}>Sociedades y liquidaciones</a>{% endif %}
+  {% if can('costos') or can('sociedades_consulta') %}<a href="{{ url_for('gestion.inversion') }}" {% if request.endpoint=='gestion.inversion' %}aria-current="page"{% endif %}>Inversión por ubicación</a>{% endif %}
+</nav>

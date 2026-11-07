@@ -7,3 +7,6 @@
 .warranty-field label { cursor: pointer; }
 #warranty-fields { max-width: 400px; margin-top: 16px; }
 [hidden] { display: none !important; }
+
+.availability.status-sold{background:#fee9e9;color:#a11c24;border:1px solid #f1babc}
+.pill.status-sold{background:#fee9e9;color:#a11c24;border:1px solid #f1babc}

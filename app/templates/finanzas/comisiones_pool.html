@@ -1,0 +1,17 @@
+<section class="panel" id="comisiones-pool">
+  <h2>Comisiones extra por ventas del POOL</h2>
+  <p>$20.000 por equipo, adicionales a la comisión habitual. El descuento de utilidad se registra al vender; confirmar la entrega solo descuenta el efectivo. Se muestran las pendientes con su fecha de origen y las pagadas en esta jornada.</p>
+  {% for c,origin_date,paid_date in pool.commissions %}
+  <details class="f-obligation" {% if error and form.get('action')=='pool_commission' and form.get('commission_id')==c.id|string %}open{% endif %}>
+    <summary>{{ origin_date }} · Venta #{{ c.operacion_id }} · {{ c.monto|cop }} · {{ 'Pagada el '+paid_date if paid_date else 'Pendiente de entrega' }}</summary>
+    <ul>{% for person in c.reparto %}<li>{{ person.nombre }}: {{ person.importe|cop }}</li>{% endfor %}</ul>
+    {% if not c.pago_operacion_id and d.status=='Abierta' %}
+    <form method="post">{{ hidden('pool_commission') }}<input type="hidden" name="commission_id" value="{{ c.id }}">
+      <p>Fecha de entrega: {{ day }}</p>
+      <label class="f-check"><input type="checkbox" name="confirmed" value="1" required>Confirmo que se entregó el dinero al personal indicado.</label>
+      <button class="btn-primary">Confirmar entrega de comisión</button>
+    </form>
+    {% endif %}
+  </details>
+  {% else %}<p class="muted">No hay comisiones extra pendientes ni pagadas en esta fecha.</p>{% endfor %}
+</section>

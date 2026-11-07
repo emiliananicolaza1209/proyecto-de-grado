@@ -12,7 +12,9 @@ from .finanzas import (
 from .contabilidad import (
     PersonaContable,
     BancoDestino,
+    PersonaBanco,
     ConsignacionBancaria,
+    HistorialConsignacion,
 )
 
 __all__ = [
@@ -28,5 +30,9 @@ __all__ = [
     "AuditoriaFinanciera",
     "PersonaContable",
     "BancoDestino",
+    "PersonaBanco",
     "ConsignacionBancaria",
+    "HistorialConsignacion",
 ]
+
+from .gestion import *

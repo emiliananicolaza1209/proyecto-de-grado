@@ -1,3 +1,44 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CP Store · Gestión</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="{{ url_for('static', filename='css/global.css', v='12') }}" rel="stylesheet"><link href="{{ url_for('static', filename='css/inventario.css', v='12') }}" rel="stylesheet">{% if active=='ventas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/ventas.css',v='2') }}">{% endif %}{% if active=='finanzas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas.css',v='1') }}">{% endif %}</head>
-<body><a class="skip" href="#contenido">Saltar al contenido</a><aside><a class="brand" href="/"><span class="brand-mark">CP</span><span>CP STORE<small>GESTIÓN DEL NEGOCIO</small></span></a><p class="nav-label">ESPACIO DE TRABAJO</p><nav aria-label="Navegación principal">{% for key,label,target,icon in [('inicio','Resumen','/','01'),('inventario','Compras e inventario','/inventario','02'),('ventas','Ventas y pagos','/ventas','03'),('finanzas','Finanzas','/modulos/finanzas','04'),('analitica','Analítica y agente','/modulos/analitica','05'),('tributario','Información contable','/modulos/tributario','06'),('usuarios','Usuarios','/modulos/usuarios','07')] %}<a class="{{ 'active' if active==key else '' }}" {% if active==key %}aria-current="page"{% endif %} href="{{ target }}"><span class="nav-number">{{ icon }}</span>{{ label }}</a>{% endfor %}</nav><div class="local"><span class="status-dot"></span> Entorno de desarrollo<small>Trabaja con datos de prueba.</small></div></aside><main id="contenido"><header><span>Administración <span class="slash">/</span> CP Store</span><span class="workspace">CP <span>Versión INV-12</span></span></header>{% for msg in get_flashed_messages() %}<div role="status" class="alert alert-success">{{ msg }}</div>{% endfor %}{% block content %}{% endblock %}<footer>CP STORE <span>Control y claridad en cada operación.</span></footer></main><script src="{{ url_for('static', filename='js/inventario.js', v='12') }}"></script>{% if active=='ventas' %}<script src="{{ url_for('static',filename='js/ventas.js',v='2') }}"></script>{% endif %}{% if active=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='1') }}"></script>{% endif %}</body></html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CP Store · Gestión{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/global.css', v='12') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/inventario.css', v='14') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='css/experiencia.css',v='4') }}" rel="stylesheet">
+  {% if request.endpoint=='catalogos.index' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/catalogos.css',v='16.2') }}">{% endif %}
+  {% if active=='inicio' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/inicio.css',v='1') }}">{% endif %}
+  {% if active=='ventas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/ventas.css',v='16.2') }}">{% endif %}
+  {% if active=='finanzas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas.css',v='2') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='4') }}">{% endif %}
+  {% if active=='tributario' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}">{% endif %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}"></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside class="app-sidebar" id="app-sidebar">
+  <a class="brand" href="/"><span class="brand-mark">CP</span><span>CP STORE<small>GESTIÓN DEL NEGOCIO</small></span></a>
+  <p class="nav-label">ESPACIO DE TRABAJO</p>
+  <nav class="app-nav" aria-label="Navegación principal">
+    {% for key,label,target,icon in [('inicio','Resumen','/','01'),('inventario','Compras e inventario','/inventario','02'),('ventas','Ventas y pagos','/ventas','03'),('finanzas','Finanzas','/modulos/finanzas','04'),('analitica','Analítica y agente','/modulos/analitica','05'),('tributario','Información contable','/modulos/tributario','06'),('usuarios','Usuarios','/modulos/usuarios','07')] %}
+    {% if key not in ('usuarios','tributario','finanzas') or (key=='usuarios' and can('usuarios')) or (key=='tributario' and can('contabilidad')) or (key=='finanzas' and can('finanzas_venta')) %}<a class="{{ 'active' if active==key else '' }}" {% if active==key %}aria-current="page"{% endif %} href="{{ target }}"><span class="nav-number">{{ icon }}</span>{{ label }}</a>{% endif %}
+    {% endfor %}
+  </nav>
+  <div class="local"><span class="status-dot"></span> Entorno de desarrollo<small>Acceso según el perfil de cada usuario</small></div>
+</aside>
+<main id="contenido">{% if usuario %}<div class="g-session">{{ usuario.nombre }} · {{ usuario.rol }}<form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf" value="{{ session.csrf }}"><button>Cerrar sesión</button></form></div>{% endif %}
+  <header class="app-topbar">
+    <div class="app-topbar-title"><button class="app-menu-toggle" type="button" aria-label="Mostrar navegación" aria-expanded="false" aria-controls="app-sidebar">☰</button><span>CP Store <span class="slash">/</span> {{ {'inicio':'Resumen','inventario':'Compras e inventario','ventas':'Ventas y pagos','finanzas':'Finanzas','tributario':'Información contable','analitica':'Analítica','usuarios':'Usuarios'}.get(active,'Gestión') }}</span></div>
+    <form class="app-quick-search" role="search" action="/ventas" method="get"><label class="visually-hidden" for="quick-imei">Buscar equipo en el sistema</label><span aria-hidden="true">⌕</span><input id="quick-imei" name="q" type="search" placeholder="Buscar equipo o escanear IMEI" autocomplete="off"><button type="submit">Buscar</button></form>
+    <span class="workspace">CP <span>Gestión interna</span></span>
+  </header>
+  {% for category,msg in get_flashed_messages(with_categories=True) %}<div role="status" class="alert alert-{{ 'danger' if category in ['danger','error'] else 'warning' if category=='warning' else 'success' }}">{{ msg }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+  <footer>CP STORE <span>Control y claridad en cada operación.</span></footer>
+</main>
+<script src="{{ url_for('static', filename='js/experiencia.js', v='1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/inventario.js', v='12') }}" defer></script>
+{% if active=='ventas' %}<script src="{{ url_for('static',filename='js/ventas.js',v='2') }}" defer></script>{% endif %}
+{% if active=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='16.1') }}" defer></script>{% endif %}
+{% if active=='tributario' %}<script src="{{ url_for('static',filename='js/contabilidad.js',v='16.2') }}" defer></script>{% endif %}
+{% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
+<script src="{{ url_for('static',filename='js/gestion.js',v='16') }}"></script></body></html>

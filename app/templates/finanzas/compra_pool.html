@@ -1,0 +1,39 @@
+{% if can('admin') %}
+{% if d.status=='Abierta' %}
+<details class="panel f-new" id="compra-pool" {% if error and form.get('action')=='pool_purchase' %}open{% endif %}>
+  <summary>+ Registrar compra POOL</summary>
+  <p>Registra el aporte de administración para una retoma ya ingresada en Compras e inventario. Su ganancia queda en esta jornada y no aumenta el contador de ventas.</p>
+  <p class="f-help">Ejemplo: administración aporta $600.000 y se pagan $500.000 al cliente, sin otros costos. Quedan $100.000 de ganancia del día. El capital del equipo es $600.000 para no contar esa ganancia otra vez al venderlo.</p>
+  {% if pool.candidates %}
+  <form method="post" id="pool-purchase-form">
+    {{ hidden('pool_purchase') }}
+    <div class="f-grid">
+      <label>Equipo POOL pendiente de registrar en Finanzas
+        <select name="product_id" required>
+          <option value="">Seleccionar equipo</option>
+          {% for p in pool.candidates %}<option value="{{ p.id }}" data-cost="{{ p.cost_cents }}" data-client="{{ p.purchase_cop_cents or p.cost_cents }}">{{ p.model }} · {{ p.imei }} · Compra y costos {{ p.cost_cents|cop }}</option>{% endfor %}
+        </select>
+      </label>
+      {{ money('funding','Aporte recibido de administración · COP') }}
+      <label>Origen de la compra<select name="purchase_mode"><option>Compra directa</option><option>Parte de pago</option></select></label>
+      <label data-pool-origin hidden>Venta que recibió el equipo como parte de pago
+        <select name="origin_sale_id"><option value="">Seleccionar venta</option>{% for sale,date in pool.sales %}<option value="{{ sale.id }}">{{ date }} · #{{ sale.id }} · {{ sale.description }}</option>{% endfor %}</select>
+      </label>
+      <label>Propiedad del equipo<select name="society_id"><option value="">100 % JONATAN</option>{% for s in pool.societies %}<option value="{{ s.id }}">{{ s.nombre }}</option>{% endfor %}</select></label>
+    </div>
+    <div class="f-preview" id="pool-purchase-preview" role="status" aria-live="polite">Selecciona el equipo e ingresa el aporte para consultar la ganancia.</div>
+    <p>Se registrará en la jornada del <strong>{{ day }}</strong>. El aporte debe cubrir la compra y todos los costos registrados del equipo.</p>
+    <label class="f-check"><input type="checkbox" name="confirmed" value="1" required>Confirmo el aporte recibido y el pago de la compra y sus costos. Si es parte de pago, el equipo ya se aplicó a la venta seleccionada.</label>
+    <button class="btn-primary">Registrar compra en jornada</button>
+  </form>
+  {% else %}<p>No hay retomas disponibles pendientes de registrar en Finanzas. {% if can('inventario') %}<a href="{{ url_for('inventory.new') }}">Ingresar equipo en Compras e inventario</a>.{% endif %}</p>{% endif %}
+</details>
+{% endif %}
+{% if pool.purchases %}
+<details class="panel"><summary>Compras POOL de esta jornada · {{ pool.purchases|length }}</summary>
+  <div class="f-table"><table><thead><tr><th>Equipo / origen</th><th>Aporte / capital</th><th>Compra al cliente</th><th>Otros costos</th><th>Ganancia del día</th></tr></thead><tbody>
+    {% for buy,p in pool.purchases %}<tr><td>{{ p.model }}<small>{{ p.imei }} · {{ buy.tipo }}</small></td><td>{{ buy.aporte|cop }}</td><td>{{ buy.pago_cliente|cop }}</td><td>{{ buy.costos_pagados|cop }}</td><td>{{ buy.ganancia|cop }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</details>
+{% endif %}
+{% endif %}

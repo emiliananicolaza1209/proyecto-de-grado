@@ -28,7 +28,7 @@ def create_app(config=None):
             root / os.getenv("DATABASE_PATH", "instance/cpstore.sqlite")
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        MAX_CONTENT_LENGTH=1024 * 1024,
+        MAX_CONTENT_LENGTH=10 * 1024 * 1024,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
     )
@@ -43,10 +43,23 @@ def create_app(config=None):
         database=str(database),
     )
 
+    if not app.testing and not os.getenv('SECRET_KEY') and not (config and config.get('SECRET_KEY')):
+        database.parent.mkdir(parents=True, exist_ok=True)
+        secret_path = database.parent / '.session-secret'
+        try:
+            with secret_path.open('x') as handle:
+                handle.write(secrets.token_hex(32))
+            secret_path.chmod(0o600)
+        except FileExistsError:
+            pass
+        app.config['SECRET_KEY'] = secret_path.read_text().strip()
+
     # Ejecutar las migraciones existentes de inventario,
     # ventas, pagos y finanzas.
     from migrations import upgrade
 
+    from migrations.gestion_v16 import backup_before_upgrade
+    backup_before_upgrade(database)
     upgrade(database)
 
     # Inicializar SQLAlchemy.
@@ -65,6 +78,17 @@ def create_app(config=None):
         # Crea únicamente las tablas que aún no existen,
         # como las del módulo contable.
         db.create_all()
+        from migrations.integracion import upgrade as upgrade_integration
+        upgrade_integration(database)
+        from migrations.integracion import upgrade_v12, upgrade_v13
+        upgrade_v12(database)
+        upgrade_v13(database)
+        from migrations.finanzas_v14 import upgrade as upgrade_finanzas_v14
+        upgrade_finanzas_v14(database)
+        from migrations.finanzas_v15 import upgrade as upgrade_finanzas_v15
+        upgrade_finanzas_v15(database)
+        from migrations.gestion_v16 import seed
+        seed()
 
     # Blueprints de la aplicación.
     from .routes.main_routes import main
@@ -91,4 +115,8 @@ def create_app(config=None):
     ):
         app.register_blueprint(blueprint)
 
+    from .auth import init_auth
+    init_auth(app)
+    from .routes.gestion_routes import gestion
+    app.register_blueprint(gestion)
     return app

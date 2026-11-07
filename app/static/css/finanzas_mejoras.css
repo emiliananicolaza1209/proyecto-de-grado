@@ -1,0 +1,18 @@
+.finance .f-staff-row {grid-template-columns:minmax(160px,1.4fr) minmax(130px,1fr) minmax(150px,1fr) auto auto;align-items:center}
+.finance .f-cost-row {grid-template-columns:minmax(115px,1fr) minmax(160px,1.4fr) minmax(110px,.8fr) minmax(70px,.5fr) minmax(130px,.8fr) auto;align-items:end}
+.finance .f-staff-row .f-check {white-space:nowrap}
+.finance .f-small-link {display:inline-block;margin:12px 0 4px}
+.finance .f-total strong {white-space:normal;text-align:right;overflow-wrap:anywhere}
+.finance .finance-edit,.finance .linked-cost-form {max-width:100%;overflow:hidden}
+.finance .finance-edit>.f-grid,.finance .linked-cost-form>.f-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:1100px) {
+  .finance .f-staff-row,.finance .f-cost-row {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:650px) {
+  .finance .f-staff-row,.finance .f-cost-row,.finance .finance-edit>.f-grid,
+  .finance .linked-cost-form>.f-grid {grid-template-columns:minmax(0,1fr)}
+}
+.f-payment-list{display:grid;gap:12px;margin:18px 0}.f-payment-row{display:grid;grid-template-columns:1fr 1fr 1.3fr 1.3fr;gap:12px;padding:14px;border:1px solid #dbe3ef;border-radius:12px;background:#f8faff;align-items:end}.f-plan{display:flex;gap:20px;flex-wrap:wrap;padding:12px 16px;margin:14px 0;background:#eef3ff;border-radius:10px}.f-plan span{display:block}.f-plan strong{display:block;margin-top:4px}.f-payment-row[hidden]{display:none}@media(max-width:1100px){.f-payment-row{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.f-payment-row{grid-template-columns:1fr}}
+.finance .f-cost-detail:not([hidden]){grid-column:span 2}.finance .remove-payment{grid-column:1/-1;justify-self:end;min-height:36px}@media(max-width:650px){.finance .f-cost-detail:not([hidden]){grid-column:1}}
+
+.finance .f-breakdown{margin-top:24px;align-items:start}.finance .f-breakdown>div{min-width:0}.finance .f-cash-difference{padding:12px;border-radius:10px;align-self:end;background:#eef3ff}.finance .f-cash-difference.f-short{background:#fee2e2;color:#991b1b;font-weight:700}.finance .f-cash-difference.f-over{background:#dcfce7;color:#166534;font-weight:700}.finance .f-cash-difference.f-even{background:#e0f2fe;color:#075985;font-weight:700}

@@ -1,0 +1,9 @@
+{% extends 'layouts/base.html' %}
+{% block content %}<div class="gestion">
+{% set return_target = url_for('main.home') %}
+{% if active=='inventario' %}{% set return_target = url_for('inventory.index') %}
+{% elif active=='ventas' %}{% set return_target = url_for('gestion.sociedades') if can('sociedades_consulta') and not can('consulta') else url_for('ventas.index') %}
+{% elif active=='finanzas' %}{% set return_target = url_for('finanzas.index') %}{% endif %}
+<div class="g-heading"><div><p class="eyebrow">CP STORE · {{ {'inventario':'COMPRAS E INVENTARIO','ventas':'VENTAS Y PAGOS','finanzas':'FINANZAS','usuarios':'USUARIOS Y PERMISOS'}.get(active,'CONTROL Y GESTIÓN') }}</p><h1>{% block title %}{% endblock %}</h1></div><a class="btn btn-secondary" href="{{ return_target }}">← {{ 'Volver al resumen' if active=='usuarios' else 'Volver al módulo' }}</a></div>
+{% include 'gestion/nav.html' %}
+{% block body %}{% endblock %}</div>{% endblock %}

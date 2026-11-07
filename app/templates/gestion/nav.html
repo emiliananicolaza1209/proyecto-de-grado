@@ -1,0 +1,17 @@
+{% if active=='ventas' %}
+  {% include 'ventas/nav.html' %}
+{% elif active in ['inventario','finanzas'] %}
+<nav class="g-nav" aria-label="Secciones del módulo">
+{% if active=='inventario' %}
+  <a href="{{ url_for('inventory.index') }}">Equipos</a>
+  {% if can('inventario') %}<a href="{{ url_for('gestion.lotes') }}">Compras y lotes</a><a href="{{ url_for('gestion.articulos') }}">Accesorios y repuestos</a>{% endif %}
+  {% if can('catalogos') %}<a href="{{ url_for('gestion.proveedores') }}">Proveedores</a><a href="{{ url_for('gestion.alias') }}">Alias de referencias</a>{% endif %}
+{% elif active=='finanzas' %}
+  {% if can('finanzas_venta') %}
+    <a href="{{ url_for('finanzas.index',date=day if day is defined else none) }}" {% if request.endpoint=='finanzas.index' %}aria-current="page"{% endif %}>Jornada</a>
+    <a href="{{ url_for('gestion.creditos') }}" {% if request.endpoint=='gestion.creditos' %}aria-current="page"{% endif %}>Créditos y desembolsos</a>
+  {% endif %}
+  {% if can('admin') %}<a href="{{ url_for('gestion.historial') }}" {% if request.endpoint=='gestion.historial' %}aria-current="page"{% endif %}>Historial</a>{% endif %}
+{% endif %}
+</nav>
+{% endif %}

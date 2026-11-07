@@ -1,16 +1,19 @@
 from flask import Blueprint, abort, render_template, redirect, url_for
 from ..services.inventario_service import stats
+from ..services.inicio_service import operational_summary
 
 main = Blueprint('main', __name__)
 
 
 @main.get('/')
 def home():
-    return render_template('home.html', stats=stats(), active='inicio')
+    return render_template('home.html', stats=stats(), dashboard=operational_summary(), active='inicio')
 
 
 @main.get('/modulos/<name>')
 def module(name):
+    if name == 'usuarios':
+        return redirect(url_for('gestion.usuarios'))
     if name == 'finanzas':
         return redirect(url_for('finanzas.index'))
     if name == 'ventas':

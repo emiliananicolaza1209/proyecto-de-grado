@@ -2,6 +2,7 @@
 import re
 import unicodedata
 from difflib import SequenceMatcher
+from sqlalchemy import true
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import Catalogo
@@ -15,8 +16,16 @@ PARENT_KIND = {'reference': 'brand', 'color': 'reference', 'capacity': 'referenc
 
 class SimilarReferenceError(ValueError):
     def __init__(self, suggestions):
-        super().__init__('Encontramos modelos parecidos. Revisa la alerta antes de crear otro.')
+        super().__init__('Encontramos nombres parecidos. Revisa las opciones antes de guardar.')
         self.suggestions = suggestions
+        self.exact = False
+
+
+class DuplicateCatalogError(SimilarReferenceError):
+    def __init__(self, item):
+        super().__init__([{'id': item.id, 'name': item.display_name, 'active': bool(item.active), 'score': 100}])
+        self.exact = True
+        self.args = ('Ya existe esta opción. Usa el registro existente para evitar duplicados.',)
 
 
 def clean(value):
@@ -77,19 +86,49 @@ def selected(data):
     return result
 
 
-def reference_suggestions(name, brand_id, exclude_id=None):
-    incoming = clean(name)
-    if not incoming:
+def name_similarity(first, second, model=False):
+    """Parecido de texto; una generación o variante diferente no es un duplicado."""
+    def words(value):
+        value = ''.join(c for c in unicodedata.normalize('NFKD', value.casefold())
+                        if not unicodedata.combining(c))
+        return re.sub(r'[^a-z0-9]+', ' ', value).strip()
+
+    left, right = words(first), words(second)
+    if not left or not right:
+        return 0
+    # Incluye sufijos: 16/16E, S24/S25 y SE 2.ª/3.ª son referencias distintas.
+    if re.findall(r'\d+[a-z]*', left) != re.findall(r'\d+[a-z]*', right):
+        return 0
+    if model:
+        def variants(value):
+            value = re.sub(r'(\d)([a-z])', r'\1 \2', value)
+            value = re.sub(r'\bpromax\b', 'pro max', value)
+            return set(re.findall(r'\b(?:pro|max|mini|plus|ultra|lite|fe|edge|fold|flip|x|xr|xs|se|air)\b', value))
+        if variants(left) != variants(right):
+            return 0
+    return SequenceMatcher(None, clean(first), clean(second)).ratio()
+
+
+def catalog_suggestions(name, kind, parent_id=0, exclude_id=None):
+    if not clean(name) or kind == 'capacity':
         return []
-    candidates = db.session.scalars(db.select(Catalogo).where(Catalogo.kind == 'reference', Catalogo.parent_id == brand_id)).all()
+    candidates = db.session.scalars(db.select(Catalogo).where(
+        Catalogo.kind == kind, Catalogo.parent_id == parent_id)).all()
     suggestions = []
     for item in candidates:
         if item.id == exclude_id:
             continue
-        score = SequenceMatcher(None, incoming, clean(item.name)).ratio()
-        if score >= .74:
-            suggestions.append({'id': item.id, 'name': item.display_name, 'score': round(score * 100)})
-    return sorted(suggestions, key=lambda result: -result['score'])[:3]
+        score = name_similarity(name, item.name, model=kind == 'reference')
+        if normalize(name, kind) == item.normal_key:
+            score = 1
+        if score >= .86:
+            suggestions.append({'id': item.id, 'name': item.display_name,
+                                'active': bool(item.active), 'score': round(score * 100)})
+    return sorted(suggestions, key=lambda result: (-result['score'], result['name']))[:5]
+
+
+def reference_suggestions(name, brand_id, exclude_id=None):
+    return catalog_suggestions(name, 'reference', brand_id, exclude_id)
 
 
 
@@ -99,10 +138,10 @@ def catalog_alerts():
     alerts = []
     for index, first in enumerate(references):
         for second in references[index + 1:]:
-            score = SequenceMatcher(None, clean(first.name), clean(second.name)).ratio()
+            score = name_similarity(first.name, second.name, model=True)
             # Dentro de una misma marca basta una coincidencia alta. Entre marcas
             # solo se avisa cuando es casi idéntica: cubre errores como IPHXONE.
-            threshold = .78 if first.parent_id == second.parent_id else .88
+            threshold = .86 if first.parent_id == second.parent_id else .90
             if score >= threshold and first.normal_key != second.normal_key:
                 alerts.append({'first': {'id': first.id, 'name': first.display_name},
                                'second': {'id': second.id, 'name': second.display_name},
@@ -133,8 +172,15 @@ def save_item(kind, data):
         if not name.isascii() or not name.isdigit() or int(name) not in CAPACITY_OPTIONS:
             raise ValueError('Selecciona una capacidad predeterminada válida.')
         name = str(int(name))
-    if kind == 'reference' and item is None and data.get('confirm_similar') != '1':
-        suggestions = reference_suggestions(name, parent)
+    duplicate = db.session.scalar(db.select(Catalogo).where(
+        Catalogo.kind == kind, Catalogo.parent_id == parent,
+        Catalogo.normal_key == normalize(name, kind),
+        Catalogo.id != item.id if item else true()))
+    if duplicate:
+        raise DuplicateCatalogError(duplicate)
+    changed_name = item is None or normalize(name, kind) != item.normal_key
+    if changed_name and data.get('confirm_similar') != '1':
+        suggestions = catalog_suggestions(name, kind, parent, item.id if item else None)
         if suggestions:
             raise SimilarReferenceError(suggestions)
     if item and kind == 'capacity' and name != item.name:
@@ -144,6 +190,11 @@ def save_item(kind, data):
     item.name = name
     item.normal_key = normalize(name, kind)
     item.active = int(data.get('active') == '1')
+    if kind == 'supplier':
+        category=data.get('supplier_category') or item.supplier_category or 'Accesorios'
+        if category not in ('Celulares','Accesorios','Ambos'):
+            raise ValueError('Selecciona el tipo de proveedor: celulares, accesorios o ambos.')
+        item.supplier_category=category
     try:
         db.session.add(item)
         db.session.commit()

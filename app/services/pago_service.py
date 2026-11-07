@@ -1,3 +1,4 @@
+from .gestion_comun import actor
 """Cobros y entregas separados, importes en centavos e historial transaccional."""
 import json
 from sqlalchemy.orm.exc import StaleDataError
@@ -68,7 +69,7 @@ def finish(p, before, title, note, detail):
     try:
         p.revision += 1
         db.session.add(Movimiento(product_id=p.id, action=title, reason=note,
-            actor='Sesión local sin autenticación', before_data=json.dumps(before,ensure_ascii=False),
+            actor=actor(), before_data=json.dumps(before,ensure_ascii=False),
             after_data=json.dumps(after,ensure_ascii=False)))
         db.session.commit()
     except StaleDataError:
@@ -78,6 +79,10 @@ def finish(p, before, title, note, detail):
 
 
 def collect(pid, data):
+    from ..models.gestion import CreditoVenta
+    from ..models.finanzas import OperacionFinanciera
+    if db.session.scalar(db.select(CreditoVenta.id).join(OperacionFinanciera,OperacionFinanciera.id==CreditoVenta.operacion_id).where(OperacionFinanciera.product_id==pid,CreditoVenta.estado.in_(['Pendiente','Parcial']))):
+        raise ValueError('El saldo corresponde a un aliado. Confirma su desembolso desde Finanzas > Créditos para actualizar también Contabilidad.')
     from .operacion_service import money
     p, note, effective = context(pid, data)
     if p.status not in ('Vendido','Separado') and not (p.status=='Garantía' and p.warranty_previous=='Vendido'):
@@ -148,6 +153,8 @@ def void_record(pid, data, receipt=False):
     c=db.session.get(Cobro,record.collection_id) if record and receipt else record
     if not c or c.product_id!=pid or record.voided or c.legacy:
         raise ValueError('Registro inexistente, anulado o anterior al control de cobros.')
+    if not receipt and (c.reference or '').startswith('CREDITO '):
+        raise ValueError('Este cobro pertenece a un desembolso de crédito; no se puede anular por separado de su consignación.')
     if effective < record.effective_date:
         raise ValueError('La corrección no puede ser anterior al registro.')
     if summary(p)['inconsistent']:

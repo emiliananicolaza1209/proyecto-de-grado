@@ -1,0 +1,36 @@
+{% if reporte_personal %}
+<details class="accounting-bank-details" id="desglose-bancos" {% if abrir_bancos %}open{% endif %}>
+  <summary>Ver ingresos por banco <span>Desglose por persona · {{ anio }}</span></summary>
+  <div class="accounting-bank-body">
+    <form method="get" action="{{ url_for('contabilidad.index',_anchor='desglose-bancos') }}" id="bank-breakdown-form" class="accounting-bank-picker">
+      <input type="hidden" name="anio" value="{{ anio }}">
+      <label for="bank-breakdown-person">Persona registrada</label>
+      <div><select name="detalle_bancos" id="bank-breakdown-person" class="form-select">
+        {% for item in reporte_personal %}<option value="{{ item.persona.id }}" {% if item.persona.id==persona_bancos %}selected{% endif %}>{{ item.persona.nombre }} · {{ item.persona.identificacion }}</option>{% endfor %}
+      </select><button class="btn btn-outline-primary" type="submit">Ver desglose</button></div>
+    </form>
+    <p class="accounting-bank-help">Cada barra indica la participación del banco en el total consignado a esa persona en {{ anio }}. El umbral se controla sobre el total de la persona.</p>
+    {% for item in reporte_personal %}
+    <section class="accounting-bank-panel" data-bank-person="{{ item.persona.id }}" aria-labelledby="bank-title-{{ item.persona.id }}" {% if item.persona.id!=persona_bancos %}hidden{% endif %}>
+      <div class="accounting-bank-overview">
+        <div><h3 id="bank-title-{{ item.persona.id }}" tabindex="-1">{{ item.persona.nombre }}</h3><span>{{ item.persona.identificacion }} · {{ anio }}</span></div>
+        <div><small>Total consignado</small><strong data-bank-total>{{ (item.desglose.total*100)|cop }}</strong></div>
+      </div>
+      {% if not item.desglose.total %}<p class="accounting-bank-empty">Sin ingresos registrados en {{ anio }}.</p>{% endif %}
+      <div class="accounting-bank-list">
+        {% for banco in item.desglose.bancos %}
+        <article class="accounting-bank-item {{ 'accounting-bank-unassigned' if banco.banco_id is none else '' }}" data-bank-id="{{ banco.banco_id if banco.banco_id is not none else 'sin-banco' }}">
+          <div class="accounting-bank-line"><h4>{{ banco.nombre }}</h4><strong>{{ (banco.total*100)|cop }}</strong></div>
+          <div class="accounting-bank-track" role="progressbar" aria-label="{{ banco.nombre }}: participación en el total de {{ item.persona.nombre }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ banco.ancho }}" aria-valuetext="{{ (banco.total*100)|cop }} · {{ '%.2f'|format(banco.porcentaje) }} por ciento del total">
+            <span style="width: {{ banco.ancho }}%"></span>
+          </div>
+          <div class="accounting-bank-caption"><span>{{ banco.cantidad }} {{ 'consignación' if banco.cantidad==1 else 'consignaciones' }} {{ 'activa' if banco.cantidad==1 else 'activas' }}</span><span>{{ '%.2f'|format(banco.porcentaje) }} % del total</span></div>
+          {% if banco.banco_id is none %}<p class="accounting-bank-note">Incluye movimientos, como los de datáfono, que se registraron sin un banco destino. Siguen incluidos en el total.</p>{% endif %}
+        </article>
+        {% else %}<p class="accounting-bank-empty">Esta persona todavía no tiene bancos asociados.</p>{% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}

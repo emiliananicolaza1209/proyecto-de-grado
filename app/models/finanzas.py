@@ -22,6 +22,7 @@ class OperacionFinanciera(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     minor_cost = db.Column(db.Integer, nullable=False, default=0)
     product_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), unique=True)
+    person_id = db.Column(db.Integer, db.ForeignKey('personas_contables.id'))
     costs = db.Column(db.JSON, nullable=False)
     payments = db.Column(db.JSON, nullable=False)
     voided = db.Column(db.Boolean, nullable=False, default=False)
@@ -34,6 +35,8 @@ class PagoProveedor(db.Model):
     cost_index = db.Column(db.Integer, nullable=False)
     amount = db.Column(db.Integer, nullable=False)
     account = db.Column(db.String(120), nullable=False)
+    person_id = db.Column(db.Integer, db.ForeignKey('personas_contables.id'))
+    bank_id = db.Column(db.Integer, db.ForeignKey('bancos_destino.id'))
     token = db.Column(db.String(64), unique=True, nullable=False)
 
 class AuditoriaFinanciera(db.Model):
