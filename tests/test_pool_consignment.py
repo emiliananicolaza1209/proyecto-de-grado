@@ -1,4 +1,5 @@
 """Retomas y conciliación bancaria entre Finanzas y Contabilidad."""
+from _cleanup import release
 import secrets
 import unittest
 from decimal import Decimal
@@ -54,7 +55,7 @@ class LinkedConsignmentTests(unittest.TestCase):
             db.session.add(PersonaBanco(persona_id=person.id,banco_id=bank.id));db.session.commit()
         self.post('open')
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.tmp.cleanup()
 
     def post(self,action,**values):
         with self.app.app_context():

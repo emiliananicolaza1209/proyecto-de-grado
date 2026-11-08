@@ -1,3 +1,4 @@
+from _cleanup import release
 import unittest,tempfile,secrets
 from pathlib import Path
 from werkzeug.datastructures import MultiDict
@@ -15,7 +16,7 @@ class FinanceTests(unittest.TestCase):
         self.client.get('/finanzas?date='+self.day)
         with self.client.session_transaction() as s:self.csrf=s['csrf']
         self.post('open')
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.tmp.cleanup()
     def post(self,action,expected=302,**kw):
         with self.app.app_context():
             d=f.find_day(self.day);revision=d.revision if d else 0

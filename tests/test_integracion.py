@@ -1,4 +1,5 @@
 """Casos de caja, pagos mixtos, auditoría y control contable."""
+from _cleanup import release
 import secrets
 import tempfile
 import unittest
@@ -24,7 +25,7 @@ class IntegrationTests(unittest.TestCase):
             self.bank_person_id=db.session.scalar(db.select(PersonaContable.id));self.bank_id=db.session.scalar(db.select(BancoDestino.id))
             db.session.add(PersonaBanco(persona_id=self.bank_person_id,banco_id=self.bank_id));db.session.commit()
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.tmp.cleanup()
 
     def post(self, action, **values):
         with self.app.app_context():

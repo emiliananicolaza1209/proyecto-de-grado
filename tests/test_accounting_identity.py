@@ -1,4 +1,5 @@
 """La identidad se registra una sola vez y admite varios bancos."""
+from _cleanup import release
 import sqlite3
 import tempfile
 import unittest
@@ -19,7 +20,7 @@ class AccountingIdentityTests(unittest.TestCase):
         self.client.get('/modulos/tributario/')
         with self.client.session_transaction() as session:self.csrf=session['csrf']
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.tmp.cleanup()
 
     def post(self,url,**data):
         return self.client.post(url,data={'csrf':self.csrf,**data})

@@ -1,3 +1,4 @@
+from _cleanup import release
 import unittest,tempfile,secrets,io
 from pathlib import Path
 from werkzeug.datastructures import MultiDict,FileStorage
@@ -24,7 +25,7 @@ class GestionTests(unittest.TestCase):
         db.session.add_all([self.person,self.bank]);db.session.flush();db.session.add(PersonaBanco(persona_id=self.person.id,banco_id=self.bank.id));db.session.commit()
         self.ally=db.session.scalar(db.select(AliadoCredito).where(AliadoCredito.nombre=='SU+PAY'));self.ally.porcentaje_bp=1800
         self.ally.persona_id=self.person.id;self.ally.banco_id=self.bank.id;db.session.commit()
-    def tearDown(self):db.session.remove();self.ctx.pop();self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.ctx.pop();self.tmp.cleanup()
     def product(self,pool=False,cost=50000000,imei='490154203237518'):
         p=Producto(imei=imei,model='IPHONE PRUEBA',capacity=128,color='NEGRO',condition='Usado' if pool else 'Nuevo',cost_cents=cost,
             purchase_cop_cents=cost if pool else None,additional_costs=[],source_type='Retoma' if pool else 'Lote',location='LOCAL',supplier='CP CELULARES',status='Disponible')
