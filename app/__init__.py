@@ -78,6 +78,9 @@ def create_app(config=None):
         # Crea únicamente las tablas que aún no existen,
         # como las del módulo contable.
         db.create_all()
+        # v19 repara bases con la numeración de Andres (v11/v12 distintas); debe ir antes de v13.
+        from migrations.reconciliacion_v19 import upgrade_v19
+        upgrade_v19(database)
         from migrations.integracion import upgrade as upgrade_integration
         upgrade_integration(database)
         from migrations.integracion import upgrade_v12, upgrade_v13
@@ -87,6 +90,9 @@ def create_app(config=None):
         upgrade_finanzas_v14(database)
         from migrations.finanzas_v15 import upgrade as upgrade_finanzas_v15
         upgrade_finanzas_v15(database)
+        from migrations.contabilidad_v17 import upgrade_v17, upgrade_v18
+        upgrade_v17(database)
+        upgrade_v18(database)
         from migrations.gestion_v16 import seed
         seed()
 
