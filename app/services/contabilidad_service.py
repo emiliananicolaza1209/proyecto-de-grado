@@ -180,6 +180,7 @@ def consolidar_periodo(ini, fin):
                 'fecha': p.sale_date[:10], 'tipo': 'VENTA',
                 'detalle': f"{p.imei} · {p.model}",
                 'fuente': f"Vendedor: {p.seller or p.responsible or 'Sin dato'}",
+                'fuente_export': 'Venta de inventario',  # exportaciones (CSV/paquete): sin nombres de personas (Ley 1581)
                 'valor_cents': venta, 'responsable': p.seller or p.responsible or '',
             })
             if not venta:
@@ -273,11 +274,11 @@ def generar_csv(consolidado, actor=ACTOR_ANONIMO):
     w.writerow(['Gastos', consolidado['gastos']['count'], f"{consolidado['gastos']['total_cents']/100:.2f}"])
     w.writerow(['Consignaciones', consolidado['consignaciones']['count'], f"{consolidado['consignaciones']['total_cents']/100:.2f}"])
     w.writerow([])
-    w.writerow(['Fecha', 'Tipo', 'Detalle', 'Fuente', 'Valor COP', 'Responsable'])
+    w.writerow(['Fecha', 'Tipo', 'Detalle', 'Fuente', 'Valor COP'])  # sin Responsable: datos de personas innecesarios (Ley 1581)
     for section in ('compras', 'ventas', 'ingresos', 'gastos', 'consignaciones'):
         for r in consolidado[section]['detalle']:
-            w.writerow([r['fecha'], r['tipo'], r['detalle'], r['fuente'],
-                        f"{r['valor_cents']/100:.2f}", r['responsable']])
+            w.writerow([r['fecha'], r['tipo'], r['detalle'], r.get('fuente_export', r['fuente']),
+                        f"{r['valor_cents']/100:.2f}"])
     w.writerow([])
     w.writerow(['Registros por revisar'])
     for f in consolidado['faltantes'] or ['Sin pendientes en el periodo.']:

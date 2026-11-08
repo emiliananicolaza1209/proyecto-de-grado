@@ -59,6 +59,11 @@ class Mod05Tests(test_catalogs.CatalogTests):
         body = csv_resp.get_data(as_text=True)
         self.assertIn('Consolidado contable-tributario', body)
         self.assertIn('no determina impuestos', body)
+        # Ley 1581: el CSV no lleva la columna Responsable ni el nombre del vendedor; la pantalla interna sí lo muestra.
+        self.assertNotIn('Responsable', body)
+        self.assertNotIn('VENDEDOR', body)
+        self.assertIn('Fecha,Tipo,Detalle,Fuente,Valor COP\r\n', body)
+        self.assertIn('VENDEDOR', html)
         with self.app.app_context():
             self.assertEqual(db.session.query(ReporteGenerado).count(), 1)
             rep = db.session.scalars(db.select(ReporteGenerado)).first()
@@ -104,6 +109,7 @@ class Mod05Tests(test_catalogs.CatalogTests):
         self.assertIn('Ingresos adicionales', body)
         self.assertIn('Gastos', body)
         self.assertIn('Arriendo local', body)
+        self.assertNotIn('Jonatan', body)  # el responsable (texto libre con nombres) no sale en el CSV
 
     def test_ingreso_gasto_invalido_no_se_guarda(self):
         for data in ({'valor': '-5'}, {'valor': '10', 'fecha': '2999-01-01'},
