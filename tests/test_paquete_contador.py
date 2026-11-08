@@ -1,6 +1,7 @@
 """Paquete consolidado para el contador: el Excel sale de los mismos datos que la pantalla y el CSV."""
 import csv
 import io
+import re
 import tempfile
 import unittest
 from datetime import datetime
@@ -204,6 +205,92 @@ class PaqueteExcelTests(PaqueteBase):
             antes = consolidar_periodo(INI, self.hoy)
             paquete.construir_modelo(datos_paquete(INI, self.hoy), 'x', 'y')
             self.assertEqual(consolidar_periodo(INI, self.hoy), antes)
+
+
+class PaquetePdfTests(PaqueteBase):
+    def modelo(self, ini=INI, fin=None):
+        with self.app.app_context():
+            datos = datos_paquete(ini, fin or self.hoy)
+            return paquete.construir_modelo(datos, 'prueba@cp', self.hoy + ' 12:00'), datos
+
+    def pdf(self, comprimir=False, **kw):
+        modelo, datos = self.modelo(**kw)
+        return paquete.generar_pdf(modelo, comprimir=comprimir), modelo, datos
+
+    @staticmethod
+    def paginas(raw):
+        return len(re.findall(rb'/Type\s*/Page(?![a-z])', raw))
+
+    def test_es_un_pdf_valido(self):
+        raw, _, _ = self.pdf(comprimir=True)  # tal como sale en producción
+        self.assertTrue(raw.startswith(b'%PDF'))
+        self.assertIn(b'%%EOF', raw[-32:])
+        self.assertEqual(self.paginas(raw), 7)  # resumen + 5 temas + alerta UVT con pendientes
+
+    def test_cifras_del_pdf_coinciden_con_el_consolidado_y_la_pantalla(self):
+        raw, modelo, datos = self.pdf()
+        c = datos['consolidado']
+        for nombre, cantidad, cents in modelo['resumen']:
+            self.assertIn('${:,.0f}'.format(cents / 100).encode('cp1252'), raw, nombre)
+        for bloque in (c['compras'], c['ventas'], c['ingresos'], c['gastos'], c['consignaciones']):
+            self.assertIn('${:,.0f}'.format(bloque['total_cents'] / 100).encode('cp1252'), raw)
+        html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
+        seccion = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        for bloque in (c['compras'], c['ventas'], c['ingresos'], c['gastos'], c['consignaciones']):
+            cifra = '${:,.0f}'.format(bloque['total_cents'] / 100)
+            self.assertIn(cifra, seccion)   # pantalla
+            self.assertIn(cifra.encode('cp1252'), raw)  # PDF
+
+    def test_secciones_periodo_y_avisos(self):
+        raw, _, _ = self.pdf()
+        for texto in (b'Consolidado contable-tributario', f'{INI}'.encode(), self.hoy.encode(), b'Compras de inventario',
+                      b'Ventas de equipos', b'Ingresos adicionales', b'Consignaciones bancarias activas',
+                      b'Alerta de consignaciones', b'Ley 1581', b'RN-TRI-001', b'P\\341gina 1'):
+            self.assertIn(texto, raw, texto)
+
+    def test_alerta_uvt_en_el_pdf_con_cedula_solo_en_esa_seccion(self):
+        raw, modelo, _ = self.pdf()
+        inicio_alerta = raw.index(b'Alerta de consignaciones')
+        # una vez por fila de alerta (2025 y 2026) y nunca antes de la sección Alerta UVT
+        self.assertEqual(raw.count(CEDULA.encode()), len(modelo['alertas']['filas']))
+        self.assertGreater(raw.index(CEDULA.encode()), inicio_alerta)
+        self.assertIn(b'Dentro del umbral', raw)
+
+    def test_sin_datos_personales_innecesarios_ni_anuladas(self):
+        raw, _, _ = self.pdf()
+        for prohibido in (b'VENDEDOR PRUEBA', b'CLIENTE PRUEBA', b'Jonatan', b'Otra Persona', b'ANULADA-1'):
+            self.assertNotIn(prohibido, raw, prohibido)
+        self.assertIn(b'ACTIVA-1', raw)
+        self.assertIn(b'ANA PRUEBA', raw)
+
+    def test_tablas_largas_continuan_con_encabezado_repetido(self):
+        modelo, _ = self.modelo()
+        compras = modelo['tablas'][0]
+        compras['filas'] = compras['filas'] * 60  # 120 filas: no caben en una página
+        raw = paquete.generar_pdf(modelo, comprimir=False)
+        paginas_compras = self.paginas(raw) - self.paginas(paquete.generar_pdf(self.modelo()[0], comprimir=False))
+        self.assertGreaterEqual(paginas_compras, 2)
+        self.assertGreaterEqual(raw.count(b'Costo COP'), 3)  # el encabezado se repite en cada página
+
+    def test_caracteres_fuera_de_latin1_y_marcas_no_rompen_el_pdf(self):
+        modelo, _ = self.modelo()
+        modelo['tablas'][3]['filas'].append(['2026-01-01', 'Ñandú ✓ <b>&</b>', 'OTRO', '', '', 100])
+        raw = paquete.generar_pdf(modelo, comprimir=True)
+        self.assertTrue(raw.startswith(b'%PDF'))
+
+    def test_periodo_sin_movimientos(self):
+        raw, _, _ = self.pdf(ini='2000-01-01', fin='2000-01-31')
+        self.assertTrue(raw.startswith(b'%PDF'))
+        self.assertIn(b'Sin registros en el periodo.', raw)
+        self.assertIn(b'Sin consignaciones activas', raw)
+
+    def test_excel_y_pdf_usan_las_mismas_cifras(self):
+        modelo, _ = self.modelo()
+        wb = load_workbook(io.BytesIO(paquete.generar_excel(modelo)))
+        raw = paquete.generar_pdf(modelo, comprimir=False)
+        for fila in self.filas(wb['Resumen']):
+            if fila[0] and isinstance(fila[2], (int, float, Decimal)) and fila[0] != 'Sección':
+                self.assertIn('${:,.0f}'.format(float(fila[2])).encode('cp1252'), raw, fila[0])
 
 
 if __name__ == '__main__':
