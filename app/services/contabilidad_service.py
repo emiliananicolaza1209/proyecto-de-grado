@@ -7,7 +7,7 @@ import csv
 import io
 import json
 from app.models.contabilidad import (
-    ConsignacionBancaria, BancoDestino, ReporteGenerado, IngresoGasto, CorreccionClasificacion,
+    ConsignacionBancaria, BancoDestino, PersonaContable, ReporteGenerado, IngresoGasto, CorreccionClasificacion,
 )
 from app.models import Producto
 from app.extensions import db
@@ -163,6 +163,8 @@ def consolidar_periodo(ini, fin):
                 'fecha': cf, 'tipo': 'COMPRA', 'detalle': f"{p.imei} · {p.model}",
                 'fuente': p.lot.code if p.lot else 'Sin lote',
                 'valor_cents': costo, 'responsable': p.supplier or '',
+                'imei': p.imei, 'modelo': p.model, 'lote': p.lot.code if p.lot else 'Sin lote',
+                'proveedor': prov,
             })
             if not p.lot_id:
                 faltantes.append(f"Equipo {p.imei} sin lote asociado (costo incluido por fecha de creación).")
@@ -182,6 +184,8 @@ def consolidar_periodo(ini, fin):
                 'fuente': f"Vendedor: {p.seller or p.responsible or 'Sin dato'}",
                 'fuente_export': 'Venta de inventario',  # exportaciones (CSV/paquete): sin nombres de personas (Ley 1581)
                 'valor_cents': venta, 'responsable': p.seller or p.responsible or '',
+                'imei': p.imei, 'modelo': p.model, 'costo_cents': costo,
+                'cobrado_cents': cobrado, 'saldo_cents': max(venta - cobrado, 0),
             })
             if not venta:
                 faltantes.append(f"Equipo {p.imei} vendido sin valor de venta registrado.")
@@ -202,6 +206,8 @@ def consolidar_periodo(ini, fin):
             'detalle': f"{m.concepto} [{m.categoria}]",
             'fuente': m.relacion or 'Registro directo',
             'valor_cents': m.valor_cents, 'responsable': m.responsable or '',
+            'concepto': m.concepto, 'categoria': m.categoria, 'relacion': m.relacion or '',
+            'soporte_ref': m.soporte_ref or '',
         })
         if m.categoria == 'OTRO':
             faltantes.append(f"{m.tipo} '{m.concepto}' sin clasificar (categoría OTRO).")
@@ -219,7 +225,9 @@ def consolidar_periodo(ini, fin):
          'detalle': f"{c.destinatario.nombre if c.destinatario else '?'} → {c.banco.nombre if c.banco else '?'}",
          'fuente': c.referencia or 'Sin referencia',
          'valor_cents': int(Decimal(str(c.monto)) * 100),
-         'responsable': c.destinatario.nombre if c.destinatario else ''}
+         'responsable': c.destinatario.nombre if c.destinatario else '',
+         'persona': c.destinatario.nombre if c.destinatario else '?',
+         'banco': c.banco.nombre if c.banco else '?', 'referencia': c.referencia or ''}
         for c in cons_q]}
     for c in cons_q:
         if not c.referencia:
@@ -345,3 +353,42 @@ def evaluar_estado_renta(persona_id, anio=None):
                 supera_tope=total>limite if limite else False,
                 porcentaje=porcentaje,porcentaje_uso=porcentaje,
                 pendiente_uvt=not bool(uvt),anio=anio)
+
+
+def alertas_uvt(ini, fin):
+    """Alerta de 1.400 UVT para cada año que toca el periodo.
+
+    El tope es anual: cuenta el año calendario completo (consignaciones activas), no solo el
+    periodo elegido. Solo salen las personas con consignaciones en ese año. Reutiliza
+    evaluar_estado_renta, la misma función que usa la pantalla Información contable.
+    """
+    ini, fin = parse_period(ini, fin)
+    personas = db.session.scalars(db.select(PersonaContable).order_by(PersonaContable.nombre)).all()
+    filas = []
+    for anio in range(int(ini[:4]), int(fin[:4]) + 1):
+        for persona in personas:
+            estado = evaluar_estado_renta(persona.id, anio)
+            total = Decimal(str(estado['total_consignado']))
+            if not total:
+                continue
+            if estado['pendiente_uvt']:
+                texto = 'UVT del año pendiente de configurar'
+            elif estado['supera_tope']:
+                texto = 'Supera el tope'
+            else:
+                texto = 'Dentro del umbral'
+            filas.append({
+                'anio': anio, 'persona': persona.nombre, 'identificacion': persona.identificacion,
+                'tipo': persona.tipo, 'total_cents': int((total * 100).to_integral_value()),
+                'tope_cop': estado['tope_limite'], 'porcentaje': estado['porcentaje'],
+                'supera_tope': estado['supera_tope'], 'pendiente_uvt': estado['pendiente_uvt'],
+                'estado': texto,
+            })
+    return filas
+
+
+def datos_paquete(ini, fin):
+    """Una sola fuente para pantalla, CSV, Excel y PDF: el consolidado y las alertas UVT."""
+    ini, fin = parse_period(ini, fin)
+    return {'ini': ini, 'fin': fin, 'consolidado': consolidar_periodo(ini, fin),
+            'alertas_uvt': alertas_uvt(ini, fin)}
