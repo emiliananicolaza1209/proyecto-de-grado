@@ -1,6 +1,7 @@
 """Paquete consolidado para el contador: el Excel sale de los mismos datos que la pantalla y el CSV."""
 import csv
 import io
+import json
 import re
 import tempfile
 import unittest
@@ -9,12 +10,14 @@ from decimal import Decimal
 from pathlib import Path
 
 from openpyxl import load_workbook
+from werkzeug.security import generate_password_hash
 
 from _cleanup import release
 from app import create_app
 from app.extensions import db
 from app.models import Producto
-from app.models.contabilidad import BancoDestino, ConsignacionBancaria, PersonaBanco, PersonaContable
+from app.models.contabilidad import BancoDestino, ConsignacionBancaria, PersonaBanco, PersonaContable, ReporteGenerado
+from app.models.gestion import Usuario
 from app.services import paquete_contador_service as paquete
 from app.services.contabilidad_service import (
     alertas_uvt, consolidar_periodo, datos_paquete, evaluar_estado_renta, generar_csv, registrar_ingreso_gasto,
@@ -291,6 +294,121 @@ class PaquetePdfTests(PaqueteBase):
         for fila in self.filas(wb['Resumen']):
             if fila[0] and isinstance(fila[2], (int, float, Decimal)) and fila[0] != 'Sección':
                 self.assertIn('${:,.0f}'.format(float(fila[2])).encode('cp1252'), raw, fila[0])
+
+
+class PaqueteRutasTests(PaqueteBase):
+    XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+    def url(self, formato, ini=INI, fin=None):
+        return f'/modulos/tributario/paquete.{formato}?ini={ini}&fin={fin or self.hoy}'
+
+    def con_sesion(self, rol):
+        """Cliente autenticado con ese rol (autenticación obligatoria, como en producción)."""
+        self.app.config['AUTH_REQUIRED'] = True
+        with self.app.app_context():
+            db.session.add(Usuario(nombre=rol.upper(), login=rol.lower(), rol=rol,
+                                   password_hash=generate_password_hash('clave_prueba_123')))
+            db.session.commit()
+        cliente = self.app.test_client()
+        cliente.get('/iniciar-sesion')
+        with cliente.session_transaction() as s:
+            csrf = s['csrf']
+        r = cliente.post('/iniciar-sesion', data={'csrf': csrf, 'login': rol.lower(), 'password': 'clave_prueba_123'})
+        self.assertEqual(r.status_code, 302)
+        return cliente
+
+    def reportes(self):
+        with self.app.app_context():
+            return [(r.actor, json.loads(r.totales_json)) for r in db.session.scalars(db.select(ReporteGenerado).order_by(ReporteGenerado.id))]
+
+    def test_propietario_y_administrador_descargan_excel_y_pdf(self):
+        for rol in ('Propietario', 'Administrador'):
+            cliente = self.con_sesion(rol)
+            x = cliente.get(self.url('xlsx'))
+            self.assertEqual(x.status_code, 200, rol)
+            self.assertEqual(x.mimetype, self.XLSX)
+            self.assertEqual(load_workbook(io.BytesIO(x.data)).sheetnames, list(paquete.HOJAS))
+            p = cliente.get(self.url('pdf'))
+            self.assertEqual(p.status_code, 200, rol)
+            self.assertEqual(p.mimetype, 'application/pdf')
+            self.assertTrue(p.data.startswith(b'%PDF'))
+
+    def test_vendedora_inventario_y_socio_no_pueden_descargar(self):
+        for rol in ('Vendedora', 'Inventario', 'Socio'):
+            cliente = self.con_sesion(rol)
+            for formato in ('xlsx', 'pdf'):
+                r = cliente.get(self.url(formato))
+                self.assertNotEqual(r.status_code, 200, f'{rol} {formato}')
+                self.assertIn(r.status_code, (302, 403), f'{rol} {formato}')
+        self.assertEqual(self.reportes(), [])  # ningún intento denegado deja un reporte
+
+    def test_vendedora_e_inventario_reciben_403(self):
+        for rol in ('Vendedora', 'Inventario'):
+            cliente = self.con_sesion(rol)
+            self.assertEqual(cliente.get(self.url('xlsx')).status_code, 403, rol)
+            self.assertEqual(cliente.get(self.url('pdf')).status_code, 403, rol)
+
+    def test_las_rutas_llevan_su_propio_control_de_capacidad(self):
+        # Defensa en profundidad: además del guard global por prefijo, cada ruta exige 'contabilidad'.
+        for endpoint in ('contabilidad.paquete_excel', 'contabilidad.paquete_pdf'):
+            self.assertTrue(hasattr(self.app.view_functions[endpoint], '__wrapped__'), endpoint)
+
+    def test_sin_sesion_redirige_al_login(self):
+        self.app.config['AUTH_REQUIRED'] = True
+        for formato in ('xlsx', 'pdf'):
+            r = self.app.test_client().get(self.url(formato))
+            self.assertEqual(r.status_code, 302)
+            self.assertIn('iniciar-sesion', r.headers['Location'])
+
+    def test_cada_descarga_deja_quien_cuando_y_formato(self):
+        cliente = self.con_sesion('Administrador')
+        cliente.get(self.url('xlsx'))
+        cliente.get(self.url('pdf'))
+        cliente.get(f'/modulos/tributario/export.csv?ini={INI}&fin={self.hoy}')
+        registros = self.reportes()
+        self.assertEqual([r[0] for r in registros], ['administrador'] * 3)  # usuario autenticado
+        self.assertEqual([r[1]['formato'] for r in registros], ['xlsx', 'pdf', 'csv'])
+        with self.app.app_context():
+            c = consolidar_periodo(INI, self.hoy)
+        self.assertEqual(registros[0][1]['ventas_cents'], c['ventas']['total_cents'])
+        self.assertEqual(registros[0][1]['consignaciones_cents'], c['consignaciones']['total_cents'])
+
+    def test_sin_autenticacion_configurada_queda_como_sesion_local(self):
+        self.assertEqual(self.client.get(self.url('xlsx')).status_code, 200)
+        self.assertEqual(self.reportes()[0][0], 'Sesión local sin autenticación')
+
+    def test_periodo_invalido_no_descarga_ni_registra(self):
+        for ini, fin in (('2026-02-01', '2026-01-01'), ('2025-01-01', '2999-01-01'), ('2026-13-40', self.hoy)):
+            r = self.client.get(self.url('xlsx', ini=ini, fin=fin))
+            self.assertEqual(r.status_code, 302, (ini, fin))
+            self.assertIn('/modulos/tributario', r.headers['Location'])
+        self.assertEqual(self.reportes(), [])
+
+    def test_cabeceras_seguras_y_nombre_sin_datos_personales(self):
+        r = self.client.get(self.url('pdf'))
+        self.assertEqual(r.headers['Cache-Control'], 'no-store')
+        self.assertEqual(r.headers['X-Content-Type-Options'], 'nosniff')
+        disposicion = r.headers['Content-Disposition']
+        self.assertEqual(disposicion, f'attachment; filename=paquete_contador_{INI}_{self.hoy}.pdf')
+        for personal in ('ANA', CEDULA, 'VENDEDOR'):
+            self.assertNotIn(personal, disposicion)
+
+    def test_descarga_por_la_ruta_coincide_con_la_pantalla_aun_con_anulada(self):
+        wb = load_workbook(io.BytesIO(self.client.get(self.url('xlsx')).data))
+        html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
+        seccion = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        resumen = {f[0]: f for f in self.filas(wb['Resumen']) if f[0] and isinstance(f[2], (int, float, Decimal))}
+        for nombre in ('Compras', 'Ventas', 'Ingresos adicionales', 'Gastos', 'Consignaciones'):
+            self.assertIn('${:,.0f}'.format(float(resumen[nombre][2])), seccion, nombre)
+        self.assertEqual(Decimal(str(resumen['Consignaciones'][2])), Decimal('1900000'))  # 1.500.000 + 400.000; la anulada no suma
+        self.assertNotIn('ANULADA-1', seccion)
+
+    def test_la_pantalla_ofrece_los_dos_botones(self):
+        html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
+        self.assertIn(f'/modulos/tributario/paquete.xlsx?ini={INI}&amp;fin={self.hoy}', html)
+        self.assertIn(f'/modulos/tributario/paquete.pdf?ini={INI}&amp;fin={self.hoy}', html)
+        self.assertIn('Paquete Excel', html)
+        self.assertIn('Paquete PDF', html)
 
 
 if __name__ == '__main__':

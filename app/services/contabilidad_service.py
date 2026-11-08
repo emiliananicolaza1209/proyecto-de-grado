@@ -243,7 +243,7 @@ def consolidar_periodo(ini, fin):
     }
 
 
-def registrar_reporte(ini, fin, consolidado, actor=ACTOR_ANONIMO):
+def registrar_reporte(ini, fin, consolidado, actor=ACTOR_ANONIMO, formato=None):
     """HU-TRI-002: deja quién/cuándo generó el reporte y sus totales."""
     totales = {
         'compras_cents': consolidado['compras']['total_cents'],
@@ -253,6 +253,8 @@ def registrar_reporte(ini, fin, consolidado, actor=ACTOR_ANONIMO):
         'gastos_cents': consolidado['gastos']['total_cents'],
         'consignaciones_cents': consolidado['consignaciones']['total_cents'],
     }
+    if formato:
+        totales['formato'] = formato  # csv | xlsx | pdf, sin columna nueva (no hay migración)
     rep = ReporteGenerado(fecha_ini=ini, fecha_fin=fin, actor=actor,
                           totales_json=json.dumps(totales, ensure_ascii=False))
     db.session.add(rep)

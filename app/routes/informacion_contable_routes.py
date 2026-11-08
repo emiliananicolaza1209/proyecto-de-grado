@@ -9,10 +9,13 @@ from app.models.finanzas import OperacionFinanciera
 from app.services.contabilidad_service import (
     evaluar_estado_renta, resumir_por_banco, consolidar_periodo,
     generar_csv, registrar_reporte, ultimos_reportes, parse_period,
-    registrar_ingreso_gasto, corregir_clasificacion, movimientos_periodo,
+    registrar_ingreso_gasto, corregir_clasificacion, movimientos_periodo, datos_paquete,
     ultimas_correcciones, CATEGORIAS_INGRESO_GASTO, ACTOR_ANONIMO,
 )
 from app.services.operacion_service import today
+from app.services.paquete_contador_service import construir_modelo, generar_excel, generar_pdf
+from app.auth import require
+from app.models.contabilidad import ahora_colombia
 from app.services.personas_contables import (nueva_persona, coincidencias, banco_por_nombre,
     asociar_banco, banco_de_persona)
 
@@ -102,13 +105,54 @@ def exportar_csv():
     except ValueError as exc:
         flash(str(exc), 'danger')
         return redirect(url_for('contabilidad.index'))
-    registrar_reporte(ini, fin, consolidado, _actor())
+    registrar_reporte(ini, fin, consolidado, _actor(), formato='csv')
     data = generar_csv(consolidado, _actor())
     return Response(
         data,
         mimetype='text/csv; charset=utf-8',
         headers={'Content-Disposition': f'attachment; filename=consolidado_{ini}_{fin}.csv'},
     )
+
+
+_PAQUETE_TIPOS = {
+    'xlsx': ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', generar_excel),
+    'pdf': ('application/pdf', generar_pdf),
+}
+
+
+def _descargar_paquete(formato):
+    """Paquete para el contador (Excel o PDF): mismos datos que la pantalla y el CSV, en memoria.
+
+    Solo Propietario y Administrador (capacidad 'contabilidad'); queda registrado quién, cuándo y qué formato.
+    """
+    mimetype, generador = _PAQUETE_TIPOS[formato]
+    try:
+        datos = datos_paquete(request.args.get('ini'), request.args.get('fin'))
+    except ValueError as exc:
+        flash(str(exc), 'danger')
+        return redirect(url_for('contabilidad.index'))
+    actor = _actor()
+    modelo = construir_modelo(datos, actor, ahora_colombia().strftime('%Y-%m-%d %H:%M'))
+    contenido = generador(modelo)
+    registrar_reporte(datos['ini'], datos['fin'], datos['consolidado'], actor, formato=formato)
+    respuesta = Response(contenido, mimetype=mimetype, headers={
+        'Content-Disposition': f"attachment; filename=paquete_contador_{datos['ini']}_{datos['fin']}.{formato}",
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+    })
+    return respuesta
+
+
+@contabilidad_bp.get('/paquete.xlsx')
+@require('contabilidad')
+def paquete_excel():
+    return _descargar_paquete('xlsx')
+
+
+@contabilidad_bp.get('/paquete.pdf')
+@require('contabilidad')
+def paquete_pdf():
+    return _descargar_paquete('pdf')
 
 
 @contabilidad_bp.post('/ingreso-gasto/nuevo')

@@ -8,10 +8,12 @@
         <div class="card-header bg-primary text-white">Consolidado por periodo</div>
         <div class="card-body">
             <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-3"><label class="form-label">Desde</label><input type="date" name="ini" value="{{ ini }}" class="form-control" required></div>
-                <div class="col-md-3"><label class="form-label">Hasta</label><input type="date" name="fin" value="{{ fin }}" class="form-control" required></div>
-                <div class="col-md-3"><button class="btn btn-primary w-100">Consolidar</button></div>
-                <div class="col-md-3"><a class="btn btn-success w-100" href="{{ url_for('contabilidad.exportar_csv', ini=ini, fin=fin) }}">Exportar CSV</a></div>
+                <div class="col-md-2"><label class="form-label">Desde</label><input type="date" name="ini" value="{{ ini }}" class="form-control" required></div>
+                <div class="col-md-2"><label class="form-label">Hasta</label><input type="date" name="fin" value="{{ fin }}" class="form-control" required></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100">Consolidar</button></div>
+                <div class="col-md-2"><a class="btn btn-success w-100" href="{{ url_for('contabilidad.exportar_csv', ini=ini, fin=fin) }}">Exportar CSV</a></div>
+                <div class="col-md-2"><a class="btn btn-outline-success w-100" href="{{ url_for('contabilidad.paquete_excel', ini=ini, fin=fin) }}">Paquete Excel</a></div>
+                <div class="col-md-2"><a class="btn btn-outline-danger w-100" href="{{ url_for('contabilidad.paquete_pdf', ini=ini, fin=fin) }}">Paquete PDF</a></div>
             </form>
         </div>
     </div>
