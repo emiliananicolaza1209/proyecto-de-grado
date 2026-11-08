@@ -205,7 +205,9 @@ def consolidar_periodo(ini, fin):
         if m.categoria == 'OTRO':
             faltantes.append(f"{m.tipo} '{m.concepto}' sin clasificar (categoría OTRO).")
 
+    # Solo consignaciones activas: las anuladas no suman (igual que la alerta UVT y el desglose por banco).
     cons_q = db.session.query(ConsignacionBancaria).filter(
+        ConsignacionBancaria.activa == True,  # noqa: E712
         func.date(ConsignacionBancaria.fecha) >= ini,
         func.date(ConsignacionBancaria.fecha) <= fin,
     ).order_by(ConsignacionBancaria.fecha).all()
