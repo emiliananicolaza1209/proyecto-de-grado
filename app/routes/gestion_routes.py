@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from werkzeug.security import generate_password_hash
 from ..extensions import db
 from ..auth import require,can,ROLES
+from ..passwords import validar_clave
 from ..models import Catalogo,Lote,Producto,PersonaContable,BancoDestino,PersonaBanco
 from ..models.finanzas import Jornada,OperacionFinanciera as Op
 from ..models.gestion import *
@@ -260,7 +261,7 @@ def usuarios():
                 raise ValueError('Debe permanecer un propietario activo.')
         password=f.get('password','')
         if password or not u.id:
-            if len(password)<12:raise ValueError('La contraseña debe tener al menos 12 caracteres.')
+            validar_clave(password,f.get('login'),f.get('name'))
             u.password_hash=generate_password_hash(password)
         u.nombre=text(f.get('name'));u.login=f.get('login','').strip().lower()
         if not u.login or len(u.login)>120:raise ValueError('Usuario inválido.')

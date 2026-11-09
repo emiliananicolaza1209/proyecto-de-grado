@@ -9,6 +9,7 @@ import click
 from .extensions import db
 from .models.gestion import Usuario
 from .services.gestion_comun import audit
+from .passwords import validar_clave
 
 auth=Blueprint('auth',__name__)
 ROLES=('Propietario','Administrador','Vendedora','Inventario','Socio')
@@ -149,7 +150,8 @@ def init_auth(app):
     @click.option('--nombre',prompt='Nombre')
     @click.password_option(confirmation_prompt=True)
     def owner(usuario,nombre,password):
-        if len(password)<12:raise click.ClickException('Usa una contraseña de al menos 12 caracteres.')
+        try:validar_clave(password,usuario,nombre)
+        except ValueError as e:raise click.ClickException(str(e))
         if db.session.scalar(db.select(Usuario.id).where(Usuario.login==usuario.lower().strip())):
             raise click.ClickException('Ese usuario ya existe. Usa Usuarios para editarlo.')
         u=Usuario(login=usuario.lower().strip(),nombre=nombre.strip(),password_hash=generate_password_hash(password),rol='Propietario')

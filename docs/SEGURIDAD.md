@@ -22,3 +22,11 @@ Documento vivo. Lo que sigue describe lo que la aplicación hace hoy y lo que **
 - **Limitación conocida (en memoria):** los contadores viven en la memoria del proceso. Se pierden al reiniciar el
   servidor y no se comparten entre procesos. Detrás de un proxy, `remote_addr` es la IP del proxy: configurar
   `ProxyFix` o equivalente al desplegar. Los registros de auditoría sí son persistentes.
+
+## Contraseñas
+- Mínimo 12 y máximo 128 caracteres. Se rechazan: claves de la lista de las más usadas, claves armadas solo con
+  palabras muy comunes (aunque lleven números o símbolos, p. ej. `Password-2026!`), secuencias y repeticiones
+  (`abcdefghijkl`, `123456789012`, `abababababab`) y claves que contienen el usuario o el nombre de la persona.
+- Aplica al crear o editar usuarios y a `flask crear-propietario`. Se guardan solo con hash.
+- Limitación: no se consulta una lista pública de claves filtradas (sería una dependencia nueva) y los usuarios no
+  pueden cambiar su propia clave: la fija el Propietario.
