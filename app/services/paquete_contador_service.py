@@ -51,7 +51,7 @@ def construir_modelo(datos, actor, generado_en):
     resumen = [
         ('Compras', compras['count'], compras['total_cents']),
         ('Ventas', ventas['count'], ventas['total_cents']),
-        ('Utilidad estimada (venta-costo)', None, ventas['utilidad_cents']),
+        ('Margen bruto de equipos (venta-costo)', None, ventas['utilidad_cents']),
         ('Ventas cobradas', None, ventas['cobrado_cents']),
         ('Saldo por cobrar de ventas', None, ventas['saldo_cents']),
         ('Ingresos adicionales', ingresos['count'], ingresos['total_cents']),

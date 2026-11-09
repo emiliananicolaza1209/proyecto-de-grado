@@ -96,6 +96,27 @@ class PaqueteBase(unittest.TestCase):
         return datos, total
 
 
+class PaqueteSinBancoTests(PaqueteBase):
+    def test_consignacion_sin_banco_dice_sin_banco_asociado_en_consolidado_y_excel(self):
+        with self.app.app_context():
+            persona = db.session.scalar(db.select(PersonaContable))
+            db.session.add(ConsignacionBancaria(persona_id=persona.id, banco_id=None, monto=Decimal('170000.00'),
+                                                fecha=datetime.strptime(self.hoy, '%Y-%m-%d'), referencia='DATAFONO-1', activa=True))
+            db.session.commit()
+            c = consolidar_periodo(INI, self.hoy)
+        fila = next(r for r in c['consignaciones']['detalle'] if r['referencia'] == 'DATAFONO-1')
+        self.assertEqual(fila['banco'], 'Sin banco asociado')
+        self.assertIn('Sin banco asociado', fila['detalle'])
+        self.assertNotIn('?', fila['banco'])
+        wb, _ = self.libro()
+        celdas = [f for f in self.filas(wb['Consignaciones']) if 'DATAFONO-1' in [str(x) for x in f]]
+        self.assertEqual(len(celdas), 1)
+        self.assertIn('Sin banco asociado', celdas[0])
+        self.assertNotIn('?', [str(x) for x in celdas[0]])
+        # el importe sigue contando en el total (no se pierde por falta de banco)
+        self.assertEqual(c['consignaciones']['total_cents'], 150000000 + 40000000 + 17000000)
+
+
 class PaqueteExcelTests(PaqueteBase):
     def test_una_hoja_por_tema_en_orden(self):
         wb, _ = self.libro()
@@ -110,11 +131,11 @@ class PaqueteExcelTests(PaqueteBase):
         for nombre, bloque in esperado.items():
             self.assertEqual(resumen[nombre][2], Decimal(bloque['total_cents']) / 100, nombre)
             self.assertEqual(resumen[nombre][1], bloque['count'], nombre)
-        self.assertEqual(resumen['Utilidad estimada (venta-costo)'][2], Decimal(c['ventas']['utilidad_cents']) / 100)
+        self.assertEqual(resumen['Margen bruto de equipos (venta-costo)'][2], Decimal(c['ventas']['utilidad_cents']) / 100)
         # CSV de Andres: mismas cifras (sección, cantidad, total)
         filas_csv = list(csv.reader(io.StringIO(generar_csv(c).lstrip('﻿'))))
         csv_resumen = {f[0]: f for f in filas_csv[filas_csv.index(['Sección', 'Cantidad', 'Total COP']) + 1:] if len(f) == 3 and f[0]}
-        for nombre in ('Compras', 'Ventas', 'Ingresos adicionales', 'Gastos', 'Consignaciones', 'Utilidad estimada (venta-costo)'):
+        for nombre in ('Compras', 'Ventas', 'Ingresos adicionales', 'Gastos', 'Consignaciones', 'Margen bruto de equipos (venta-costo)'):
             self.assertEqual(resumen[nombre][2], Decimal(csv_resumen[nombre][2]), nombre)
         # Pantalla Información contable: mismas cifras en la sección del consolidado
         html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)

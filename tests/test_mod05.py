@@ -51,7 +51,7 @@ class Mod05Tests(test_catalogs.CatalogTests):
         html = page.get_data(as_text=True)
         self.assertEqual(page.status_code, 200)
         self.assertIn('Consolidado por periodo', html)
-        self.assertIn('Utilidad estimada', html)
+        self.assertIn('Margen bruto de equipos', html)
         self.assertIn('SOP-001', html)
         csv_resp = self.client.get('/modulos/tributario/export.csv?ini=2000-01-01&fin=' + today())
         self.assertEqual(csv_resp.status_code, 200)

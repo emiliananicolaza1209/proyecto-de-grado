@@ -21,6 +21,7 @@ UVT_POR_ANIO = {2025: 49799, 2026: 52374}
 
 COLOMBIA = timezone(timedelta(hours=-5))
 ACTOR_ANONIMO = 'Sesión local sin autenticación'
+SIN_BANCO = 'Sin banco asociado'  # consignaciones sin banco destino (p. ej. datáfono)
 
 TIPOS_MOVIMIENTO = ('INGRESO', 'GASTO')
 CATEGORIAS_INGRESO_GASTO = ('VENTA', 'COMPRA', 'ARRIENDO', 'NOMINA', 'SERVICIOS',
@@ -222,12 +223,12 @@ def consolidar_periodo(ini, fin):
     consignaciones = {'total_cents': cons_total, 'count': len(cons_q), 'detalle': [
         {'fecha': c.fecha.date().isoformat() if hasattr(c.fecha, 'date') else str(c.fecha)[:10],
          'tipo': 'CONSIGNACION',
-         'detalle': f"{c.destinatario.nombre if c.destinatario else '?'} → {c.banco.nombre if c.banco else '?'}",
+         'detalle': f"{c.destinatario.nombre if c.destinatario else '?'} → {c.banco.nombre if c.banco else SIN_BANCO}",
          'fuente': c.referencia or 'Sin referencia',
          'valor_cents': int(Decimal(str(c.monto)) * 100),
          'responsable': c.destinatario.nombre if c.destinatario else '',
          'persona': c.destinatario.nombre if c.destinatario else '?',
-         'banco': c.banco.nombre if c.banco else '?', 'referencia': c.referencia or ''}
+         'banco': c.banco.nombre if c.banco else SIN_BANCO, 'referencia': c.referencia or ''}
         for c in cons_q]}
     for c in cons_q:
         if not c.referencia:
@@ -279,7 +280,7 @@ def generar_csv(consolidado, actor=ACTOR_ANONIMO):
     w.writerow(['Sección', 'Cantidad', 'Total COP'])
     w.writerow(['Compras', consolidado['compras']['count'], f"{consolidado['compras']['total_cents']/100:.2f}"])
     w.writerow(['Ventas', consolidado['ventas']['count'], f"{consolidado['ventas']['total_cents']/100:.2f}"])
-    w.writerow(['Utilidad estimada (venta-costo)', '', f"{consolidado['ventas']['utilidad_cents']/100:.2f}"])
+    w.writerow(['Margen bruto de equipos (venta-costo)', '', f"{consolidado['ventas']['utilidad_cents']/100:.2f}"])
     w.writerow(['Ingresos adicionales', consolidado['ingresos']['count'], f"{consolidado['ingresos']['total_cents']/100:.2f}"])
     w.writerow(['Gastos', consolidado['gastos']['count'], f"{consolidado['gastos']['total_cents']/100:.2f}"])
     w.writerow(['Consignaciones', consolidado['consignaciones']['count'], f"{consolidado['consignaciones']['total_cents']/100:.2f}"])
