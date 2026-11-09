@@ -1,5 +1,6 @@
 """Sesiones y permisos en servidor; sin contraseñas predeterminadas."""
 import functools
+import os
 import time
 from collections import defaultdict, deque
 from flask import Blueprint,request,session,g,current_app,redirect,url_for,abort,render_template,flash
@@ -14,6 +15,7 @@ ROLES=('Propietario','Administrador','Vendedora','Inventario','Socio')
 _attempts=defaultdict(deque)
 
 def enabled():return current_app.config.get('AUTH_REQUIRED',not current_app.testing)
+def idle_seconds():return max(1,int(current_app.config.get('SESSION_IDLE_MINUTES',30)*60))
 def role():return getattr(g,'usuario',None).rol if getattr(g,'usuario',None) else ('Propietario' if not enabled() else '')
 def can(capability):
     r=role()
@@ -37,12 +39,18 @@ def guard():
     g.usuario=None
     if not enabled():return
     uid=session.get('usuario_id')
+    expirada=False
     if uid:
         u=db.session.get(Usuario,uid)
-        if u and u.activo and session.get('usuario_version')==u.session_version:g.usuario=u
+        if u and u.activo and session.get('usuario_version')==u.session_version:
+            ahora=int(time.time());ultimo=session.get('ultimo_acceso')
+            if ultimo is not None and ahora-ultimo>idle_seconds():session.clear();expirada=True
+            else:
+                g.usuario=u
+                if request.endpoint!='static':session['ultimo_acceso']=ahora
         else:session.clear()
     if request.endpoint in ('static','auth.login') or request.endpoint is None:return
-    if not g.usuario:return redirect(url_for('auth.login'))
+    if not g.usuario:return redirect(url_for('auth.login',expirada=1 if expirada else None))
     if request.endpoint=='auth.logout':return
     endpoint=request.endpoint
     if role()=='Socio' and endpoint not in ('gestion.sociedades','gestion.inversion'):
@@ -73,7 +81,7 @@ def guard():
 @auth.route('/iniciar-sesion',methods=['GET','POST'])
 def login():
     setup=db.session.scalar(db.select(Usuario.id).limit(1)) is None
-    error=None
+    error='Tu sesión se cerró por inactividad. Inicia sesión de nuevo.' if request.method=='GET' and request.args.get('expirada') else None
     if request.method=='POST' and not setup:
         key=(request.remote_addr or '',request.form.get('login','').strip().lower())
         now=time.monotonic();q=_attempts[key]
@@ -82,7 +90,7 @@ def login():
         else:
             u=db.session.scalar(db.select(Usuario).where(Usuario.login==key[1]))
             if u and u.activo and check_password_hash(u.password_hash,request.form.get('password','')):
-                session.clear();session['usuario_id']=u.id;session['usuario_version']=u.session_version
+                session.clear();session['usuario_id']=u.id;session['usuario_version']=u.session_version;session['ultimo_acceso']=int(time.time())
                 _attempts.pop(key,None)
                 return redirect(url_for('main.home'))
             q.append(now);error='Usuario o contraseña incorrectos.'
@@ -92,7 +100,18 @@ def login():
 def logout():
     session.clear();return redirect(url_for('auth.login'))
 
+def _verdadero(valor):return str(valor or '').strip().lower() in ('1','true','si','sí','yes','on')
+
 def init_auth(app):
+    # Sesión: la cookie es HttpOnly y SameSite=Lax (app/__init__.py). Secure se activa con SESSION_COOKIE_SECURE=1
+    # al desplegar tras HTTPS; la inactividad máxima se fija con SESSION_IDLE_MINUTES (30 por defecto).
+    # LIMITACIÓN CONOCIDA: la sesión es una cookie firmada sin estado en el servidor. Cerrar sesión la borra del
+    # navegador, pero una copia de la cookie sigue valiendo hasta que expire por inactividad o hasta que se edite
+    # o desactive al usuario (eso sí la invalida de inmediato). Ver docs/SEGURIDAD.md.
+    if _verdadero(os.getenv('SESSION_COOKIE_SECURE')):app.config['SESSION_COOKIE_SECURE']=True
+    try:minutos=float(os.getenv('SESSION_IDLE_MINUTES') or 30)
+    except ValueError:minutos=30
+    app.config.setdefault('SESSION_IDLE_MINUTES',minutos if minutos>0 else 30)
     app.before_request(guard)
     app.context_processor(lambda:dict(can=can,usuario=getattr(g,'usuario',None)))
     app.register_blueprint(auth)
