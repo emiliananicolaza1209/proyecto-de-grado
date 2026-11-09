@@ -12,3 +12,13 @@ Documento vivo. Lo que sigue describe lo que la aplicación hace hoy y lo que **
     por inactividad.
   - Editar o desactivar a un usuario sí invalida sus sesiones de inmediato (`session_version`).
   - Resolverlo exigiría una tabla de sesiones (cambio de esquema), que por ahora queda fuera de alcance.
+
+## Intentos de acceso
+- Límite por usuario y red: 5 fallos en 5 minutos. Límite por red: 20 fallos en 5 minutos con cualquier usuario
+  (frena probar una clave contra muchos usuarios). Un acceso correcto reinicia solo el contador de ese usuario.
+- Cada fallo queda en la auditoría (`registro_gestion`, entidad `acceso`) con el usuario escrito, la IP y el motivo
+  (usuario inexistente, inactivo o contraseña incorrecta). Nunca se guarda la contraseña. El bloqueo queda registrado
+  una sola vez por ventana, y los intentos bloqueados no escriben, para que nadie pueda inundar la tabla.
+- **Limitación conocida (en memoria):** los contadores viven en la memoria del proceso. Se pierden al reiniciar el
+  servidor y no se comparten entre procesos. Detrás de un proxy, `remote_addr` es la IP del proxy: configurar
+  `ProxyFix` o equivalente al desplegar. Los registros de auditoría sí son persistentes.

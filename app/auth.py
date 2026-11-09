@@ -12,7 +12,30 @@ from .services.gestion_comun import audit
 
 auth=Blueprint('auth',__name__)
 ROLES=('Propietario','Administrador','Vendedora','Inventario','Socio')
-_attempts=defaultdict(deque)
+_attempts=defaultdict(deque)      # (ip, usuario) -> instantes de intentos fallidos
+_attempts_ip=defaultdict(deque)   # ip -> instantes de intentos fallidos con cualquier usuario
+VENTANA=300          # segundos
+LIMITE_USUARIO=5     # fallos por usuario y red en la ventana
+LIMITE_IP=20         # fallos por red (cualquier usuario) en la ventana; frena probar claves contra muchos usuarios
+# LIMITACIÓN CONOCIDA: los contadores viven en memoria del proceso. Se pierden al reiniciar el servidor y no se
+# comparten entre procesos; con varios procesos el límite real es el de cada uno. Los fallos sí quedan en la
+# auditoría (registro_gestion), que es persistente. Ver docs/SEGURIDAD.md.
+
+def _vigentes(cola,ahora):
+    while cola and cola[0]<ahora-VENTANA:cola.popleft()
+    return cola
+
+def _podar(ahora):
+    """Evita que claves inventadas por un atacante hagan crecer la memoria sin límite."""
+    for tabla in (_attempts,_attempts_ip):
+        if len(tabla)>1000:
+            for clave in [k for k,c in tabla.items() if not _vigentes(c,ahora)]:tabla.pop(clave,None)
+
+def _registrar_acceso(accion,usuario,login,ip,motivo,**datos):
+    from .models.gestion import RegistroGestion
+    db.session.add(RegistroGestion(entidad='acceso',entidad_id=usuario.id if usuario else 0,accion=accion,motivo=motivo,
+        actor='Acceso (sin sesión)',datos=dict(datos,login=login[:120],ip=ip[:64])))
+    db.session.commit()
 
 def enabled():return current_app.config.get('AUTH_REQUIRED',not current_app.testing)
 def idle_seconds():return max(1,int(current_app.config.get('SESSION_IDLE_MINUTES',30)*60))
@@ -83,17 +106,23 @@ def login():
     setup=db.session.scalar(db.select(Usuario.id).limit(1)) is None
     error='Tu sesión se cerró por inactividad. Inicia sesión de nuevo.' if request.method=='GET' and request.args.get('expirada') else None
     if request.method=='POST' and not setup:
-        key=(request.remote_addr or '',request.form.get('login','').strip().lower())
-        now=time.monotonic();q=_attempts[key]
-        while q and q[0]<now-300:q.popleft()
-        if len(q)>=5:error='Espera cinco minutos antes de volver a intentar.'
+        ip=request.remote_addr or '';key=(ip,request.form.get('login','').strip().lower())
+        now=time.monotonic();_podar(now)
+        q=_vigentes(_attempts[key],now);qi=_vigentes(_attempts_ip[ip],now)
+        if len(q)>=LIMITE_USUARIO or len(qi)>=LIMITE_IP:error='Espera cinco minutos antes de volver a intentar.'
         else:
             u=db.session.scalar(db.select(Usuario).where(Usuario.login==key[1]))
             if u and u.activo and check_password_hash(u.password_hash,request.form.get('password','')):
                 session.clear();session['usuario_id']=u.id;session['usuario_version']=u.session_version;session['ultimo_acceso']=int(time.time())
                 _attempts.pop(key,None)
                 return redirect(url_for('main.home'))
-            q.append(now);error='Usuario o contraseña incorrectos.'
+            q.append(now);qi.append(now)
+            motivo='Usuario inexistente' if not u else 'Usuario inactivo' if not u.activo else 'Contraseña incorrecta'
+            _registrar_acceso('Inicio de sesión fallido',u,key[1],ip,motivo,intentos_usuario=len(q),intentos_red=len(qi))
+            if len(q)>=LIMITE_USUARIO or len(qi)>=LIMITE_IP:
+                _registrar_acceso('Bloqueo temporal de acceso',u,key[1],ip,'Límite de intentos alcanzado',
+                    por='usuario' if len(q)>=LIMITE_USUARIO else 'red',minutos=VENTANA//60)
+            error='Usuario o contraseña incorrectos.'
     return render_template('gestion/login.html',error=error,setup=setup)
 
 @auth.post('/cerrar-sesion')
