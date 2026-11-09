@@ -2,7 +2,7 @@
 {% block content %}
 <div class="accounting container-fluid px-4 my-4">
   <div class="accounting-heading"><div><p class="eyebrow">MÓDULO 06</p><h1>Información contable</h1><p>Una ficha por persona. Puedes asociarle varios bancos y revisar sus consignaciones.</p></div><a class="btn btn-outline-primary" href="#registrar-persona">+ Registrar persona</a></div>
-  <div class="alert alert-info"><form method="get" class="accounting-year"><label>Año gravable <select name="anio" onchange="this.form.submit()"><option value="2025" {{ 'selected' if anio==2025 }}>2025</option><option value="2026" {{ 'selected' if anio==2026 }}>2026</option></select></label></form><strong>Alerta de consignaciones (1.400 UVT):</strong> {% if tope_limite %}${{ "{:,.0f}".format(tope_limite) }} COP en {{ anio }}{% else %}UVT de este año pendiente de configurar{% endif %}. Esta alerta no determina por sí sola la obligación de declarar.</div>
+  <div class="alert alert-info"><form method="get" class="accounting-year"><label>Año gravable <select name="anio" data-autosubmit><option value="2025" {{ 'selected' if anio==2025 }}>2025</option><option value="2026" {{ 'selected' if anio==2026 }}>2026</option></select></label></form><strong>Alerta de consignaciones (1.400 UVT):</strong> {% if tope_limite %}${{ "{:,.0f}".format(tope_limite) }} COP en {{ anio }}{% else %}UVT de este año pendiente de configurar{% endif %}. Esta alerta no determina por sí sola la obligación de declarar.</div>
   {% include 'contabilidad/consolidado.html' %}
   {% if form_error %}<div class="alert alert-danger" role="alert">{{ form_error }}{% if matched_person %} <a href="#asociar-banco" data-select-person="{{ matched_person.id }}">Agregar banco a {{ matched_person.nombre }}</a>{% endif %}</div>{% endif %}
 

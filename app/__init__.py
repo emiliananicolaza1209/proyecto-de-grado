@@ -106,9 +106,10 @@ def create_app(config=None):
     from .routes.informacion_contable_routes import contabilidad_bp
 
     # Protección de formularios.
-    from .security import protect_forms
+    from .security import add_security_headers, protect_forms
 
     app.before_request(protect_forms)
+    app.after_request(add_security_headers)
 
     for blueprint in (
         main,

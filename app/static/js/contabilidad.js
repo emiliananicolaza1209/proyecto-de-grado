@@ -1,3 +1,4 @@
+document.addEventListener('change',event=>{const campo=event.target;if(campo.matches&&campo.matches('select[data-autosubmit]'))campo.form.submit();});
 (()=>{'use strict';
 const byId=id=>document.getElementById(id);
 const links=JSON.parse(byId('person-bank-data')?.textContent||'{}');
