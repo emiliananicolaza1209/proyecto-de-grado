@@ -287,8 +287,15 @@ def inversion():
     if user and user.rol=='Socio' and not sid:abort(403)
     from ..services.gestion_comun import distribute
     totals={}
+    # Inventario necesita saber cuántos equipos hay en cada ubicación, no cuánto capital tiene cada socio.
+    solo_ubicacion=not sid and not can('admin')
+    por_ubicacion={}
     for p in db.session.scalars(db.select(Producto).where(Producto.archived==0,Producto.status!='Vendido')):
         if p.status=='Garantía' and p.warranty_previous=='Vendido':continue
+        if solo_ubicacion:
+            nombre=p.location_item.name if p.location_item else p.location
+            por_ubicacion[nombre]=por_ubicacion.get(nombre,0)+1
+            continue
         own=db.session.get(PropiedadEquipo,p.id);parts=own.participaciones if own else sociedad.snapshot()
         amounts=distribute(own.capital if own else p.cost_cents,[x['capital_bp'] for x in parts])
         for part,amount in zip(parts,amounts):
@@ -296,4 +303,7 @@ def inversion():
             name=p.location_item.name if p.location_item else p.location
             key=(name,part['socio_id']);item=totals.setdefault(key,dict(location=name,partner=part['nombre'],capital=0,count=0))
             item['capital']+=amount;item['count']+=1
-    return render_template('gestion/inversion.html',active='ventas',rows=list(totals.values()),total=sum(x['capital'] for x in totals.values()))
+    if solo_ubicacion:
+        return render_template('gestion/inversion.html',active='ventas',solo_ubicacion=True,
+            rows=[dict(location=k,count=v) for k,v in sorted(por_ubicacion.items(),key=lambda x:str(x[0]))],total=None)
+    return render_template('gestion/inversion.html',active='ventas',solo_ubicacion=False,rows=list(totals.values()),total=sum(x['capital'] for x in totals.values()))
