@@ -19,6 +19,14 @@ def cop(value):
     if value is None:return 'POR REVISAR'
     return '$ '+format(value/100,',.2f').replace(',','X').replace('.',',').replace('X','.')
 
+def _sin_costos(form):
+    """Quien no es administración no define ni conoce el costo del equipo ni del artículo: el servidor lo toma de Inventario."""
+    from werkzeug.datastructures import MultiDict
+    copia=MultiDict(form);tipos=copia.getlist('cost_type');unidades=copia.getlist('cost_unit')
+    if len(tipos)==len(unidades):
+        copia.setlist('cost_unit',['' if t in ('Equipo','Artículo') else u for t,u in zip(tipos,unidades)])
+    return copia
+
 @finanzas.route('/finanzas',methods=['GET','POST'])
 def index():
     day=request.values.get('date') or svc.today()
@@ -44,7 +52,7 @@ def index():
                 else:
                     svc.editable(d,request.form.get('revision'))
                     if action=='config':svc.save_config(d,request.form)
-                    elif action=='operation':svc.add_operation(d,request.form)
+                    elif action=='operation':svc.add_operation(d,request.form if can('admin') else _sin_costos(request.form))
                     elif action=='edit_operation':svc.edit_operation(d,request.form)
                     elif action=='pool_purchase':
                         from ..services.sociedad_service import register_purchase
@@ -137,11 +145,11 @@ def index():
     return render_template('finanzas/index.html',active='finanzas',day=day,d=d,r=r,error=error,
         allies=db.session.scalars(db.select(AliadoCredito).where(AliadoCredito.activo==True)).all(),
         articles=articles,stock_units=db.session.scalars(db.select(UnidadStock).where(UnidadStock.disponible==True)).all(),
-        stock_costs={str(a.id):a.costo_administracion for a in articles},
+        stock_costs={str(a.id):a.costo_administracion for a in articles} if can('admin') else {},
         retomas=db.session.scalars(db.select(Producto).where(Producto.source_type=='Retoma',Producto.status=='Disponible',Producto.archived==0)).all(),
         providers=providers,provider_categories={p.name:p.supplier_category or 'Accesorios' for p in providers},drink_prices=svc.DRINK_PRICES,
         available_equipment=db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0).order_by(Producto.model,Producto.imei)).all(),
-        equipment_costs={p.imei:{'purchase':capital_basis(p),'pool':p.source_type=='Retoma'} for p in db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0)).all()},
+        equipment_costs={p.imei:{'purchase':capital_basis(p),'pool':p.source_type=='Retoma'} for p in db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0)).all()} if can('admin') else {},
         accounting_people=db.session.scalars(db.select(PersonaContable).order_by(PersonaContable.nombre)).all(),
         banks_destino=db.session.scalars(db.select(BancoDestino).order_by(BancoDestino.nombre)).all(),
         person_bank_map={p.id:[link.banco_id for link in p.bancos_asociados]

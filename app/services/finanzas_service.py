@@ -349,9 +349,12 @@ def parse_costs(f, require_external_imei=False):
             Catalogo.kind=='supplier',Catalogo.active==1,Catalogo.name==name)) if typ=='Proveedor' else None
         if typ=='Proveedor' and not supplier and name not in ('OTRO','OTROS'):
             raise ValueError('Selecciona un proveedor activo o créalo primero en Catálogos.')
-        if typ=='Equipo' and not db.session.scalar(db.select(Producto.id).where(
-            Producto.imei==name,Producto.status=='Disponible',Producto.archived==0)):
-            raise ValueError('Selecciona el IMEI de un equipo disponible.')
+        if typ=='Equipo':
+            disponible=db.session.scalar(db.select(Producto).where(Producto.imei==name,Producto.status=='Disponible',Producto.archived==0))
+            if not disponible:raise ValueError('Selecciona el IMEI de un equipo disponible.')
+            if not u.strip():  # quien vende sin ver costos: el costo sale de Inventario, nunca del navegador
+                from .sociedad_service import capital_basis
+                u=f'{(capital_basis(disponible) if disponible.source_type=="Retoma" else disponible.cost_cents)/100:.2f}'
         qty=int(q)
         if not 1<=qty<=10000: raise ValueError('Cantidad fuera de rango.')
         category=categories[i] if i<len(categories) and categories[i] else (
