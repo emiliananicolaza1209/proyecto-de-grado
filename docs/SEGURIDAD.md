@@ -30,3 +30,16 @@ Documento vivo. Lo que sigue describe lo que la aplicación hace hoy y lo que **
 - Aplica al crear o editar usuarios y a `flask crear-propietario`. Se guardan solo con hash.
 - Limitación: no se consulta una lista pública de claves filtradas (sería una dependencia nueva) y los usuarios no
   pueden cambiar su propia clave: la fija el Propietario.
+
+## Pendientes de seguridad (anotados, sin tocar)
+Estos puntos salieron del diagnóstico de usuarios y se dejan para una etapa posterior por decisión del equipo.
+7. **Lectura de créditos para la Vendedora:** `/finanzas/creditos` (créditos, aliados y desembolsos) es visible para el
+   perfil Vendedora aunque sus escrituras estén bloqueadas. Decidir si la lectura debe cerrarse.
+8. **Errores 500 en vez de 400/404:** `/inventario/facturas/<id>` con un id inexistente, `/finanzas/exportar` sin fecha
+   y `/gestion/historial?id=abc` terminan en error interno. No filtran datos, pero conviene responder 400 o 404.
+9. **Enumeración de usuarios por tiempo de respuesta:** si el usuario no existe no se calcula el hash, así que la
+   respuesta es más rápida que con un usuario existente. Mitigación posible: calcular siempre un hash ficticio.
+
+## Cobertura automática
+`tests/test_matriz_permisos.py` fija qué roles pueden usar cada ruta y cada acción de escritura. Falla si una ruta
+cambia de permisos o si aparece una ruta nueva sin clasificar; al añadir una ruta hay que declararla allí.
