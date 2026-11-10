@@ -15,12 +15,13 @@ Este módulo no usa ``request`` ni ``session`` (recibe el perfil como texto), no
 Las cifras las calcula la aplicación; un modelo de lenguaje, si se usa, solo redacta (``redactar_respuesta``).
 """
 import functools
+from datetime import date, timedelta
 
 from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as SATimeoutError
 
 from ..extensions import db
 from ..models import Catalogo, Producto
-from ..models.finanzas import OperacionFinanciera as Op
+from ..models.finanzas import Jornada, OperacionFinanciera as Op
 from ..models.gestion import AliadoCredito, CreditoVenta
 from .operacion_service import today
 
@@ -39,6 +40,13 @@ ROLES_CONSULTAS = {
 ROLES_CON_COSTO = ('Propietario',)
 # Créditos que cuentan como saldo pendiente. Los 'Anulado' y 'Pagado' nunca cuentan.
 ESTADOS_CREDITO_PENDIENTE = ('Pendiente', 'Parcial')
+# Jornadas abiertas: True = se incluyen como "provisional", separadas del definitivo (cerradas); False = se excluyen y
+# cuentan como cobertura incompleta.
+JORNADAS_ABIERTAS_COMO_PROVISIONAL = True
+# Largo máximo de un periodo, en días (evita consultas que recorran años enteros desde el chat).
+MAX_DIAS_PERIODO = 366
+# Cuántas fechas sin jornada se listan en la respuesta (el total siempre se informa completo).
+MAX_FECHAS_LISTADAS = 60
 # Clave de CreditoVenta.condiciones que marcaría un crédito como NO aprobado. Hoy la aprobación se exige al registrar la venta
 # (credito_service.credit_payment) pero no se guarda como dato: sin la clave, el crédito se considera aprobado.
 CLAVE_APROBACION = 'aprobado'
@@ -276,3 +284,147 @@ def creditos_pendientes(rol, aliado_id=None):
                      cobertura={'completa': not parcial, 'excluidos': excluidos, 'inconsistentes': inconsistentes,
                                 'sin_aprobacion': sin_aprobar['creditos']},
                      advertencias=advertencias, cifras=cifras, detalle={'por_aliado': filas, 'sin_aprobacion': sin_aprobar})
+
+
+# --- periodos y jornadas (compartido por resumen_ventas y resumen_financiero) --------------------------------------------
+def _dia(valor, etiqueta):
+    try:
+        return date.fromisoformat(str(valor).strip()).isoformat()
+    except (ValueError, TypeError):
+        raise ParametroInvalido(f'{etiqueta}: usa el formato AAAA-MM-DD.')
+
+
+def _periodo(ini, fin):
+    """Fechas inclusivas. Un fin futuro se recorta a hoy (con aviso); un periodo entero en el futuro o demasiado largo se rechaza."""
+    hoy = today()
+    ini, fin = _dia(ini, 'Fecha inicial'), _dia(fin, 'Fecha final')
+    if ini > fin:
+        raise ParametroInvalido('La fecha inicial no puede ser posterior a la final.')
+    if ini > hoy:
+        raise ParametroInvalido('El periodo está completamente en el futuro.')
+    avisos = []
+    if fin > hoy:
+        avisos.append(f'La fecha final {fin} es futura; se consultó hasta hoy ({hoy}).')
+        fin = hoy
+    if (date.fromisoformat(fin) - date.fromisoformat(ini)).days + 1 > MAX_DIAS_PERIODO:
+        raise ParametroInvalido(f'El periodo no puede superar {MAX_DIAS_PERIODO} días.')
+    return ini, fin, avisos
+
+
+def _fechas(ini, fin):
+    d, ultimo = date.fromisoformat(ini), date.fromisoformat(fin)
+    while d <= ultimo:
+        yield d.isoformat()
+        d += timedelta(days=1)
+
+
+def _leer_jornadas(ini, fin):
+    return db.session.scalars(db.select(Jornada).where(Jornada.date >= ini, Jornada.date <= fin).order_by(Jornada.date)).all()
+
+
+# --- resumen_ventas -------------------------------------------------------------------------------------------------
+def _leer_operaciones_venta(ini, fin):
+    q = db.select(Op, Jornada.date).join(Jornada, Jornada.id == Op.day_id) \
+        .where(Op.kind == 'Venta', Op.voided == False, Jornada.date >= ini, Jornada.date <= fin)  # noqa: E712
+    return db.session.execute(q).all()
+
+
+def _equipos_por_incorporar(ini, fin):
+    """Equipos vendidos en el periodo (Ventas y pagos) que no tienen operación en Finanzas: no están en la venta neta."""
+    vendidos = db.session.scalars(db.select(Producto).where(
+        Producto.archived == 0, Producto.status.in_(('Vendido', 'Garantía')), Producto.sale_date.is_not(None))).all()
+    en_periodo = [p for p in vendidos if ini <= p.sale_date[:10] <= fin]
+    if not en_periodo:
+        return []
+    con_operacion = set(db.session.scalars(db.select(Op.product_id).where(Op.product_id.is_not(None))).all())
+    return [p for p in en_periodo if p.id not in con_operacion]
+
+
+@consulta('resumen_ventas')
+def resumen_ventas(rol, ini, fin):
+    """Venta neta incorporada a Finanzas en el periodo: operaciones Venta no anuladas, por fecha de jornada.
+
+    La venta, el cobro y la recepción son eventos distintos: aquí solo la venta (sin cobrado ni saldo)."""
+    fuentes = ['OperacionFinanciera (finance_operation): kind = Venta y voided = False, por fecha de la jornada (Jornada.date)',
+               'Jornada cerrada: snapshot[totals][gross] y [sales_count], los mismos de la pantalla de Finanzas',
+               'Producto (equipment): equipos Vendido o en Garantía sin operación en Finanzas, solo como aviso']
+    metodo = ('Venta neta = suma de Operacion.amount (ya descuenta el recargo de datáfono y la comisión del aliado). Equipos = '
+              'operaciones con equipo propio del inventario; complementarias = el resto (accesorios, servicios, equipos de '
+              'proveedores externos). Jornada cerrada: se usa su snapshot. Jornada abierta: provisional, separada del definitivo. '
+              'No incluye cobros ni recepciones ni créditos desembolsados.')
+    ini, fin, avisos = _periodo(ini, fin)
+    periodo = {'ini': ini, 'fin': fin, 'inclusivo': True}
+    por_incorporar_lista = _equipos_por_incorporar(ini, fin)
+    por_incorporar = {'equipos': len(por_incorporar_lista), 'venta_neta_cents': sum(p.sale_value_cents or 0 for p in por_incorporar_lista)}
+
+    jornadas = {j.date: j for j in _leer_jornadas(ini, fin)}
+    if not jornadas and not por_incorporar_lista:
+        return respuesta('resumen_ventas', 'sin_datos', mensaje='No hay jornadas de Finanzas en el periodo pedido.', periodo=periodo,
+                         fuentes=fuentes, metodo=metodo, advertencias=avisos)
+
+    cerradas = {d for d, j in jornadas.items() if j.status == 'Cerrada'}
+    abiertas = {d for d, j in jornadas.items() if j.status != 'Cerrada'}
+    excluidas = abiertas if not JORNADAS_ABIERTAS_COMO_PROVISIONAL else set()
+    contadas = set(jornadas) - excluidas
+    operaciones = [(op, dia) for op, dia in _leer_operaciones_venta(ini, fin) if dia in contadas]
+
+    def vacio():
+        return {'operaciones': 0, 'venta_neta_cents': 0}
+    definitivo, provisional, equipos, complementarias = vacio(), vacio(), vacio(), vacio()
+    suma_ops = {}
+    for op, dia in operaciones:
+        suma_ops.setdefault(dia, [0, 0])
+        suma_ops[dia][0] += 1
+        suma_ops[dia][1] += op.amount
+        bloque = equipos if op.product_id else complementarias
+        bloque['operaciones'] += 1
+        bloque['venta_neta_cents'] += op.amount
+
+    sin_cierre, no_cuadra = [], []
+    for dia in sorted(contadas):
+        if dia in cerradas:
+            totales = ((jornadas[dia].snapshot or {}).get('totals') or {})
+            if totales.get('gross') is None or totales.get('sales_count') is None:
+                sin_cierre.append(dia)
+                continue
+            n, monto = totales['sales_count'], totales['gross']
+            if [n, monto] != suma_ops.get(dia, [0, 0]):
+                no_cuadra.append(dia)
+            definitivo['operaciones'] += n
+            definitivo['venta_neta_cents'] += monto
+        else:
+            n, monto = suma_ops.get(dia, [0, 0])
+            provisional['operaciones'] += n
+            provisional['venta_neta_cents'] += monto
+
+    sin_jornada = [d for d in _fechas(ini, fin) if d not in contadas]
+    advertencias = list(avisos)
+    if sin_jornada:
+        advertencias.append(f'{len(sin_jornada)} día(s) del periodo no tienen jornada de Finanzas o no se cuentan: cobertura incompleta, '
+                            'no significa cero ventas.')
+    if abiertas and JORNADAS_ABIERTAS_COMO_PROVISIONAL:
+        advertencias.append(f'{len(abiertas)} jornada(s) abierta(s): sus ventas son provisionales y se informan aparte del definitivo.')
+    if por_incorporar_lista:
+        advertencias.append(f'{por_incorporar["equipos"]} equipo(s) vendido(s) en Ventas y pagos no están incorporados a Finanzas '
+                            f'(${por_incorporar["venta_neta_cents"] // 100:,} COP); no están en la venta neta.')
+    if sin_cierre:
+        advertencias.append('El snapshot de cierre no trae la venta neta de: ' + ', '.join(sin_cierre) + '; no se calcula.')
+    if no_cuadra:
+        advertencias.append('El cierre de ' + ', '.join(no_cuadra) + ' no coincide con sus operaciones actuales; se usa el cierre.')
+
+    cobertura = {'completa': not (sin_jornada or por_incorporar_lista or sin_cierre or no_cuadra),
+                 'dias_periodo': len(list(_fechas(ini, fin))), 'con_jornada': len(jornadas), 'cerradas': len(cerradas),
+                 'abiertas': len(abiertas), 'sin_jornada_total': len(sin_jornada),
+                 'sin_jornada': sin_jornada[:MAX_FECHAS_LISTADAS], 'equipos_por_incorporar': len(por_incorporar_lista)}
+    if not contadas or sin_cierre:
+        # sin ninguna jornada contable, o con un cierre sin dato: no se inventa un 0
+        cifras = {'operaciones': None, 'venta_neta_cents': None, 'definitivo': None if sin_cierre else definitivo,
+                  'provisional': provisional, 'equipos': None, 'complementarias': None, 'por_incorporar': por_incorporar}
+    else:
+        cifras = {'operaciones': definitivo['operaciones'] + provisional['operaciones'],
+                  'venta_neta_cents': definitivo['venta_neta_cents'] + provisional['venta_neta_cents'],
+                  'definitivo': definitivo, 'provisional': provisional, 'equipos': equipos, 'complementarias': complementarias,
+                  'por_incorporar': por_incorporar}
+    estado = 'ok' if cobertura['completa'] else 'parcial'
+    return respuesta('resumen_ventas', estado, periodo=periodo, fuentes=fuentes, metodo=metodo, cobertura=cobertura,
+                     advertencias=advertencias, cifras=cifras)
