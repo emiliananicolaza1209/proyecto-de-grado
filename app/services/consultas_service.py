@@ -20,6 +20,8 @@ from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as SATimeo
 
 from ..extensions import db
 from ..models import Catalogo, Producto
+from ..models.finanzas import OperacionFinanciera as Op
+from ..models.gestion import AliadoCredito, CreditoVenta
 from .operacion_service import today
 
 ZONA = 'America/Bogota (UTC-5)'
@@ -35,6 +37,11 @@ ROLES_CONSULTAS = {
 }
 # Quién ve el costo inmovilizado del inventario (la matriz actual del código también se lo da a Inventario: no se traslada).
 ROLES_CON_COSTO = ('Propietario',)
+# Créditos que cuentan como saldo pendiente. Los 'Anulado' y 'Pagado' nunca cuentan.
+ESTADOS_CREDITO_PENDIENTE = ('Pendiente', 'Parcial')
+# Clave de CreditoVenta.condiciones que marcaría un crédito como NO aprobado. Hoy la aprobación se exige al registrar la venta
+# (credito_service.credit_payment) pero no se guarda como dato: sin la clave, el crédito se considera aprobado.
+CLAVE_APROBACION = 'aprobado'
 # estado_inventario nunca devuelve IMEI: la pregunta se responde con conteos por ubicación y referencia.
 
 
@@ -158,3 +165,114 @@ def estado_inventario(rol, ubicacion_id=None, referencia_id=None):
     return respuesta('estado_inventario', estado, periodo=periodo, fuentes=fuentes, metodo=metodo,
                      cobertura={'completa': estado == 'ok', 'equipos_sin_clasificar': sin_clasificar},
                      advertencias=advertencias, cifras=cifras, detalle=detalle)
+
+
+# --- creditos_pendientes --------------------------------------------------------------------------------------------
+def _aprobado(credito):
+    return (credito.condiciones or {}).get(CLAVE_APROBACION, True) is not False
+
+
+def _filtro_aliado(aliado_id):
+    if aliado_id in (None, ''):
+        return None
+    try:
+        numero = int(str(aliado_id).strip())
+    except ValueError:
+        raise ParametroInvalido('Aliado: el filtro debe ser un ID numérico.')
+    if numero <= 0 or db.session.get(AliadoCredito, numero) is None:
+        raise ParametroInvalido('Aliado: no existe ese ID.')
+    return numero
+
+
+def _leer_creditos(aliado_id):
+    q = db.select(CreditoVenta, AliadoCredito, Op.voided).join(AliadoCredito, AliadoCredito.id == CreditoVenta.aliado_id) \
+        .join(Op, Op.id == CreditoVenta.operacion_id)
+    if aliado_id:
+        q = q.where(CreditoVenta.aliado_id == aliado_id)
+    return db.session.execute(q).all()
+
+
+@consulta('creditos_pendientes')
+def creditos_pendientes(rol, aliado_id=None):
+    """Saldo actual por aliado de crédito: neto - recibido. Sin mora, sin reconstrucción histórica, sin datos de clientes."""
+    fuentes = ['CreditoVenta (creditos_venta): neto, recibido y estado', 'AliadoCredito (aliados_credito): nombre del aliado',
+               'OperacionFinanciera (finance_operation): solo operaciones no anuladas',
+               'credito_service.settle: el desembolso suma a recibido y fija el estado Parcial o Pagado']
+    metodo = ('Saldo = neto - recibido de cada crédito pendiente (estado Pendiente o Parcial), de operaciones no anuladas, '
+              'sumado por aliado. El desembolso no se cuenta otra vez como venta ni utilidad. Saldo actual: no hay vencimiento '
+              'en los datos, por eso no se afirma mora ni se reconstruye el pasado.')
+    periodo = {'fecha_corte': today(), 'nota': 'Saldo actual; no es histórico.'}
+    aliado_id = _filtro_aliado(aliado_id)
+    if aliado_id:
+        periodo['filtros'] = {'aliado_id': aliado_id}
+    if db.session.scalar(db.select(CreditoVenta.id).limit(1)) is None:
+        return respuesta('creditos_pendientes', 'sin_datos', mensaje='No hay créditos registrados.', periodo=periodo,
+                         fuentes=fuentes, metodo=metodo)
+
+    grupos = {}
+    sin_aprobar = {'creditos': 0, 'neto_cents': 0, 'recibido_cents': 0, 'saldo_cents': 0}
+    excluidos = {'anulados': 0, 'operacion_anulada': 0, 'pagados': 0}
+    inconsistentes = 0
+    for credito, aliado, op_anulada in _leer_creditos(aliado_id):
+        if credito.estado == 'Anulado':
+            excluidos['anulados'] += 1
+            continue
+        if op_anulada:
+            excluidos['operacion_anulada'] += 1
+            continue
+        if credito.estado not in ESTADOS_CREDITO_PENDIENTE:
+            excluidos['pagados'] += 1
+            continue
+        saldo = credito.neto - credito.recibido
+        if not _aprobado(credito):  # aparte y fuera del saldo
+            if saldo > 0:
+                sin_aprobar['creditos'] += 1
+                sin_aprobar['neto_cents'] += credito.neto
+                sin_aprobar['recibido_cents'] += credito.recibido
+                sin_aprobar['saldo_cents'] += saldo
+            continue
+        g = grupos.setdefault(aliado.id, {'aliado_id': aliado.id, 'aliado': aliado.nombre, 'creditos': 0, 'bruto_cents': 0,
+                                          'costo_cents': 0, 'neto_cents': 0, 'recibido_cents': 0, 'saldo_cents': 0,
+                                          'calculable': True})
+        if saldo < 0:  # recibido mayor que el neto: dato inconsistente, no se inventa un saldo
+            g['calculable'] = False
+            inconsistentes += 1
+            continue
+        if saldo == 0:  # estado pendiente pero sin saldo: no es un crédito pendiente
+            inconsistentes += 1
+            continue
+        g['creditos'] += 1
+        for clave, valor in (('bruto_cents', credito.bruto), ('costo_cents', credito.costo), ('neto_cents', credito.neto),
+                             ('recibido_cents', credito.recibido), ('saldo_cents', saldo)):
+            g[clave] += valor
+
+    filas = []
+    for g in sorted(grupos.values(), key=lambda x: (-x['saldo_cents'], x['aliado'])):
+        if g['calculable'] and g['creditos'] == 0:
+            continue
+        if not g['calculable']:
+            for clave in ('bruto_cents', 'costo_cents', 'neto_cents', 'recibido_cents', 'saldo_cents'):
+                g[clave] = None
+        g.pop('calculable')
+        filas.append(g)
+    advertencias = []
+    if inconsistentes:
+        advertencias.append(f'{inconsistentes} crédito(s) con estado pendiente tienen un saldo inconsistente (cero o negativo); '
+                            'su saldo no se calcula y requiere revisión.')
+    if sin_aprobar['creditos']:
+        advertencias.append(f'{sin_aprobar["creditos"]} crédito(s) sin aprobación confirmada se informan aparte y no suman al saldo.')
+    if aliado_id and not filas and not inconsistentes and not sin_aprobar['creditos']:
+        advertencias.append('El aliado pedido no tiene créditos pendientes.')
+
+    parcial = bool(inconsistentes or sin_aprobar['creditos'])
+    calculable = all(f['saldo_cents'] is not None for f in filas)
+
+    def suma(clave):
+        return sum(f[clave] for f in filas) if calculable else None
+    cifras = {'saldo_cents': suma('saldo_cents'), 'creditos_pendientes': sum(f['creditos'] for f in filas),
+              'aliados_con_saldo': len(filas), 'bruto_cents': suma('bruto_cents'), 'costo_cents': suma('costo_cents'),
+              'neto_cents': suma('neto_cents'), 'recibido_cents': suma('recibido_cents')}
+    return respuesta('creditos_pendientes', 'parcial' if parcial else 'ok', periodo=periodo, fuentes=fuentes, metodo=metodo,
+                     cobertura={'completa': not parcial, 'excluidos': excluidos, 'inconsistentes': inconsistentes,
+                                'sin_aprobacion': sin_aprobar['creditos']},
+                     advertencias=advertencias, cifras=cifras, detalle={'por_aliado': filas, 'sin_aprobacion': sin_aprobar})
