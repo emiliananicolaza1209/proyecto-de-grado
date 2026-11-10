@@ -20,6 +20,7 @@ from datetime import date, timedelta
 from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as SATimeoutError
 
 from ..extensions import db
+from . import finanzas_service
 from ..models import Catalogo, Producto
 from ..models.finanzas import Jornada, OperacionFinanciera as Op
 from ..models.gestion import AliadoCredito, CreditoVenta
@@ -43,6 +44,18 @@ ESTADOS_CREDITO_PENDIENTE = ('Pendiente', 'Parcial')
 # Jornadas abiertas: True = se incluyen como "provisional", separadas del definitivo (cerradas); False = se excluyen y
 # cuentan como cobertura incompleta.
 JORNADAS_ABIERTAS_COMO_PROVISIONAL = True
+# resumen_financiero: solo estos totales de Finanzas son flujos sumables entre días. Nunca se suman bases de caja ni saldos
+# (control_total, control_cash, cash_expected, banks, funds, opening...). Se pueden cambiar sin tocar la lógica.
+FLUJOS_SUMABLES = ('gross', 'sales_count', 'debe', 'haber', 'service', 'liquidation', 'result', 'commission', 'profit',
+                   'owner_result')
+ETIQUETAS_FLUJOS = {
+    'gross': 'Ventas netas', 'sales_count': 'Ventas registradas', 'debe': 'DEBE (margen antes de costos menores)',
+    'haber': 'HABER (costos menores)', 'service': 'Servicios', 'liquidation': 'Liquidación del día',
+    'result': 'Resultado antes de comisiones', 'commission': 'Comisiones', 'profit': 'Resultado después de comisiones',
+    'owner_result': 'Resultado final del día',
+}
+# True: con jornadas abiertas (resultado provisional) la respuesta es "parcial", aunque la cobertura esté completa.
+ABIERTAS_DEGRADAN_A_PARCIAL = True
 # Largo máximo de un periodo, en días (evita consultas que recorran años enteros desde el chat).
 MAX_DIAS_PERIODO = 366
 # Cuántas fechas sin jornada se listan en la respuesta (el total siempre se informa completo).
@@ -428,3 +441,88 @@ def resumen_ventas(rol, ini, fin):
     estado = 'ok' if cobertura['completa'] else 'parcial'
     return respuesta('resumen_ventas', estado, periodo=periodo, fuentes=fuentes, metodo=metodo, cobertura=cobertura,
                      advertencias=advertencias, cifras=cifras)
+
+
+# --- resumen_financiero ---------------------------------------------------------------------------------------------
+def _totales_de_jornada(jornada):
+    """Cerrada: el snapshot guardado al cerrar. Abierta: el reporte actual de Finanzas (que usa calculate). Nunca open_day."""
+    if jornada.status == 'Cerrada':
+        return 'snapshot', ((jornada.snapshot or {}).get('totals') or {})
+    return 'report', finanzas_service.report(jornada)['totals']
+
+
+def _leer_totales(jornadas):
+    return [(j, *_totales_de_jornada(j)) for j in jornadas]
+
+
+def _valor(totales, clave):
+    v = totales.get(clave)
+    return v if isinstance(v, int) and not isinstance(v, bool) else None  # falta, null o dato no numérico
+
+
+def _bucket(filas):
+    """Suma por flujo de las jornadas de un grupo. Si un día no trae la cifra, esa cifra del total es None."""
+    sin_dato = {}
+    suma = {}
+    for clave in FLUJOS_SUMABLES:
+        valores = [(f['fecha'], f[clave]) for f in filas]
+        faltantes = [fecha for fecha, v in valores if v is None]
+        if faltantes:
+            sin_dato[clave] = faltantes
+        suma[clave] = None if (faltantes or not filas) else sum(v for _, v in valores)
+    return {'jornadas': len(filas), **suma}, sin_dato
+
+
+@consulta('resumen_financiero')
+def resumen_financiero(rol, ini, fin):
+    """Resultado de las jornadas de Finanzas en el periodo: definitivo (cerradas) separado de provisional (abiertas)."""
+    fuentes = ['Jornada (finance_day): fecha y estado', 'Jornada cerrada: snapshot[totals], guardado al cerrar el día',
+               'Jornada abierta: finanzas_service.report(jornada), que calcula con finanzas_service.calculate',
+               'No usa consignaciones, saldos de caja ni open_day']
+    metodo = ('Suma, día por día, los flujos que Finanzas ya calcula: ' + ', '.join(FLUJOS_SUMABLES) + '. No se suman bases de caja '
+              'ni saldos (control_total, cash_expected, banks). Jornada cerrada: snapshot (definitivo). Jornada abierta: reporte '
+              'actual (provisional), siempre separado del definitivo. Un día sin jornada es cobertura incompleta, no cero. '
+              '"Resultado final del día" (owner_result) es la utilidad después de comisiones y gastos PD; NO es lo mismo que el '
+              '"Margen bruto de equipos" de Información contable (venta neta menos costo del equipo, sin sueldos ni gastos): el '
+              'resultado del día descuenta liquidación, servicios y comisiones y suma la ganancia de compras POOL, por lo que '
+              'ambas cifras difieren por definición.')
+    ini, fin, avisos = _periodo(ini, fin)
+    periodo = {'ini': ini, 'fin': fin, 'inclusivo': True}
+    jornadas = _leer_jornadas(ini, fin)
+    if not jornadas:
+        return respuesta('resumen_financiero', 'sin_datos', mensaje='No hay jornadas de Finanzas en el periodo pedido.',
+                         periodo=periodo, fuentes=fuentes, metodo=metodo, advertencias=avisos)
+
+    cerradas = [j for j in jornadas if j.status == 'Cerrada']
+    abiertas = [j for j in jornadas if j.status != 'Cerrada']
+    contadas = cerradas + (abiertas if JORNADAS_ABIERTAS_COMO_PROVISIONAL else [])
+    por_jornada = []
+    for j, fuente, totales in _leer_totales(contadas):
+        fila = {'fecha': j.date, 'estado': j.status, 'fuente': fuente}
+        fila.update({clave: _valor(totales, clave) for clave in FLUJOS_SUMABLES})
+        por_jornada.append(fila)
+    definitivo, falta_def = _bucket([r for r in por_jornada if r['estado'] == 'Cerrada'])
+    provisional, falta_prov = _bucket([r for r in por_jornada if r['estado'] != 'Cerrada'])
+
+    fechas_contadas = {j.date for j in contadas}
+    sin_jornada = [d for d in _fechas(ini, fin) if d not in fechas_contadas]
+    advertencias = list(avisos)
+    for etiqueta, faltantes in (('definitivo', falta_def), ('provisional', falta_prov)):
+        for clave, fechas in faltantes.items():
+            advertencias.append(f'{ETIQUETAS_FLUJOS[clave]} ({clave}) no se puede calcular en el bloque {etiqueta}: sin dato en '
+                                + ', '.join(fechas[:10]) + (' …' if len(fechas) > 10 else '') + '.')
+    if sin_jornada:
+        advertencias.append(f'{len(sin_jornada)} día(s) del periodo no tienen jornada de Finanzas o no se cuentan: cobertura '
+                            'incompleta, no significa resultado cero.')
+    if abiertas and JORNADAS_ABIERTAS_COMO_PROVISIONAL:
+        advertencias.append(f'{len(abiertas)} jornada(s) abierta(s): su resultado es provisional y está separado del definitivo.')
+    hay_nulos = bool(falta_def or falta_prov)
+    abiertas_pendientes = bool(abiertas and JORNADAS_ABIERTAS_COMO_PROVISIONAL and ABIERTAS_DEGRADAN_A_PARCIAL)
+    completa = not (sin_jornada or hay_nulos or abiertas_pendientes)
+    cobertura = {'completa': completa, 'dias_periodo': len(list(_fechas(ini, fin))), 'con_jornada': len(jornadas),
+                 'cerradas': len(cerradas), 'abiertas': len(abiertas), 'sin_jornada_total': len(sin_jornada),
+                 'sin_jornada': sin_jornada[:MAX_FECHAS_LISTADAS]}
+    cifras = {'definitivo': definitivo, 'provisional': provisional}
+    detalle = {'etiquetas': {clave: ETIQUETAS_FLUJOS[clave] for clave in FLUJOS_SUMABLES}, 'por_jornada': por_jornada}
+    return respuesta('resumen_financiero', 'ok' if completa else 'parcial', periodo=periodo, fuentes=fuentes, metodo=metodo,
+                     cobertura=cobertura, advertencias=advertencias, cifras=cifras, detalle=detalle)
