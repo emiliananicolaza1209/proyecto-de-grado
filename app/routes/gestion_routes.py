@@ -1,3 +1,4 @@
+from ..database import begin_write
 """Flujos v16 complementarios a los módulos existentes."""
 import secrets
 from io import BytesIO
@@ -22,7 +23,7 @@ gestion=Blueprint('gestion',__name__)
 def save(handler):
     if request.method!='POST':return None
     try:
-        db.session.execute(sql_text('BEGIN IMMEDIATE'))
+        begin_write()
         handler();db.session.commit();flash('Cambios guardados con historial.','success')
         return redirect(request.url)
     except (ValueError,TypeError,KeyError,ArithmeticError) as e:

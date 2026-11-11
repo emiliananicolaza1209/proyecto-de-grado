@@ -5,3 +5,8 @@ instance/
 .env
 *.sqlite
 *.bak
+
+.env.*
+!.env.example
+*.dump
+*.sql

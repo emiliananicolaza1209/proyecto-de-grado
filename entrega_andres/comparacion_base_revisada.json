@@ -1,0 +1,10 @@
+{
+  "mode": "codigo",
+  "status": "coincide_base",
+  "matched_files": 42,
+  "missing_files": [],
+  "different_files": [],
+  "additional_python_files": [],
+  "note": "Comparación de bytes, no de equivalencia funcional. Cambios CRLF/LF también difieren. No certifica que sea el commit más reciente.",
+  "generated_at_utc": "2026-11-10T03:40:37.023608+00:00"
+}
