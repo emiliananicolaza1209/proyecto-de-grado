@@ -15,7 +15,9 @@ Este módulo no usa ``request`` ni ``session`` (recibe el perfil como texto), no
 Las cifras las calcula la aplicación; un modelo de lenguaje, si se usa, solo redacta (``redactar_respuesta``).
 """
 import functools
+import statistics
 from datetime import date, timedelta
+from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as SATimeoutError
 
@@ -24,6 +26,7 @@ from . import finanzas_service
 from ..models import Catalogo, Producto
 from ..models.finanzas import Jornada, OperacionFinanciera as Op
 from ..models.gestion import AliadoCredito, CreditoVenta
+from .contabilidad_service import _compra_fecha  # misma regla de "fecha de ingreso" que el consolidado: fecha del lote o, sin lote, de creación
 from .operacion_service import today
 
 ZONA = 'America/Bogota (UTC-5)'
@@ -58,6 +61,13 @@ ETIQUETAS_FLUJOS = {
 }
 # True: con jornadas abiertas (resultado provisional) la respuesta es "parcial", aunque la cobertura esté completa.
 ABIERTAS_DEGRADAN_A_PARCIAL = True
+# permanencia_inventario: a partir de cuántos días en inventario un equipo disponible se considera de baja rotación (se puede
+# cambiar aquí o pasar otro valor en cada consulta), tope aceptado, y cuántos equipos se listan como máximo.
+UMBRAL_PERMANENCIA_DIAS = 60
+MAX_UMBRAL_DIAS = 3650
+MAX_EQUIPOS_LISTADOS = 200
+RANGOS_PERMANENCIA = ((0, 30, '0 a 30 días'), (31, 60, '31 a 60 días'), (61, 90, '61 a 90 días'), (91, 180, '91 a 180 días'),
+                      (181, None, 'más de 180 días'))
 # Largo máximo de un periodo, en días (evita consultas que recorran años enteros desde el chat).
 MAX_DIAS_PERIODO = 366
 # Cuántas fechas sin jornada se listan en la respuesta (el total siempre se informa completo).
@@ -640,3 +650,115 @@ def comparar_periodos(rol, ini, fin):
     cobertura = {'completa': completa, 'ventas_netas': ventas['comparable'], 'resultado_final': resultado['comparable']}
     return respuesta('comparar_periodos', 'ok' if completa else 'parcial', periodo=periodo, fuentes=fuentes, metodo=METODO_COMPARACION,
                      cobertura=cobertura, advertencias=[AVISO_COMPARACION, *avisos, *aviso_ventas, *aviso_resultado], cifras=cifras)
+
+
+# --- permanencia_inventario -----------------------------------------------------------------------------------------
+METODO_PERMANENCIA = ('Cuenta los días que cada equipo disponible (no archivado) lleva en inventario: desde su fecha de ingreso (la '
+                      'del lote o, si no tiene lote, la de creación del equipo, la misma regla del consolidado contable) hasta hoy. '
+                      'Un equipo es de baja rotación cuando lleva MÁS días que el umbral. Es un conteo de lo que ya pasó: no es una '
+                      'predicción de cuándo se venderá. Foto de hoy: no hay inventario histórico. Nunca devuelve el IMEI.')
+
+
+def _umbral(valor):
+    if valor is None or valor == '':
+        return UMBRAL_PERMANENCIA_DIAS
+    if isinstance(valor, bool) or isinstance(valor, float) and not valor.is_integer():
+        raise ParametroInvalido('Umbral: debe ser un número entero de días.')
+    try:
+        dias = int(str(valor).strip())
+    except ValueError:
+        raise ParametroInvalido('Umbral: debe ser un número entero de días.')
+    if not 1 <= dias <= MAX_UMBRAL_DIAS:
+        raise ParametroInvalido(f'Umbral: debe estar entre 1 y {MAX_UMBRAL_DIAS} días.')
+    return dias
+
+
+def _ingreso(p, hoy):
+    """Fecha de ingreso del equipo, o None si no existe, no es una fecha válida o está en el futuro."""
+    try:
+        ingreso = date.fromisoformat(_compra_fecha(p))
+    except (ValueError, TypeError):
+        return None
+    return ingreso if ingreso <= hoy else None
+
+
+def _redondeado(valor):
+    return float(Decimal(str(valor)).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
+
+
+@consulta('permanencia_inventario', metodo=METODO_PERMANENCIA)
+def permanencia_inventario(rol, umbral_dias=None):
+    """Días en inventario de cada equipo disponible y cuántos pasan del umbral (baja rotación). Sin IMEI; costo solo para quien lo ve."""
+    fuentes = ['Producto (tabla equipment): status = Disponible y archived = 0',
+               'Lote (purchase_lot): fecha de ingreso; sin lote, fecha de creación del equipo',
+               'Catalogo: nombres de ubicación y referencia']
+    umbral = _umbral(umbral_dias)
+    hoy_texto = today()
+    hoy = date.fromisoformat(hoy_texto)
+    periodo = {'fecha_corte': hoy_texto, 'umbral_dias': umbral, 'nota': 'Foto del inventario de hoy; no es histórico.'}
+    if not _hay_equipos():
+        return respuesta('permanencia_inventario', 'sin_datos', mensaje='No hay equipos registrados en el inventario.',
+                         periodo=periodo, fuentes=fuentes, metodo=METODO_PERMANENCIA)
+    equipos = _leer_disponibles(None, None)
+    ver_costo = rol in ROLES_CON_COSTO
+    filas, sin_fecha = [], 0
+    for p in equipos:
+        ingreso = _ingreso(p, hoy)
+        if ingreso is None:
+            sin_fecha += 1
+        else:
+            filas.append({'p': p, 'ingreso': ingreso, 'dias': (hoy - ingreso).days})
+    dias = [f['dias'] for f in filas]
+    sobre = sorted((f for f in filas if f['dias'] > umbral), key=lambda f: (-f['dias'], f['p'].id))
+
+    cifras = {'umbral_dias': umbral, 'disponibles': len(equipos), 'con_fecha_de_ingreso': len(filas), 'sin_fecha_de_ingreso': sin_fecha,
+              'promedio_dias': _redondeado(sum(dias) / len(dias)) if dias else None,
+              'mediana_dias': _redondeado(statistics.median(dias)) if dias else None, 'maximo_dias': max(dias) if dias else None,
+              'sobre_umbral': {'equipos': len(sobre)}}
+    if ver_costo:
+        cifras['costo_inmovilizado_cents'] = sum(p.cost_cents for p in equipos)
+        cifras['sobre_umbral']['costo_inmovilizado_cents'] = sum(f['p'].cost_cents for f in sobre)
+
+    rangos = []
+    for desde, hasta, nombre in RANGOS_PERMANENCIA:
+        dentro = [f for f in filas if f['dias'] >= desde and (hasta is None or f['dias'] <= hasta)]
+        fila = {'rango': nombre, 'equipos': len(dentro)}
+        if ver_costo:
+            fila['costo_inmovilizado_cents'] = sum(f['p'].cost_cents for f in dentro)
+        rangos.append(fila)
+    por_referencia = {}
+    for f in sobre:
+        clave = (f['p'].reference_id, _nombre_referencia(f['p']) if f['p'].reference_id else None)
+        fila = por_referencia.setdefault(clave, {'referencia_id': clave[0], 'referencia': clave[1] or 'Sin referencia', 'equipos': 0,
+                                                  'dias_maximo': 0, 'costo': 0})
+        fila['equipos'] += 1
+        fila['dias_maximo'] = max(fila['dias_maximo'], f['dias'])
+        fila['costo'] += f['p'].cost_cents
+    sobre_por_referencia = []
+    for fila in sorted(por_referencia.values(), key=lambda x: (-x['equipos'], -x['dias_maximo'], x['referencia'])):
+        costo = fila.pop('costo')
+        if ver_costo:
+            fila['costo_inmovilizado_cents'] = costo
+        sobre_por_referencia.append(fila)
+    listado = []
+    for f in sobre[:MAX_EQUIPOS_LISTADOS]:
+        p = f['p']
+        fila = {'equipo_id': p.id, 'referencia': (_nombre_referencia(p) if p.reference_id else None) or 'Sin referencia',
+                'ubicacion': (_nombre_ubicacion(p) if p.location_id else None) or 'Sin ubicación',
+                'ingreso': f['ingreso'].isoformat(), 'dias': f['dias']}
+        if ver_costo:
+            fila['costo_inmovilizado_cents'] = p.cost_cents
+        listado.append(fila)
+    detalle = {'por_rango': rangos, 'sobre_umbral_por_referencia': sobre_por_referencia, 'equipos_sobre_umbral': listado,
+               'equipos_sobre_umbral_truncado': len(sobre) > MAX_EQUIPOS_LISTADOS}
+
+    advertencias = []
+    if sin_fecha:
+        advertencias.append(f'{sin_fecha} equipo(s) disponible(s) no tienen una fecha de ingreso válida (vacía, mal escrita o futura); '
+                            'no cuentan en los días ni en el umbral.')
+    if detalle['equipos_sobre_umbral_truncado']:
+        advertencias.append(f'Se listan los {MAX_EQUIPOS_LISTADOS} equipos con más días; el total sobre el umbral es {len(sobre)}.')
+    estado = 'parcial' if sin_fecha else 'ok'
+    return respuesta('permanencia_inventario', estado, periodo=periodo, fuentes=fuentes, metodo=METODO_PERMANENCIA,
+                     cobertura={'completa': not sin_fecha, 'equipos_sin_fecha_de_ingreso': sin_fecha},
+                     advertencias=advertencias, cifras=cifras, detalle=detalle)
