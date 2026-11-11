@@ -36,6 +36,8 @@ ROLES_CONSULTAS = {
     'creditos_pendientes': ('Propietario',),
     'resumen_ventas': ('Propietario',),
     'resumen_financiero': ('Propietario',),
+    'comparar_periodos': ('Propietario',),
+    'permanencia_inventario': ('Propietario',),
 }
 # Quién ve el costo inmovilizado del inventario (la matriz actual del código también se lo da a Inventario: no se traslada).
 ROLES_CON_COSTO = ('Propietario',)
@@ -79,18 +81,21 @@ def respuesta(consulta, estado, *, mensaje='', periodo=None, fuentes=(), metodo=
             'cifras': cifras, 'detalle': detalle, 'es_estimacion': False, 'generado_en': today()}
 
 
-def consulta(nombre):
-    """Aplica autorización (antes de leer nada) y convierte los fallos temporales de la base en un estado."""
+def consulta(nombre, metodo=''):
+    """Aplica autorización (antes de leer nada) y convierte los fallos temporales de la base en un estado.
+
+    ``metodo`` se repite en las respuestas de sin_autorizacion y error_temporal (no lleva cifras) para que ciertas consultas
+    puedan decir siempre qué son, por ejemplo "esto es una comparación, no una predicción"."""
     def decorador(funcion):
         @functools.wraps(funcion)
         def envuelta(rol, *args, **kwargs):
             if rol not in ROLES_CONSULTAS.get(nombre, ()):
-                return respuesta(nombre, 'sin_autorizacion', mensaje='Tu perfil no puede usar esta consulta.')
+                return respuesta(nombre, 'sin_autorizacion', mensaje='Tu perfil no puede usar esta consulta.', metodo=metodo)
             try:
                 return funcion(rol, *args, **kwargs)
             except (OperationalError, SATimeoutError, DBAPIError):
                 db.session.rollback()
-                return respuesta(nombre, 'error_temporal',
+                return respuesta(nombre, 'error_temporal', metodo=metodo,
                                  mensaje='No se pudo leer la información en este momento. Intenta de nuevo en unos segundos.')
         return envuelta
     return decorador
@@ -526,3 +531,112 @@ def resumen_financiero(rol, ini, fin):
     detalle = {'etiquetas': {clave: ETIQUETAS_FLUJOS[clave] for clave in FLUJOS_SUMABLES}, 'por_jornada': por_jornada}
     return respuesta('resumen_financiero', 'ok' if completa else 'parcial', periodo=periodo, fuentes=fuentes, metodo=metodo,
                      cobertura=cobertura, advertencias=advertencias, cifras=cifras, detalle=detalle)
+
+
+# --- comparar_periodos ----------------------------------------------------------------------------------------------
+AVISO_COMPARACION = ('Esto es una COMPARACIÓN de dos periodos que ya ocurrieron: no es una predicción ni una estimación del futuro.')
+METODO_COMPARACION = (AVISO_COMPARACION + ' Se compara el periodo pedido con el periodo inmediatamente anterior de igual duración (mismo '
+                      'número de días). Ventas netas viene de resumen_ventas y resultado final de resumen_financiero (suma del '
+                      '"Resultado final del día"), las mismas consultas de las pantallas, el chat y los reportes. Solo se compara si '
+                      'AMBOS periodos tienen cobertura completa (todos los días con jornada, sin equipos por incorporar y sin '
+                      'cifras nulas); si falta cobertura en cualquiera de los dos, la comparación va como null con la razón, nunca '
+                      'con una cifra o un porcentaje inventados. La variación porcentual solo se calcula si el periodo anterior es '
+                      'positivo. Las jornadas abiertas cuentan como provisionales y se marcan.')
+
+
+def _dias(ini, fin):
+    return (date.fromisoformat(fin) - date.fromisoformat(ini)).days + 1
+
+
+def _periodo_anterior(ini, fin):
+    n = _dias(ini, fin)
+    fin_anterior = date.fromisoformat(ini) - timedelta(days=1)
+    return (fin_anterior - timedelta(days=n - 1)).isoformat(), fin_anterior.isoformat()
+
+
+def _valor_ventas(r):
+    """(valor en centavos o None, provisional, motivos por los que falta cobertura) de un resumen_ventas."""
+    if r['estado'] == 'sin_datos':
+        return None, False, ['no hay jornadas de Finanzas en el periodo']
+    cob, motivos = r['cobertura'], []
+    if cob['sin_jornada_total']:
+        motivos.append(f"{cob['sin_jornada_total']} día(s) sin jornada")
+    if cob['equipos_por_incorporar']:
+        motivos.append(f"{cob['equipos_por_incorporar']} equipo(s) vendido(s) sin incorporar a Finanzas")
+    if not motivos and not cob['completa']:
+        motivos.append('el cierre de alguna jornada no trae o no coincide con la venta neta')
+    if motivos or r['cifras'] is None or r['cifras']['venta_neta_cents'] is None:
+        return None, False, motivos or ['la venta neta no se pudo calcular']
+    return r['cifras']['venta_neta_cents'], bool(cob['abiertas']), []
+
+
+def _valor_resultado(r):
+    """(resultado final en centavos o None, provisional, motivos) de un resumen_financiero: definitivo + provisional, ambos aditivos."""
+    if r['estado'] == 'sin_datos':
+        return None, False, ['no hay jornadas de Finanzas en el periodo']
+    motivos = []
+    if r['cobertura']['sin_jornada_total']:
+        motivos.append(f"{r['cobertura']['sin_jornada_total']} día(s) sin jornada")
+    partes = [b['owner_result'] for b in (r['cifras']['definitivo'], r['cifras']['provisional']) if b['jornadas']]
+    if any(p is None for p in partes):
+        motivos.append('el resultado final no se puede calcular en alguna jornada')
+    if motivos or not partes:
+        return None, False, motivos or ['el resultado final no se pudo calcular']
+    return sum(partes), bool(r['cifras']['provisional']['jornadas']), []
+
+
+def _variacion(actual, anterior, nombre):
+    """Compara dos valores ya validados por _valor_*. Sin cobertura en alguno: todo en null, con la razón."""
+    (v1, p1, m1), (v0, p0, m0) = actual, anterior
+    salida = {'comparable': False, 'actual_cents': v1, 'anterior_cents': v0, 'diferencia_cents': None, 'variacion_bp': None,
+              'variacion_pct': None, 'provisional': bool(p1 or p0), 'motivos_actual': m1, 'motivos_anterior': m0}
+    avisos = []
+    for etiqueta, motivos in (('actual', m1), ('anterior', m0)):
+        if motivos:
+            avisos.append(f'{nombre}: el periodo {etiqueta} no tiene cobertura completa ({"; ".join(motivos)}); no se compara.')
+    if v1 is None or v0 is None:
+        return salida, avisos
+    salida['comparable'] = True
+    salida['diferencia_cents'] = v1 - v0
+    if v0 > 0:
+        numerador = (v1 - v0) * 10000  # puntos básicos con enteros: sin decimales flotantes, redondeo al más cercano
+        bp = (numerador + v0 // 2) // v0 if numerador >= 0 else -((-numerador + v0 // 2) // v0)
+        salida['variacion_bp'], salida['variacion_pct'] = bp, bp / 100
+    else:
+        avisos.append(f'{nombre}: el periodo anterior es cero o negativo; se informa la diferencia pero no se calcula un porcentaje.')
+    if salida['provisional']:
+        avisos.append(f'{nombre}: incluye jornadas abiertas; la cifra es provisional y la comparación puede cambiar al cerrar el día.')
+    return salida, avisos
+
+
+@consulta('comparar_periodos', metodo=METODO_COMPARACION)
+def comparar_periodos(rol, ini, fin):
+    """Ventas netas y resultado final del periodo frente al periodo anterior de igual duración. Una comparación, no una predicción."""
+    fuentes = ['resumen_ventas (periodo pedido y periodo anterior de igual duración)',
+               'resumen_financiero (periodo pedido y periodo anterior de igual duración)']
+    ini, fin, avisos = _periodo(ini, fin)
+    ini_a, fin_a = _periodo_anterior(ini, fin)
+    actual = {'ini': ini, 'fin': fin, 'dias': _dias(ini, fin)}
+    anterior = {'ini': ini_a, 'fin': fin_a, 'dias': _dias(ini_a, fin_a)}
+    periodo = {**actual, 'inclusivo': True, 'anterior': anterior, 'tipo': 'comparacion'}
+    resultados = {'ventas': (resumen_ventas(rol, ini, fin), resumen_ventas(rol, ini_a, fin_a)),
+                  'resultado': (resumen_financiero(rol, ini, fin), resumen_financiero(rol, ini_a, fin_a))}
+    todos = [r for par in resultados.values() for r in par]
+    for estado in ('sin_autorizacion', 'error_temporal'):  # si una consulta de base no pudo responder, esta tampoco
+        if any(r['estado'] == estado for r in todos):
+            return respuesta('comparar_periodos', estado, metodo=METODO_COMPARACION,
+                             mensaje='Tu perfil no puede usar esta consulta.' if estado == 'sin_autorizacion'
+                             else 'No se pudo leer la información en este momento. Intenta de nuevo en unos segundos.')
+    if all(r['estado'] == 'sin_datos' for r in todos):
+        return respuesta('comparar_periodos', 'sin_datos', mensaje='No hay jornadas de Finanzas en ninguno de los dos periodos.',
+                         periodo=periodo, fuentes=fuentes, metodo=METODO_COMPARACION, advertencias=[AVISO_COMPARACION, *avisos])
+
+    ventas, aviso_ventas = _variacion(_valor_ventas(resultados['ventas'][0]), _valor_ventas(resultados['ventas'][1]), 'Ventas netas')
+    resultado, aviso_resultado = _variacion(_valor_resultado(resultados['resultado'][0]), _valor_resultado(resultados['resultado'][1]),
+                                            'Resultado final')
+    cifras = {'es_comparacion': True, 'es_prediccion': False, 'periodo_actual': actual, 'periodo_anterior': anterior,
+              'ventas_netas': ventas, 'resultado_final': resultado}
+    completa = ventas['comparable'] and resultado['comparable'] and not (ventas['provisional'] or resultado['provisional'])
+    cobertura = {'completa': completa, 'ventas_netas': ventas['comparable'], 'resultado_final': resultado['comparable']}
+    return respuesta('comparar_periodos', 'ok' if completa else 'parcial', periodo=periodo, fuentes=fuentes, metodo=METODO_COMPARACION,
+                     cobertura=cobertura, advertencias=[AVISO_COMPARACION, *avisos, *aviso_ventas, *aviso_resultado], cifras=cifras)
