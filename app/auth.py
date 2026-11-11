@@ -43,6 +43,9 @@ def idle_seconds():return max(1,int(current_app.config.get('SESSION_IDLE_MINUTES
 def role():return getattr(g,'usuario',None).rol if getattr(g,'usuario',None) else ('Propietario' if not enabled() else '')
 def can(capability):
     r=role()
+    if capability=='chat':  # entra quien tenga habilitada al menos una consulta del chat (ROLES_CONSULTAS: hoy solo el Propietario)
+        from .services.consultas_service import ROLES_CONSULTAS
+        return any(r in roles for roles in ROLES_CONSULTAS.values())
     if r=='Propietario':return True
     if r=='Administrador':return capability not in ('usuarios','sociedades_config')
     if r=='Inventario':return capability in ('inventario','catalogos','consulta','traslado','costos')
@@ -83,6 +86,7 @@ def guard():
         if endpoint in ('ventas.receipts','ventas.receipt_detail') and not can('admin'):abort(403)
         if endpoint.startswith('finanzas.') and not can('finanzas_venta'):abort(403)
         if endpoint.startswith('contabilidad.') and not can('contabilidad'):abort(403)
+        if endpoint.startswith('chat.') and not can('chat'):abort(403)
         if endpoint=='inventory.new' and not can('inventario'):abort(403)
         if endpoint.startswith('lotes.') and not can('inventario'):abort(403)
         return
@@ -100,6 +104,7 @@ def guard():
     elif endpoint.startswith('inventory.') or endpoint.startswith('lotes.'):capability='inventario'
     elif endpoint.startswith('catalogos.'):capability='catalogos'
     elif endpoint.startswith('contabilidad.'):capability='contabilidad'
+    elif endpoint.startswith('chat.'):capability='chat'
     if not can(capability):abort(403,'Tu perfil no permite esta operación.')
 
 @auth.route('/iniciar-sesion',methods=['GET','POST'])

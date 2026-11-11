@@ -104,6 +104,7 @@ def create_app(config=None):
     from .routes.lote_routes import lotes
     from .routes.finanzas_routes import finanzas
     from .routes.informacion_contable_routes import contabilidad_bp
+    from .routes.chat_routes import chat
 
     # Protección de formularios.
     from .security import add_security_headers, protect_forms
@@ -119,6 +120,7 @@ def create_app(config=None):
         lotes,
         finanzas,
         contabilidad_bp,
+        chat,
     ):
         app.register_blueprint(blueprint)
 

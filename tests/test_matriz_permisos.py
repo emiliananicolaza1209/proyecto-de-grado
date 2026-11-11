@@ -95,6 +95,8 @@ FILAS = [
     ('POST', '/finanzas/sociedades', {'action': 'partner'}, 'P'),
     ('GET', '/inventario/inversion', {}, 'PAIS'),
     ('GET', '/ventas/inversion', {}, 'PAIS'),
+    # --- chat (solo quien tenga habilitada alguna consulta en ROLES_CONSULTAS: hoy el Propietario) ---
+    ('POST', '/chat/consultar', {'pregunta': 'ventas de hoy'}, 'P'),
     # --- usuarios ---
     ('GET', '/usuarios', {}, 'P'),
     ('POST', '/usuarios', {'role': 'Socio'}, 'P'),
