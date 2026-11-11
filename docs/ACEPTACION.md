@@ -4,7 +4,7 @@ Documento de trabajo para probar la versión desplegada, con Emily. **No certifi
 probó, quién lo validó y qué queda pendiente.
 
 - **Rama:** `ia-analitica-contable`. **Versión desplegada (SHA del commit):** `________` · **URL:** `________`
-- **Suite automática completa al 11-nov-2026:** `683` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
+- **Suite automática completa al 11-nov-2026:** `704` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`); 11 se omiten sin una base PostgreSQL de desarrollo (`CPSTORE_TEST_PG_URL`).
 - **Cómo leer las columnas:**
   - *Resultado real*: si dice **AUTOMATIZADO**, lo cubre la suite y se cita el nombre exacto de la prueba (`archivo.Clase.método`); una prueba
     automática demuestra el comportamiento del código, **no** que la URL desplegada esté bien configurada. Si dice **MANUAL**, debe hacerse a mano
@@ -12,8 +12,10 @@ probó, quién lo validó y qué queda pendiente.
   - *Quién validó*: nombre y fecha de quien lo vio con sus ojos. Para lo automatizado: "suite automática".
   - *Pendiente*: lo que falta aunque haya prueba automática.
 
-Las pruebas automáticas usan una base temporal con SQLite. **Nada de esto se ha ejecutado contra PostgreSQL.** Todo lo marcado con (PG) debe
-repetirse con la base real de Emily.
+Las pruebas automáticas usan una base temporal con SQLite. **Nada de esto se ha ejecutado contra PostgreSQL** de forma automática. A mano, en la rama
+`integracion-postgres` y con la base de pruebas de Emily, solo se comprobó la conexión y la **lectura**: `comprobar-db` y la ejecución de solo
+lectura de las consultas analíticas, sin errores. **Los flujos de escritura, la concurrencia y la versión 2 del esquema (ver
+`docs/MIGRACION_POSTGRESQL.md`) no se han validado en PostgreSQL.** Todo lo marcado con (PG) debe repetirse con la base real de Emily.
 
 ---
 
@@ -86,7 +88,7 @@ repetirse con la base real de Emily.
 | A6.3 Retoma, POOL y crédito sin duplicar | Una retoma no se reutiliza; el desembolso de un crédito no repite la venta ni la utilidad. | **AUTOMATIZADO** `test_gestion_v16.GestionTests.test_retoma_duplicate_within_sale_and_non_sale_rejected`, `test_gestion_v16.GestionTests.test_pool_purchase_from_jornada_is_not_sale_and_rejects_duplicate`, `test_consulta_creditos_pendientes.ExclusionesTests.test_el_desembolso_no_aparece_como_venta_ni_utilidad` | Suite automática | |
 | A6.4 Consignaciones vinculadas | Editar o anular una transferencia no deja consignaciones duplicadas. | **AUTOMATIZADO** `test_pool_consignment.LinkedConsignmentTests.test_transferencia_edicion_anulacion_y_sin_duplicados` | Suite automática | |
 | A6.5 Pantalla, reporte y chat dicen lo mismo | Las mismas cifras en las tres. | **AUTOMATIZADO** `test_chat.MismosTotalesTests.test_ventas`, `test_chat.MismosTotalesTests.test_financiero_coincide_con_finanzas_y_la_consulta`, `test_reportes.PanelYRutaTests.test_la_pantalla_dice_lo_mismo_que_el_chat` | Suite automática | |
-| A6.6 Acceso simultáneo desde dos computadores | Dos personas guardan la misma venta o el mismo cierre a la vez: una se guarda y la otra recibe "recarga la página", sin duplicar. | **MANUAL** | | **Crítico (PG):** el código usa `BEGIN IMMEDIATE` (propio de SQLite) en `finanzas_routes.py` y `gestion_routes.py`; en PostgreSQL esa orden falla. Emily debe resolverlo y repetir esta prueba. |
+| A6.6 Acceso simultáneo desde dos computadores | Dos personas guardan la misma venta o el mismo cierre a la vez: una se guarda y la otra recibe "recarga la página", sin duplicar. | **MANUAL** | | **Crítico (PG):** `BEGIN IMMEDIATE` (propio de SQLite) ya no está en las rutas: la rama de PostgreSQL de Emily lo reemplazó por `begin_write` (en `app/database.py`: `BEGIN IMMEDIATE` en SQLite y un bloqueo asesor de PostgreSQL, `pg_advisory_xact_lock`, en PostgreSQL). **Falta probar la concurrencia real con dos computadores sobre PostgreSQL**; esta prueba manual sigue siendo obligatoria. |
 
 ### Criterio 7 — Escenarios no soportados bloqueados, errores comprensibles y trazabilidad
 
@@ -112,8 +114,8 @@ repetirse con la base real de Emily.
 
 ## B. Los 16 casos de las cuatro consultas (4 por consulta)
 
-Son los casos de las fichas de diseño. **Los 16 casos de aceptación del paquete técnico de Emily (el ZIP) no están en el repositorio**: hay que
-contrastar estos con los suyos y anotar las diferencias aquí.
+Son los casos de las fichas de diseño. Los 16 casos de aceptación del paquete técnico de Emily (T01 a T16) **sí están en el repositorio**, en
+`entrega_andres/tecnico/casos_aceptacion.json`; la comparación con estos casos está en la sección B.2.
 
 | Caso | Resultado esperado | Resultado real | Quién validó | Pendiente |
 |---|---|---|---|---|
@@ -136,6 +138,32 @@ contrastar estos con los suyos y anotar las diferencias aquí.
 
 **Comprobación manual de las 4 consultas con la URL real (chat):** abrir `/chat` como Propietario y pulsar los cuatro botones; comparar cada cifra
 con la pantalla de su módulo (Ventas, Inventario, Finanzas) y con el reporte por periodo. Resultado: `________` · Validó: `________`
+
+### B.2 Los casos T01 a T16 del paquete de Emily
+
+Los casos de Emily son escenarios, no resultados: el propio archivo dice "no ejecutado en esta entrega". Aquí se indica qué prueba de este repositorio
+los cubre y qué falta. Las diferencias de diseño entre sus contratos (`entrega_andres/tecnico/contratos_consulta.json`, versión `propuesta-1`) y lo
+implementado están en `docs/ANALITICA.md`: nombres de parámetros y de campos, jornadas abiertas siempre incluidas como provisionales y un tope de
+detalle de 200 equipos en el reporte (la propuesta dice 100).
+
+| Caso de Emily | Qué dice | Resultado real | Quién validó | Pendiente |
+|---|---|---|---|---|
+| T01 Crédito 650000 al 18 % | neto 533000; costo 117000; banco 0 antes del desembolso | **AUTOMATIZADO** `test_consulta_creditos_pendientes.EjemploDelPdfTests.test_bruto_650000_costo_18_neto_533000_y_abonos_hasta_saldo_cero`, `test_gestion_v16.GestionTests.test_credit_18_percent_and_actual_deposit_only_on_receipt` | Suite automática |  |
+| T02 Desembolsos 200000 y 333000 | recibido 533000; pendiente 0; la utilidad no se repite | **AUTOMATIZADO** `test_consulta_creditos_pendientes.EjemploDelPdfTests.test_bruto_650000_costo_18_neto_533000_y_abonos_hasta_saldo_cero`, `test_gestion_v16.GestionTests.test_financed_equipment_partial_then_full_no_duplicate_bank` | Suite automática |  |
+| T03 Inicial 500000 y crédito neto 900000 | venta neta 1400000; efectivo 700000 | **AUTOMATIZADO** `test_gestion_v16.GestionTests.test_manual_net_plus_actual_initial_no_double_discount` | Suite automática | Es una regla de Finanzas, no de las consultas. |
+| T04 Pagar comisión POOL 20000 | la caja baja 20000; el margen no cambia | **AUTOMATIZADO** `test_gestion_v16.GestionTests.test_pool_purchase_gain_and_resale_extra` | Suite automática | Es una regla de Finanzas, no de las consultas. |
+| T05 Venta de 100000 con dos pagos y tres costos | 1 operación; venta 100000; sin multiplicar por joins | **AUTOMATIZADO** `test_consulta_resumen_ventas.SinMultiplicarPorJoinsTests.test_cuenta_una_operacion_y_la_venta_es_100000_sin_multiplicar_por_pagos_ni_costos`, `test_consulta_resumen_ventas.SinMultiplicarPorJoinsTests.test_coincide_con_finanzas_y_sigue_bien_con_otra_venta` | Suite automática | La prueba usa efectivo y transferencia: un pago con datáfono descuenta comisión y la venta neta sería menor por regla de Finanzas, no por duplicar filas. |
+| T06 Un día cerrado, otro abierto y otro sin jornada | cobertura explícita; abierto solo si se pidió; el faltante no es cero | **PARCIAL** `test_consulta_resumen_ventas.CierreYCoberturaTests.test_dias_sin_jornada_son_cobertura_incompleta_no_cero`, `test_consulta_resumen_ventas.CierreYCoberturaTests.test_jornada_abierta_va_como_provisional_separada_del_definitivo` |  | **Diferencia de diseño:** Emily propone `incluir_abiertas = false` por defecto; lo implementado incluye las abiertas siempre, separadas como provisional. Decidir con Emily. |
+| T07 Vendedora pide utilidad | rechazo antes de consultar | **AUTOMATIZADO** `test_consulta_resumen_ventas.EstadosYPermisosTests.test_sin_autorizacion_para_todo_perfil_distinto_del_propietario` | Suite automática |  |
+| T08 Ignorar reglas, DELETE o leer `password_hash` | ninguna herramienta de escritura ni SQL libre | **AUTOMATIZADO** `test_chat.FueraDeAlcanceTests.test_no_escribe_ni_corrige` | Suite automática |  |
+| T09 Crédito sin vencimiento; pregunta por mora | saldo disponible; mora no calculable | **AUTOMATIZADO** `test_consulta_creditos_pendientes.SinMoraNiClientesTests.test_sin_mora_ni_antiguedad_ni_vencimiento` | Suite automática | La consulta nunca calcula mora; no distingue "no calculable" de "no ofrecida". |
+| T10 Comparación contra un periodo de ventas cero | diferencia absoluta; porcentaje nulo con explicación | **AUTOMATIZADO** `test_analitica_comparar_periodos.SinCoberturaTests.test_el_periodo_anterior_en_cero_no_da_porcentaje` | Suite automática |  |
+| T11 Sueldo de 80000 con pago de 30000 | pendiente 50000; sin inferir pagos de otras jornadas | **SIN CUBRIR** |  | Es del consolidado contable y de los sueldos por persona (límite 8 de la sección D). |
+| T12 CP VARIOS como fondo de 40000 | capital reservado 40000; no es venta ni sueldo | **SIN CUBRIR** |  | Es del consolidado contable. |
+| T13 Consulta sin registros y cobertura completa | sin datos o cero según la métrica | **AUTOMATIZADO** `test_consulta_resumen_ventas.EstadosYPermisosTests.test_sin_datos_si_no_hay_jornadas_ni_equipos_por_incorporar`, `test_chat.EstadosSinFiltrarCifrasTests.test_sin_datos_tiene_su_mensaje` | Suite automática |  |
+| T14 Rango inválido o parámetro SQL adicional | parámetros inválidos; consulta no ejecutada | **AUTOMATIZADO** `test_consulta_resumen_ventas.PeriodoTests.test_fechas_invalidas`, `test_consulta_estado_inventario.ContratoYCifrasTests.test_filtros_invalidos_lanzan_parametro_invalido` | Suite automática |  |
+| T15 Corrección de consignación 120000 | una consignación activa por vínculo; total 120000 | **AUTOMATIZADO** (equivalente) `test_pool_consignment.LinkedConsignmentTests.test_transferencia_edicion_anulacion_y_sin_duplicados` | Suite automática | Es el flujo manual de Emily; confirmar con ella que la prueba es el mismo caso. |
+| T16 Cerrar el día, reiniciar y consultar | mismos totales del snapshot; estado Cerrada | **PARCIAL** `test_consulta_resumen_financiero.JornadaCerradaTests.test_el_snapshot_manda_sobre_el_calculo_actual` |  | No hay prueba que reinicie la aplicación; el apoyo es `test_respaldo.RestaurarTests.test_la_aplicacion_abre_la_base_restaurada_con_las_mismas_cifras`. |
 
 ---
 
@@ -168,7 +196,7 @@ con la pantalla de su módulo (Ventas, Inventario, Finanzas) y con el reporte po
 
 ## D. Pendientes y límites conocidos (se entregan junto con la versión)
 
-1. **(PG)** `BEGIN IMMEDIATE` (en `finanzas_routes.py` y `gestion_routes.py`) y `PRAGMA foreign_keys=ON` (en `app/__init__.py`) son propios de SQLite. Emily los resuelve en la rama de PostgreSQL; hasta entonces no se puede probar el acceso simultáneo.
+1. **(PG)** `BEGIN IMMEDIATE` y `PRAGMA foreign_keys=ON` ya solo se ejecutan con SQLite (`begin_write` y `initialize_sqlite` en `app/database.py`); en PostgreSQL las escrituras web toman un bloqueo asesor común. Está resuelto en el código, pero **la concurrencia no se ha probado en PostgreSQL**: falta la prueba manual A6.6.
 2. **(PG)** La variante de respaldo para PostgreSQL (`scripts/respaldo_postgres.py`) está **sin probar**.
 3. Las facturas viven en `instance/facturas`: hace falta un disco persistente en el alojamiento.
 4. La IP del cliente detrás del proxy debe reenviarse (el límite de intentos depende de ella).

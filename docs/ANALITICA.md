@@ -80,6 +80,23 @@ Un parámetro mal escrito (fecha inexistente, ID que no corresponde) no es un es
   es `parcial` con el número de equipos afectados.
 - **No predice:** mide lo que ya pasó. No dice cuándo se venderá un equipo.
 
+### 3.4 Diferencias con los contratos propuestos por Emily
+
+El paquete de Emily (`entrega_andres/tecnico/contratos_consulta.json`, versión `propuesta-1`) describe las cuatro consultas base como "propuesto, no
+implementado". Lo implementado difiere en esto, y cualquier cambio de nombres exige actualizar pruebas, pantallas y chat:
+
+| Tema | Propuesta de Emily | Implementado |
+|---|---|---|
+| Nombres de parámetros | `desde`, `hasta` | `ini`, `fin` (mismas fechas inclusivas) |
+| Claves de salida | `venta_neta_centavos`, `cantidad_operaciones`, `cantidad_disponible`, `grupos`, `cantidad_creditos`, `neto_centavos`, `recibido_centavos`, `pendiente_centavos` | `venta_neta_cents`, `operaciones`, `disponibles`, `por_ubicacion` y `por_referencia` en el detalle, `creditos`, `neto_cents`, `recibido_cents`, `saldo_cents` |
+| Jornadas abiertas | `incluir_abiertas = false` por defecto: solo entran si se piden | Siempre se incluyen, separadas como **provisional** (estado `parcial`) |
+| Filas de detalle | máximo 100 | hasta 200 equipos en el reporte y 10 en el chat |
+| Herramientas | 4 | 6: además `comparar_periodos` y `permanencia_inventario` |
+| Autorización | la identidad la verifica el servidor, no el modelo | Igual: el perfil lo toma el servidor de la sesión; cada consulta recibe `rol` como primer argumento |
+| Estado de parámetro inválido | `parametros_invalidos` | excepción `ParametroInvalido` (la ruta responde 400; el chat dice que no entendió) |
+
+Pendiente de decisión con Emily: unificar nombres y decidir si las jornadas abiertas se incluyen por defecto.
+
 ## 4. Chat, reportes y pantallas (cómo llegan estas consultas al usuario)
 
 - **Chat** (`/chat`): reglas fijas, sin modelo de lenguaje. Interpreta la intención y el periodo ("hoy", "esta semana", "del 1 al 15 de octubre"…),
