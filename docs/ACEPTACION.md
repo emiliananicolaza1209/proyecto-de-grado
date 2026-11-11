@@ -4,7 +4,7 @@ Documento de trabajo para probar la versión desplegada, con Emily. **No certifi
 probó, quién lo validó y qué queda pendiente.
 
 - **Rama:** `ia-analitica-contable`. **Versión desplegada (SHA del commit):** `________` · **URL:** `________`
-- **Suite automática completa al 11-nov-2026:** `585` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
+- **Suite automática completa al 11-nov-2026:** `652` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
 - **Cómo leer las columnas:**
   - *Resultado real*: si dice **AUTOMATIZADO**, lo cubre la suite y se cita el nombre exacto de la prueba (`archivo.Clase.método`); una prueba
     automática demuestra el comportamiento del código, **no** que la URL desplegada esté bien configurada. Si dice **MANUAL**, debe hacerse a mano
@@ -181,4 +181,4 @@ con la pantalla de su módulo (Ventas, Inventario, Finanzas) y con el reporte po
 11. Rol Contador: no existe; el contador recibe el paquete (Excel y PDF) descargado por el Propietario o el Administrador.
 12. El reporte por periodo y el consolidado contable usan definiciones distintas de "ventas" (por operación de Finanzas frente a por equipo vendido); la diferencia es por definición, no un error.
 13. Fechas con `utcnow` en algunos modelos y `AGENTS.md` desactualizado (anotados en la memoria del proyecto).
-14. Analítica avanzada (cierre comparado, tendencia, rotación, proyección UVT) y MCP: fuera de esta entrega.
+14. Analítica: la comparación de periodos y la permanencia del inventario están implementadas (ver `docs/ANALITICA.md`, que también explica la limitación de "periodo anterior de igual duración"); tendencia de ventas, proyección UVT, alertas, MCP y cualquier modelo predictivo quedan fuera de esta entrega.
