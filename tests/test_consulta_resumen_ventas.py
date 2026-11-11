@@ -400,5 +400,44 @@ class PeriodoTests(VentasBase):
         self.assertEqual(len(r['cobertura']['sin_jornada']), 3)
 
 
+class SinMultiplicarPorJoinsTests(VentasBase):
+    """Caso T05 del paquete de Emily: una venta con varios pagos y varios costos cuenta una sola vez."""
+
+    def venta_con_dos_pagos_y_tres_costos(self, monto='100000'):
+        p = self.equipo(costo=50000000)
+        persona, banco = self.persona_banco()
+        f.add_operation(self.d, data(
+            kind='Venta', description='VENTA T05', seller='ANA', token=secrets.token_hex(16), amount=monto, minor_cost='',
+            payment_account=['EFECTIVO', 'TRANSFERENCIA'], payment_amount=['60000', '40000'],  # sin datáfono: este medio descuenta comisión
+            payment_person_id=['', persona.id], payment_bank_id=['', banco.id],
+            cost_type=['Equipo', 'Bebida', 'Bebida'], cost_name=[p.imei, 'AGUA', 'CORONA'], cost_qty=['1', '1', '1'],
+            cost_unit=[str(p.cost_cents / 100), '2000', '4000']))
+        db.session.commit()
+        return db.session.scalar(db.select(Op).where(Op.day_id == self.d.id, Op.kind == 'Venta'))
+
+    def test_la_venta_tiene_de_verdad_dos_pagos_y_tres_costos(self):
+        o = self.venta_con_dos_pagos_y_tres_costos()
+        self.assertEqual(len(o.payments), 2)
+        self.assertEqual(len(o.costs), 3)
+        self.assertEqual(sum(p['amount'] for p in o.payments), 10000000)
+
+    def test_cuenta_una_operacion_y_la_venta_es_100000_sin_multiplicar_por_pagos_ni_costos(self):
+        self.venta_con_dos_pagos_y_tres_costos()
+        r = self.consulta()
+        self.assertEqual(r['estado'], 'ok')
+        self.assertEqual((r['cifras']['operaciones'], r['cifras']['venta_neta_cents']), (1, 10000000))
+        # la jornada de la prueba está abierta: toda la venta va en el bloque provisional, una sola vez
+        self.assertEqual(r['cifras']['provisional'], {'operaciones': 1, 'venta_neta_cents': 10000000})
+        self.assertEqual(r['cifras']['definitivo'], {'operaciones': 0, 'venta_neta_cents': 0})
+
+    def test_coincide_con_finanzas_y_sigue_bien_con_otra_venta(self):
+        self.venta_con_dos_pagos_y_tres_costos()
+        self.vender(monto='50000', con_equipo=False)
+        totales = f.report(self.d)['totals']
+        r = self.consulta()
+        self.assertEqual((totales['sales_count'], totales['gross']), (2, 15000000))
+        self.assertEqual((r['cifras']['operaciones'], r['cifras']['venta_neta_cents']), (2, 15000000))
+
+
 if __name__ == '__main__':
     unittest.main()
