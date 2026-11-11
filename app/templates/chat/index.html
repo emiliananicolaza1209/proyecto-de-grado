@@ -1,0 +1,29 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Chat de consultas · CP Store{% endblock %}
+{% block content %}
+<div class="chat-page">
+  <p class="eyebrow">CONSULTAS EN LENGUAJE SENCILLO</p>
+  <h1>Chat de consultas</h1>
+  <p class="muted">Pregunta por ventas, resultado, inventario o créditos. El chat solo consulta: no cambia datos. Las cifras salen de las mismas fuentes que Finanzas e Inventario y la respuesta indica de dónde vienen.</p>
+
+  <section class="panel chat-panel" aria-labelledby="chat-titulo">
+    <h2 id="chat-titulo" class="visually-hidden">Conversación</h2>
+    <div id="chat-historial" class="chat-historial" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
+      <p class="chat-vacio" id="chat-vacio">Todavía no has hecho preguntas. Prueba con uno de los ejemplos.</p>
+    </div>
+
+    <div class="chat-ejemplos" role="group" aria-label="Preguntas de ejemplo">
+      {% for etiqueta, pregunta in ejemplos %}<button type="button" class="btn btn-light chat-ejemplo" data-pregunta="{{ pregunta }}">{{ etiqueta }}</button>{% endfor %}
+    </div>
+
+    <form id="chat-form" class="chat-form" method="post" action="{{ url_for('chat.consultar') }}" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{ session.csrf }}">
+      <label class="visually-hidden" for="chat-pregunta">Tu pregunta</label>
+      <input id="chat-pregunta" name="pregunta" class="form-control" type="text" maxlength="{{ max_pregunta }}" required
+             placeholder="Ej.: ventas del 1 al 15 de octubre">
+      <button class="btn btn-primary" id="chat-enviar" type="submit">Preguntar</button>
+    </form>
+    <p class="chat-ayuda">Puedes indicar el periodo con palabras: {{ periodos }}. Sin periodo, las ventas y el resultado usan hoy. Este historial vive solo en esta pantalla y se borra al recargar.</p>
+  </section>
+</div>
+{% endblock %}

@@ -12,6 +12,7 @@
   {% if active=='ventas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/ventas.css',v='16.2') }}">{% endif %}
   {% if active=='finanzas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas.css',v='2') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='4') }}">{% endif %}
   {% if active=='tributario' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}">{% endif %}
+  {% if active=='chat' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/chat.css',v='1') }}">{% endif %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}"></head>
 <body>
 <a class="skip" href="#contenido">Saltar al contenido</a>
@@ -19,8 +20,8 @@
   <a class="brand" href="/"><span class="brand-mark">CP</span><span>CP STORE<small>GESTIÓN DEL NEGOCIO</small></span></a>
   <p class="nav-label">ESPACIO DE TRABAJO</p>
   <nav class="app-nav" aria-label="Navegación principal">
-    {% for key,label,target,icon in [('inicio','Resumen','/','01'),('inventario','Compras e inventario','/inventario','02'),('ventas','Ventas y pagos','/ventas','03'),('finanzas','Finanzas','/modulos/finanzas','04'),('analitica','Analítica y agente','/modulos/analitica','05'),('tributario','Información contable','/modulos/tributario','06'),('usuarios','Usuarios','/modulos/usuarios','07')] %}
-    {% if key not in ('usuarios','tributario','finanzas') or (key=='usuarios' and can('usuarios')) or (key=='tributario' and can('contabilidad')) or (key=='finanzas' and can('finanzas_venta')) %}<a class="{{ 'active' if active==key else '' }}" {% if active==key %}aria-current="page"{% endif %} href="{{ target }}"><span class="nav-number">{{ icon }}</span>{{ label }}</a>{% endif %}
+    {% for key,label,target,icon in [('inicio','Resumen','/','01'),('inventario','Compras e inventario','/inventario','02'),('ventas','Ventas y pagos','/ventas','03'),('finanzas','Finanzas','/modulos/finanzas','04'),('analitica','Analítica y agente','/modulos/analitica','05'),('tributario','Información contable','/modulos/tributario','06'),('usuarios','Usuarios','/modulos/usuarios','07'),('chat','Chat de consultas','/chat','08')] %}
+    {% if key not in ('usuarios','tributario','finanzas','chat') or (key=='chat' and can('chat')) or (key=='usuarios' and can('usuarios')) or (key=='tributario' and can('contabilidad')) or (key=='finanzas' and can('finanzas_venta')) %}<a class="{{ 'active' if active==key else '' }}" {% if active==key %}aria-current="page"{% endif %} href="{{ target }}"><span class="nav-number">{{ icon }}</span>{{ label }}</a>{% endif %}
     {% endfor %}
   </nav>
   <div class="local"><span class="status-dot"></span> Entorno de desarrollo<small>Acceso según el perfil de cada usuario</small></div>
@@ -40,5 +41,6 @@
 {% if active=='ventas' %}<script src="{{ url_for('static',filename='js/ventas.js',v='2') }}" defer></script>{% endif %}
 {% if active=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='16.3') }}" defer></script>{% endif %}
 {% if active=='tributario' %}<script src="{{ url_for('static',filename='js/contabilidad.js',v='16.3') }}" defer></script>{% endif %}
+{% if active=='chat' %}<script src="{{ url_for('static',filename='js/chat.js',v='1') }}" defer></script>{% endif %}
 {% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/gestion.js',v='16') }}"></script></body></html>

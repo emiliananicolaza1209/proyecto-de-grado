@@ -55,7 +55,19 @@ CAPACIDADES = ('ventas de un periodo (ej. "ventas de hoy", "ventas del 1 al 15 d
                'resultado financiero de un periodo (ej. "resultado de esta semana")',
                'inventario disponible (ej. "inventario disponible")',
                'créditos pendientes por aliado (ej. "créditos pendientes")')
-PERIODOS_ENTENDIDOS = 'hoy, ayer, esta semana, semana pasada, este mes, mes pasado, un mes por su nombre, "del 1 al 15 de octubre"'
+# Por qué un resultado es parcial, según la consulta (lo provisional de las jornadas abiertas se dice aparte).
+PARCIAL = {
+    'estado_inventario': 'Resultado parcial: algunos equipos no están clasificados en el catálogo (ubicación o referencia); '
+                         'el total de equipos disponibles sí está completo.',
+    'creditos_pendientes': 'Resultado parcial: hay créditos con datos inconsistentes o sin aprobación confirmada que no entran en '
+                           'el saldo; revisa las advertencias.',
+    'otras': 'Resultado parcial: la cobertura del periodo está incompleta o hay cifras que no se pueden calcular; '
+             'revisa las advertencias.',
+}
+# Botones de la pantalla: (texto del botón, pregunta que envía).
+EJEMPLOS = (('Ventas de hoy', 'ventas de hoy'), ('Inventario disponible', 'inventario disponible'),
+            ('Créditos pendientes', 'créditos pendientes'), ('Resultado de esta semana', 'resultado de esta semana'))
+PERIODOS_ENTENDIDOS ='hoy, ayer, esta semana, semana pasada, este mes, mes pasado, un mes por su nombre, "del 1 al 15 de octubre"'
 
 
 def normalizar(texto):
@@ -265,7 +277,7 @@ def redactar_respuesta(resultado, notas=()):
         else:
             lineas.append(f"{titulo} — estado a {periodo.get('fecha_corte', 'hoy')}:")
         if estado == 'parcial':
-            lineas.append('Resultado parcial: faltan datos o parte de las cifras son provisionales.')
+            lineas.append(PARCIAL.get(consulta, PARCIAL['otras']))
         if _es_provisional(resultado):
             lineas.append('Incluye jornadas abiertas: esa parte es provisional y puede cambiar al cerrar el día.')
         for etiqueta, valor in _filas_tarjeta(resultado):

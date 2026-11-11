@@ -1,10 +1,17 @@
 """Chat básico por reglas. La ruta solo recibe la pregunta y delega en chat_service (sin SQL, sin cálculos)."""
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, render_template, request
 
 from ..auth import require, role
 from ..services import chat_service
 
 chat = Blueprint('chat', __name__)
+
+
+@chat.get('/chat')
+@require('chat')
+def index():
+    return render_template('chat/index.html', active='chat', ejemplos=chat_service.EJEMPLOS, max_pregunta=chat_service.MAX_PREGUNTA,
+                           periodos=chat_service.PERIODOS_ENTENDIDOS)
 
 
 @chat.post('/chat/consultar')
