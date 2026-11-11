@@ -1,13 +1,27 @@
-from flask import Blueprint, abort, render_template, redirect, url_for
+from flask import Blueprint, abort, render_template, redirect, request, url_for
+from ..auth import can, role
+from ..services import reporte_service
 from ..services.inventario_service import stats
 from ..services.inicio_service import operational_summary
 
 main = Blueprint('main', __name__)
 
 
+def _tarjetas_del_resumen():
+    """Tarjetas analíticas del Resumen: solo para quien puede usar los reportes (hoy el Propietario). Los demás perfiles no reciben nada."""
+    if not can('reportes'):
+        return None
+    datos = reporte_service.resumen_tarjetas(role(), request.args.get('periodo', 'semana'))
+    for t in datos['tarjetas']:
+        modulo, tipo, ini, fin = t['enlace']
+        t['url'] = url_for('reportes.ver', modulo=modulo, **{k: v for k, v in (('periodo', tipo), ('ini', ini), ('fin', fin)) if v})
+    return datos
+
+
 @main.get('/')
 def home():
-    return render_template('home.html', stats=stats(), dashboard=operational_summary(), active='inicio')
+    return render_template('home.html', stats=stats(), dashboard=operational_summary(), active='inicio',
+                           analitica=_tarjetas_del_resumen(), analitica_tipos=reporte_service.RESUMEN_TIPOS)
 
 
 @main.get('/modulos/<name>')

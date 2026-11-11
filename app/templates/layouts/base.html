@@ -13,7 +13,7 @@
   {% if active=='finanzas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas.css',v='2') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='4') }}">{% endif %}
   {% if active=='tributario' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}">{% endif %}
   {% if active=='chat' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/chat.css',v='1') }}">{% endif %}
-  {% if reporte_panel_modulo or request.endpoint=='reportes.ver' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/reportes.css',v='1') }}">{% endif %}
+  {% if reporte_panel_modulo or request.endpoint=='reportes.ver' or (request.endpoint=='main.home' and can('reportes')) %}<link rel="stylesheet" href="{{ url_for('static',filename='css/reportes.css',v='1') }}">{% endif %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}"></head>
 <body>
 <a class="skip" href="#contenido">Saltar al contenido</a>

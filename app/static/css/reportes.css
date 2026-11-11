@@ -26,5 +26,9 @@
 .reporte-enlaces{display:flex;gap:10px;flex-wrap:wrap}
 .reporte-aviso{font-size:12px;margin:12px 0 0}
 .reporte-tabla{overflow-x:auto}
+.reporte-enlace{margin:8px 0 0;font-size:13px}
+.home-analitica{margin-bottom:18px}
+.home-analitica-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.home-analitica-tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .reporte-baja-rotacion .table{font-size:13px;white-space:normal}
 @media(max-width:760px){.reporte-cifra{flex-direction:column;gap:2px}.reporte-cifra dd{text-align:left}.reporte-campos .form-select,.reporte-campos .form-control{min-width:100%}}

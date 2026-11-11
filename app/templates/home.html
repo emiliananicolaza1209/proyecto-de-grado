@@ -8,6 +8,20 @@
     <a class="home-metric" href="/ventas?estado=Vendido"><span>Equipos vendidos</span><strong>{{ dashboard.sold }}</strong><small>Ver registros →</small></a>
     <a class="home-metric {{ 'has-alert' if dashboard.pending_count else '' }}" href="/ventas?estado=Vendido"><span>Ventas con saldo</span><strong>{{ dashboard.pending_count }}</strong><small>Revisar cobros →</small></a>
   </div>
+  {% if analitica %}
+  <section class="home-analitica" aria-labelledby="home-analitica-titulo">
+    <div class="home-section-head"><div><p class="eyebrow">ANALÍTICA · SOLO PROPIETARIO</p><h2 id="home-analitica-titulo">Indicadores del negocio</h2></div>
+      <form class="home-analitica-form" method="get" action="{{ url_for('main.home') }}">
+        <label for="home-periodo">Periodo</label>
+        <select id="home-periodo" name="periodo" class="form-select">{% for clave, etiqueta in reporte_opciones if clave in analitica_tipos %}<option value="{{ clave }}"{% if analitica.tipo == clave %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+        <button class="btn btn-outline-primary" type="submit">Actualizar</button>
+      </form></div>
+    <p class="muted">{{ analitica.periodo.etiqueta }}. El periodo aplica a las ventas; el resultado es el de hoy y el inventario y los créditos son el estado de hoy. Son las mismas cifras del chat y de los reportes.</p>
+    <div class="home-analitica-tarjetas">
+      {% for a in analitica.tarjetas %}{% with t=a.tarjeta, texto=a.texto, enlace=a.url %}{% include 'reportes/tarjeta.html' %}{% endwith %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
   <div class="home-columns">
     <section class="panel"><div class="home-section-head"><div><p class="eyebrow">PRIORIDAD</p><h2>Seguimiento pendiente</h2></div><span class="home-count">{{ dashboard.overdue_count + dashboard.pending_count }} casos</span></div>
       {% if dashboard.overdue_count %}<h3>Devoluciones vencidas · {{ dashboard.overdue_count }}</h3><div class="home-list">{% for p in dashboard.overdue %}<a href="{{ url_for('ventas.detail',product_id=p.id) }}"><span><strong>{{ p.model }}</strong><small>IMEI {{ p.imei }} · {{ p.responsible or 'Sin responsable' }}</small></span><span class="home-tag danger">Límite {{ p.due_date }}</span></a>{% endfor %}</div>{% endif %}

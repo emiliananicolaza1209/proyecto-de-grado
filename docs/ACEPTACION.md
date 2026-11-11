@@ -4,7 +4,7 @@ Documento de trabajo para probar la versión desplegada, con Emily. **No certifi
 probó, quién lo validó y qué queda pendiente.
 
 - **Rama:** `ia-analitica-contable`. **Versión desplegada (SHA del commit):** `________` · **URL:** `________`
-- **Suite automática completa al 11-nov-2026:** `669` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
+- **Suite automática completa al 11-nov-2026:** `683` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
 - **Cómo leer las columnas:**
   - *Resultado real*: si dice **AUTOMATIZADO**, lo cubre la suite y se cita el nombre exacto de la prueba (`archivo.Clase.método`); una prueba
     automática demuestra el comportamiento del código, **no** que la URL desplegada esté bien configurada. Si dice **MANUAL**, debe hacerse a mano

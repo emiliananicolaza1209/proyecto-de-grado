@@ -27,6 +27,7 @@ SIN_CLASIFICAR = 'rutas sin clasificar en la matriz de permisos'
 FILAS = [
     # --- cualquiera con sesión (el Socio queda confinado a su página) ---
     ('GET', '/', {}, 'PAVI'),
+    ('GET', '/?periodo=mes', {}, 'PAVI'),
     ('GET', '/modulos/analitica', {}, 'PAVI'),
     ('GET', '/modulos/ventas', {}, 'PAVI'),
     ('GET', '/modulos/finanzas', {}, 'PAVI'),

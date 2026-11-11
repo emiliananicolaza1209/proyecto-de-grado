@@ -95,6 +95,32 @@ def generar(rol, modulo, tipo=None, ini=None, fin=None, usuario=None, usuario_id
             'puede_comparar': conf['comparar']}
 
 
+RESUMEN_TIPOS = ('semana', '15dias', 'mes')
+
+
+def resumen_tarjetas(rol, tipo='semana', hoy=None):
+    """Las cinco tarjetas del Resumen del Propietario, con las mismas consultas y la misma redacción que el chat y los reportes.
+
+    Ventas netas usa el periodo elegido; el resultado final es el del día de hoy; inventario, créditos y baja rotación son una foto de hoy.
+    No calcula nada propio y no escribe nada (ver la pantalla no deja filas en registro_gestion). ``enlace`` indica el reporte al que lleva
+    cada tarjeta: (módulo, periodo, ini, fin)."""
+    tipo = tipo if tipo in RESUMEN_TIPOS else 'semana'
+    periodo = resolver_periodo(tipo, hoy=hoy)
+    dia = periodo['fin']
+    plan = (
+        ('resumen_ventas', (periodo['ini'], periodo['fin']), periodo['etiqueta'], ('ventas', tipo, '', '')),
+        ('resumen_financiero', (dia, dia), f'Hoy: {dia}', ('finanzas', 'rango', dia, dia)),
+        ('estado_inventario', (), None, ('inventario', '', '', '')),
+        ('creditos_pendientes', (), None, ('finanzas', tipo, '', '')),
+        ('permanencia_inventario', (), None, ('inventario', '', '', '')),
+    )
+    salida = []
+    for nombre, args, etiqueta, enlace in plan:
+        r = getattr(cs, nombre)(rol, *args)
+        salida.append({'tarjeta': chat.tarjeta(r, etiqueta), 'texto': chat.redactar_respuesta(r), 'enlace': enlace})
+    return {'tipo': tipo, 'periodo': periodo, 'tarjetas': salida}
+
+
 def _segura(texto):
     """Evita que Excel tome un texto como fórmula (los nombres de aliado o de ubicación vienen de la base)."""
     texto = '' if texto is None else str(texto)

@@ -92,6 +92,11 @@ Un parámetro mal escrito (fecha inexistente, ID que no corresponde) no es un es
   consultas de las secciones 3.2 y 3.3, sin cálculos propios. El botón y la pantalla avisan que es una comparación de periodos pasados, no una
   predicción. El umbral de baja rotación se elige en el panel del reporte de Inventario (por defecto 60 días) o en la pregunta del chat ("más de 90 días").
   El IMEI no se muestra: la lista enlaza al detalle del equipo. Solo el Propietario ve estas pantallas.
+- **Resumen (`/`) para el Propietario:** cinco tarjetas con selector de periodo (semana, 15 días, mes): ventas netas del periodo, resultado final de hoy,
+  equipos disponibles, créditos pendientes y equipos de baja rotación. Reutilizan `resumen_ventas`, `resumen_financiero`, `estado_inventario`,
+  `creditos_pendientes` y `permanencia_inventario` a través de `reporte_service.resumen_tarjetas`, sin cálculos propios. Cada tarjeta muestra su fuente, su
+  estado (completo, parcial, provisional, sin datos) y un enlace al reporte. El periodo aplica solo a las ventas; las demás son el estado de hoy. Los demás
+  perfiles ven el Resumen sin cambios. Ver esta pantalla no escribe nada en `registro_gestion` (el chat y los reportes sí registran cada consulta).
 - Cada consulta del chat y de los reportes queda en `registro_gestion`.
 
 ## 5. Límites conocidos
@@ -153,6 +158,7 @@ Todo se prueba con la suite automática (`$env:PYTHONPATH='tests'; python -m uni
 | Permanencia del inventario | `tests/test_analitica_permanencia_inventario.py` | `test_analitica_permanencia_inventario.DiasYUmbralTests.test_sobre_el_umbral_significa_mas_dias_que_el_umbral`, `test_analitica_permanencia_inventario.DiasYUmbralTests.test_umbrales_invalidos`, `test_analitica_permanencia_inventario.FechaDeIngresoTests.test_la_fecha_del_lote_manda_sobre_la_de_creacion`, `test_analitica_permanencia_inventario.FechaDeIngresoTests.test_fechas_vacias_mal_escritas_o_futuras_no_se_inventan`, `test_analitica_permanencia_inventario.CostoYPrivacidadTests.test_quien_no_ve_costos_no_los_recibe_ni_una_clave`, `test_analitica_permanencia_inventario.CostoYPrivacidadTests.test_nunca_devuelve_imei_proveedor_ni_personas` |
 | Chat y reportes | `tests/test_chat.py`, `tests/test_chat_pantalla.py`, `tests/test_reportes.py` | `test_chat.MismosTotalesTests.test_ventas`, `test_reportes.PermisosTests.test_solo_el_propietario_abre_los_reportes` |
 | Comparación y baja rotación en pantalla y chat | `tests/test_analitica_pantalla.py` | `test_analitica_pantalla.ReporteCompararTests.test_ventas_y_finanzas_ofrecen_el_boton_con_el_aviso`, `test_analitica_pantalla.ReporteBajaRotacionTests.test_lista_los_equipos_sobre_el_umbral_sin_imei`, `test_analitica_pantalla.ChatTests.test_baja_rotacion_en_el_chat`, `test_analitica_pantalla.ChatTests.test_comparar_con_el_periodo_anterior_en_el_chat`, `test_analitica_pantalla.PoliticaTests.test_sin_scripts_ni_estilos_en_linea_en_las_pantallas_nuevas` |
+| Tarjetas del Resumen | `tests/test_resumen_analitico.py` | `test_resumen_analitico.TarjetasTests.test_son_las_mismas_cifras_que_el_chat_y_las_consultas`, `test_resumen_analitico.PantallaTests.test_el_propietario_ve_las_cinco_tarjetas_con_su_enlace`, `test_resumen_analitico.PantallaTests.test_los_demas_perfiles_ven_el_resumen_como_antes`, `test_resumen_analitico.PantallaTests.test_sin_scripts_ni_estilos_en_linea` |
 | Permisos de todas las rutas | `tests/test_matriz_permisos.py`, `tests/test_accesos_directos.py` | `test_matriz_permisos.MatrizPermisos.test_toda_ruta_de_la_aplicacion_esta_clasificada` |
 
 Las reglas de este documento que no tienen prueba propia están marcadas como límites o propuestas. `tests/test_analitica_doc.py` comprueba que cada prueba
