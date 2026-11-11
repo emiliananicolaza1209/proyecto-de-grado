@@ -17,7 +17,7 @@ from test_matriz_permisos import FILAS, ROLES
 from test_consulta_resumen_ventas import VentasBase, dias_atras
 from app.extensions import db
 from app.models import Catalogo, Producto
-from app.models.gestion import FacturaLote, RegistroGestion, Usuario
+from app.models.gestion import AliadoCredito, CreditoVenta, FacturaLote, RegistroGestion, Usuario
 from app.services import compras_service
 
 SIN_SESION = 'anónimo'
@@ -442,12 +442,78 @@ class TiempoDeAccesoTests(VentasBase):
         self.assertEqual(motivos, ['Usuario inexistente', 'Contraseña incorrecta', 'Usuario inactivo'])
 
 
+class CreditosSoloParaAdministracionTests(AccesosBase):
+    """Pendiente 7: la lista de créditos (comisiones y montos de todas las ventas) la leen solo Propietario y Administrador."""
+
+    def credito(self):
+        persona, banco = self.persona_banco()
+        aliado = db.session.scalar(db.select(AliadoCredito).where(AliadoCredito.nombre == 'SU+PAY'))
+        aliado.porcentaje_bp, aliado.persona_id, aliado.banco_id = 1800, persona.id, banco.id
+        db.session.commit()
+        return persona, banco, aliado
+
+    def venta_a_credito(self, persona, banco, aliado, token, descripcion='VENTA A CREDITO'):
+        return MultiDict([('kind', 'Venta'), ('description', descripcion), ('seller', 'ANA'), ('token', token), ('amount', '650000'),
+                          ('minor_cost', ''), ('payment_account', 'CRÉDITO'), ('payment_amount', '650000'),
+                          ('payment_ally_id', str(aliado.id)), ('payment_person_id', str(persona.id)), ('payment_bank_id', str(banco.id)),
+                          ('credit_approved', '1'), ('payment_credit_mode', 'Porcentaje'), ('payment_credit_rate', '18')])
+
+    def test_leer_y_escribir_en_la_pantalla_de_creditos_es_solo_de_administracion(self):
+        for rol in ('Propietario', 'Administrador'):
+            self.assertEqual(self.clientes[rol].get('/finanzas/creditos').status_code, 200, rol)
+        for rol in ('Vendedora', 'Inventario'):
+            self.assertEqual(self.clientes[rol].get('/finanzas/creditos').status_code, 403, rol)
+            for accion in ('settle', 'ally', 'zzz'):
+                r = self.clientes[rol].post('/finanzas/creditos', data={'csrf': 'test', 'action': accion})
+                self.assertEqual(r.status_code, 403, (rol, accion))
+        self.assertEqual(self.clientes['Socio'].get('/finanzas/creditos').status_code, 302)
+        self.assertEqual(self.clientes[SIN_SESION].get('/finanzas/creditos').status_code, 302)
+
+    def test_la_vendedora_no_recibe_ni_una_cifra_de_creditos(self):
+        from app.services import finanzas_service
+        persona, banco, aliado = self.credito()
+        finanzas_service.add_operation(self.d, self.venta_a_credito(persona, banco, aliado, 'a' * 32, 'VENTA A CREDITO DE OTRA PERSONA'))
+        db.session.commit()
+        self.assertEqual(db.session.query(CreditoVenta).count(), 1)
+        cuerpo = self.clientes['Vendedora'].get('/finanzas/creditos').get_data(as_text=True)
+        for dato in ('533.000', '117.000', 'VENTA A CREDITO DE OTRA PERSONA', 'Comisión', 'SU+PAY'):
+            self.assertNotIn(dato, cuerpo)
+        self.assertIn('533.000', self.clientes['Administrador'].get('/finanzas/creditos').get_data(as_text=True))
+
+    def test_el_enlace_del_menu_solo_lo_ven_quienes_pueden_abrirlo(self):
+        for rol in ('Propietario', 'Administrador'):
+            html = self.clientes[rol].get('/finanzas').get_data(as_text=True)
+            self.assertIn('/finanzas/creditos', html, rol)
+            self.assertIn('Créditos y desembolsos', html, rol)
+        html = self.clientes['Vendedora'].get('/finanzas').get_data(as_text=True)
+        self.assertNotIn('/finanzas/creditos', html)
+        self.assertNotIn('Créditos y desembolsos', html)
+        self.assertIn('Jornada', html)  # el resto del menú de la Vendedora sigue igual
+
+    def test_la_vendedora_sigue_registrando_ventas_a_credito_desde_finanzas(self):
+        persona, banco, aliado = self.credito()
+        html = self.clientes['Vendedora'].get('/finanzas').get_data(as_text=True)
+        self.assertIn('SU+PAY', html)  # la lista de aliados llega al formulario de venta sin pasar por la pantalla de créditos
+        datos = self.venta_a_credito(persona, banco, aliado, 'b' * 32)
+        for clave, valor in (('csrf', 'test'), ('action', 'operation'), ('date', self.hoy), ('revision', str(self.d.revision))):
+            datos.add(clave, valor)
+        r = self.clientes['Vendedora'].post('/finanzas', data=datos)
+        self.assertEqual(r.status_code, 302)
+        db.session.expire_all()
+        self.assertEqual(db.session.query(CreditoVenta).count(), 1)
+
+    def test_el_chat_y_los_reportes_siguen_cerrados_para_la_vendedora(self):
+        for ruta in ('/reportes/finanzas', '/chat'):
+            self.assertEqual(self.clientes['Vendedora'].get(ruta).status_code, 403, ruta)
+
+
 class DocumentacionTests(unittest.TestCase):
-    def test_seguridad_marca_8_y_9_como_corregidos_y_deja_el_7_pendiente(self):
+    def test_seguridad_marca_7_8_y_9_como_corregidos(self):
         doc = (Path(__file__).resolve().parent.parent / 'docs' / 'SEGURIDAD.md').read_text(encoding='utf-8')
+        self.assertRegex(doc, r'7\.\s+\*\*Lectura de créditos[^\n]*CORREGIDO')
         self.assertRegex(doc, r'8\.\s+\*\*Errores 500[^\n]*CORREGIDO')
         self.assertRegex(doc, r'9\.\s+\*\*Enumeración de usuarios[^\n]*CORREGIDO')
-        self.assertRegex(doc, r'7\.\s+\*\*Lectura de créditos[^\n]*PENDIENTE')
+        self.assertNotIn('PENDIENTE (a la espera de decisión)', doc)
         self.assertIn('Facturas adjuntas', doc)
 
 

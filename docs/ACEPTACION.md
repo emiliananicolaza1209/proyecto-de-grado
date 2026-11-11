@@ -4,7 +4,7 @@ Documento de trabajo para probar la versión desplegada, con Emily. **No certifi
 probó, quién lo validó y qué queda pendiente.
 
 - **Rama:** `ia-analitica-contable`. **Versión desplegada (SHA del commit):** `________` · **URL:** `________`
-- **Suite automática completa al 11-nov-2026:** `580` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
+- **Suite automática completa al 11-nov-2026:** `585` pruebas, todas en verde (`python -m unittest discover -s tests`, con `PYTHONPATH=tests`).
 - **Cómo leer las columnas:**
   - *Resultado real*: si dice **AUTOMATIZADO**, lo cubre la suite y se cita el nombre exacto de la prueba (`archivo.Clase.método`); una prueba
     automática demuestra el comportamiento del código, **no** que la URL desplegada esté bien configurada. Si dice **MANUAL**, debe hacerse a mano
@@ -42,7 +42,7 @@ repetirse con la base real de Emily.
 | A2.6 Costos y utilidades | La Vendedora no recibe costos ni utilidades en ninguna respuesta; el servidor toma el costo del inventario. | **AUTOMATIZADO** `test_seguridad_costos.FugaDeCostosTests.test_vendedora_no_recibe_bloques_de_costos_ni_cifras_en_finanzas`, `test_seguridad_costos.FugaDeCostosTests.test_vendedora_no_ve_costos_en_ventas_ni_creditos`, `test_seguridad_costos.FugaDeCostosTests.test_vendedora_vende_y_el_servidor_toma_el_costo_de_inventario` | Suite automática | Ver "Código fuente de la página" de `/finanzas` como Vendedora en la URL real. |
 | A2.7 Socio e Inventario | El Socio solo ve lo suyo; Inventario ve equipos por ubicación, sin capital de los socios. | **AUTOMATIZADO** `test_seguridad_costos.FugaDeCostosTests.test_socio_solo_recibe_cifras_de_su_participacion`, `test_seguridad_inversion.InversionPorRolTests.test_inventario_solo_ve_equipos_por_ubicacion`, `test_seguridad_inversion.InversionPorRolTests.test_socio_sigue_viendo_solo_lo_suyo` | Suite automática | |
 | A2.8 Los 5 perfiles con la URL real | Cada perfil entra y solo ve lo suyo; teclear a mano URLs ajenas da 403 o lo devuelve a su página. | **MANUAL** | | Completar con Emily con usuarios reales. |
-| A2.9 Lectura de créditos por la Vendedora (pendiente 7) | Decidir si la Vendedora puede leer `/finanzas/creditos`. | **DECISIÓN PENDIENTE** (ver `docs/SEGURIDAD.md`) | | Decisión del propietario/Emily. |
+| A2.9 Lectura de créditos (pendiente 7) | Solo Propietario y Administrador leen `/finanzas/creditos`; la Vendedora no ve el enlace ni las cifras y sigue registrando ventas a crédito. | **AUTOMATIZADO** `test_accesos_directos.CreditosSoloParaAdministracionTests.test_leer_y_escribir_en_la_pantalla_de_creditos_es_solo_de_administracion`, `test_accesos_directos.CreditosSoloParaAdministracionTests.test_la_vendedora_no_recibe_ni_una_cifra_de_creditos`, `test_accesos_directos.CreditosSoloParaAdministracionTests.test_el_enlace_del_menu_solo_lo_ven_quienes_pueden_abrirlo`, `test_accesos_directos.CreditosSoloParaAdministracionTests.test_la_vendedora_sigue_registrando_ventas_a_credito_desde_finanzas` | Suite automática | |
 
 ### Criterio 3 — Validación de formularios, protección de sesiones y control de intentos de acceso
 
@@ -105,7 +105,7 @@ repetirse con la base real de Emily.
 | A8.1 URL y versión | URL entregada y SHA del commit desplegado anotado arriba. | **MANUAL** | | Completar al desplegar. |
 | A8.2 Suite completa | Todas las pruebas en verde con el código que se despliega. | **MANUAL** (ejecutar `python -m unittest discover -s tests` con el commit exacto que se despliega y anotar aquí el resultado) | | Repetirla también contra PostgreSQL cuando exista esa rama (PG). |
 | A8.3 Casos ejecutados | Este documento con "resultado real" y "quién validó" llenos. | **MANUAL** | | |
-| A8.4 Pendientes y límites conocidos | Lista entregada junto con la versión. | **AUTOMATIZADO** (existe y está al día) `test_accesos_directos.DocumentacionTests.test_seguridad_marca_8_y_9_como_corregidos_y_deja_el_7_pendiente`, `test_respaldo.CodigoYDocumentacionTests.test_la_documentacion_cubre_lo_pedido` | Suite automática | Ver la sección D de este documento. |
+| A8.4 Pendientes y límites conocidos | Lista entregada junto con la versión. | **AUTOMATIZADO** (existe y está al día) `test_accesos_directos.DocumentacionTests.test_seguridad_marca_7_8_y_9_como_corregidos`, `test_respaldo.CodigoYDocumentacionTests.test_la_documentacion_cubre_lo_pedido` | Suite automática | Ver la sección D de este documento. |
 | A8.5 Copia previa al despliegue | Existe una copia verificada justo antes de desplegar. | **MANUAL** | | Hacerla con `scripts/respaldo.py copiar` y anotar el nombre de la carpeta. |
 
 ---
@@ -172,7 +172,7 @@ con la pantalla de su módulo (Ventas, Inventario, Finanzas) y con el reporte po
 2. **(PG)** La variante de respaldo para PostgreSQL (`scripts/respaldo_postgres.py`) está **sin probar**.
 3. Las facturas viven en `instance/facturas`: hace falta un disco persistente en el alojamiento.
 4. La IP del cliente detrás del proxy debe reenviarse (el límite de intentos depende de ella).
-5. Pendiente 7: la Vendedora puede leer `/finanzas/creditos` (a la espera de decisión; ver `docs/SEGURIDAD.md`).
+5. Pendiente 7 resuelto: `/finanzas/creditos` es solo para Propietario y Administrador (ver `docs/SEGURIDAD.md`).
 6. Sesión sin invalidación en servidor y contadores de intentos en memoria (limitaciones documentadas en `docs/SEGURIDAD.md`).
 7. "Resultado financiero soportado": falta la definición de Emily (jornadas abiertas, días sin jornada, consignaciones como soporte).
 8. Sueldos por persona (por ejemplo, el de Sandra): no hay vínculo entre un pago de otro periodo y la obligación; no se muestra saldo definitivo y los sueldos quedan fuera del chat.

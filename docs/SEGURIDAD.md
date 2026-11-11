@@ -34,11 +34,12 @@ Documento vivo. Lo que sigue describe lo que la aplicación hace hoy y lo que **
 ## Pendientes de seguridad
 Salieron del diagnóstico de usuarios. Estado actual:
 
-7. **Lectura de créditos para la Vendedora — PENDIENTE (a la espera de decisión).** `/finanzas/creditos` muestra a la Vendedora
-   cada crédito de todas las ventas (descripción de la venta, aliado, bruto, comisión del aliado, neto, recibido y saldo). Las
-   escrituras (confirmar desembolsos, editar aliados) ya están cerradas. Propuesta: exigir `admin` también para leer esa pantalla,
-   ocultar su enlace del menú a los demás perfiles y pasar la fila de la matriz de `PAV` a `PA`. La Vendedora seguiría registrando
-   ventas a crédito desde Finanzas, porque esa lista de aliados no depende de esta pantalla.
+7. **Lectura de créditos para la Vendedora — CORREGIDO (opción 1, decidida por el propietario).** `/finanzas/creditos` mostraba a la
+   Vendedora cada crédito de todas las ventas (descripción de la venta, aliado, bruto, comisión del aliado, neto, recibido y
+   saldo). Ahora leer y escribir en esa pantalla exige `admin` (Propietario y Administrador): los demás reciben 403, el enlace
+   "Créditos y desembolsos" ya no aparece en su menú y la fila de la matriz pasó de `PAV` a `PA`. La Vendedora sigue registrando
+   ventas a crédito desde Finanzas, porque la lista de aliados de ese formulario no depende de la pantalla de créditos
+   (`tests/test_accesos_directos.py`, clase `CreditosSoloParaAdministracionTests`).
 8. **Errores 500 en vez de 400/404 — CORREGIDO.** `/inventario/facturas/<id>` y `/inventario/compras/<id>` con un id inexistente
    ahora dan 404; `/finanzas/exportar` sin fecha, con fecha inválida o futura da 400; `/gestion/historial?id=abc` da 400. Un
    recorrido automático de todas las rutas GET y POST con parámetros raros ya no encuentra ningún 500

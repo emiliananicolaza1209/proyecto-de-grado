@@ -9,9 +9,8 @@
 {% elif active=='finanzas' %}
   {% if can('finanzas_venta') %}
     <a href="{{ url_for('finanzas.index',date=day if day is defined else none) }}" {% if request.endpoint=='finanzas.index' %}aria-current="page"{% endif %}>Jornada</a>
-    <a href="{{ url_for('gestion.creditos') }}" {% if request.endpoint=='gestion.creditos' %}aria-current="page"{% endif %}>Créditos y desembolsos</a>
   {% endif %}
-  {% if can('admin') %}<a href="{{ url_for('gestion.historial') }}" {% if request.endpoint=='gestion.historial' %}aria-current="page"{% endif %}>Historial</a>{% endif %}
+  {% if can('admin') %}<a href="{{ url_for('gestion.creditos') }}" {% if request.endpoint=='gestion.creditos' %}aria-current="page"{% endif %}>Créditos y desembolsos</a><a href="{{ url_for('gestion.historial') }}" {% if request.endpoint=='gestion.historial' %}aria-current="page"{% endif %}>Historial</a>{% endif %}
 {% endif %}
 </nav>
 {% endif %}

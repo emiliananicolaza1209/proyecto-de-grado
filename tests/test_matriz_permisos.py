@@ -79,7 +79,7 @@ FILAS = [
     ('POST', '/finanzas', {'action': 'operation', 'kind': 'PD'}, 'PA'),
     ('POST', '/finanzas', {'action': 'config'}, 'PA'),
     ('GET', '/finanzas/exportar?date=2026-01-01', {}, 'PA'),
-    ('GET', '/finanzas/creditos', {}, 'PAV'),
+    ('GET', '/finanzas/creditos', {}, 'PA'),  # pendiente 7: la Vendedora ya no lee los créditos de todas las ventas
     ('POST', '/finanzas/creditos', {'action': 'settle'}, 'PA'),
     ('POST', '/finanzas/creditos', {'action': 'ally'}, 'PA'),
     ('GET', '/finanzas/pool', {}, 'PA'),

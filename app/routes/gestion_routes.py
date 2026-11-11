@@ -191,7 +191,7 @@ def articulos():
         categories=db.session.scalars(db.select(CategoriaStock)).all(),movements=db.session.scalars(db.select(MovimientoStock).order_by(MovimientoStock.id.desc()).limit(100)).all(),**context())
 
 @gestion.route('/finanzas/creditos',methods=['GET','POST'])
-@require('finanzas_venta')
+@require('admin')  # la lista trae comisiones y montos de todas las ventas: solo administración (pendiente 7, opción 1)
 def creditos():
     def write():
         if not can('admin'):abort(403)
