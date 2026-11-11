@@ -44,7 +44,7 @@ python -m flask --app run.py inicializar-postgres
 python -m flask --app run.py comprobar-db
 ```
 
-El inicializador exige PostgreSQL. Si encuentra tablas ajenas a esta inicialización, se detiene sin borrarlas. Si se ejecuta de nuevo sobre el esquema ya inicializado, no reinserta catálogos ni elimina registros. La creación inicial y los catálogos se confirman en una transacción. Se registra cp_schema_revision=1. Las migraciones futuras deberán agregar revisiones explícitas: create_all no actualiza columnas de tablas existentes.
+El inicializador exige PostgreSQL. Si encuentra tablas ajenas a esta inicialización, se detiene sin borrarlas. Si se ejecuta de nuevo sobre el esquema ya inicializado, no reinserta catálogos ni elimina registros. La creación inicial y los catálogos se confirman en una transacción. Se registra cp_schema_revision (1 en la entrega original; 2 desde la versión 2 descrita más abajo). Las migraciones futuras deberán agregar revisiones explícitas: create_all no actualiza columnas de tablas existentes.
 
 8. Crear el propietario, ya que los usuarios de SQLite no se trasladaron:
 
@@ -90,6 +90,43 @@ Pruebas manuales indispensables antes del uso empresarial:
 - DEBE/HABER, fondos CP, pagos a proveedores, comisiones y cierre contra los casos Excel.
 - Permisos con usuarios distintos y dos ventanas que intenten vender/cobrar/cerrar lo mismo.
 - Restauración de copia PostgreSQL y conservación de archivos adjuntos.
+
+## Versión 2 del esquema: tablas del módulo contable
+
+**Estado: escrita y probada en SQLite; NO validada en PostgreSQL real; NO aplicada a la base compartida. La decisión de aplicarla es de Emily.**
+
+### Motivo
+
+En SQLite, las tablas `reportes_generados`, `ingresos_gastos` y `correcciones_clasificacion` las crean las migraciones v17 y v18. En PostgreSQL el
+esquema sale solo de los modelos y la versión 1 se creó cuando el módulo contable todavía no estaba en la rama. Resultado: la base de pruebas tiene
+40 de las 43 tablas del aplicativo, `comprobar-db` termina con "Faltan tablas" y las pantallas del consolidado contable, de ingresos y gastos y del
+paquete para el contador fallarían en PostgreSQL. `inicializar-postgres` no puede arreglarlo porque se niega a tocar una base que ya tiene tablas.
+
+### Cambios (excepción autorizada a la regla de "sin migraciones nuevas")
+
+- `app/database.py`: `SCHEMA_VERSION` pasa de 1 a 2 y aparece `SCHEMA_V2_TABLES` (las tres tablas, sin claves foráneas a otras tablas).
+- `initialize_postgres()` distingue tres casos, todos dentro de una sola transacción y con el bloqueo común de escrituras:
+  - **Base nueva:** se crea completa y queda registrada en la versión 2 (devuelve `creada`).
+  - **Base en versión 1:** comprueba que el resto de las tablas esté completo; crea **solo** las tres tablas con `checkfirst` (si alguna ya existe, se respeta con sus filas) y cambia `cp_schema_revision` de 1 a 2 (devuelve `actualizada`).
+  - **Base en versión 2:** no hace nada si están todas las tablas (devuelve `False`).
+  - **Cualquier otra versión:** se rechaza sin modificar nada ("Versión de esquema no compatible").
+- No agrega columnas a tablas existentes, no inserta ni borra datos y no toca otras tablas. El comando sigue siendo `inicializar-postgres`; su mensaje dice si creó o actualizó.
+
+### Validaciones
+
+- **Hecho (SQLite, siempre):** `tests/test_postgres_esquema_v2.py::DefinicionTests` (4 pruebas): la versión es 2, las tablas nuevas son exactamente tres, su DDL compila para PostgreSQL sin referencias a otras tablas, el comando se niega con SQLite y el código de la subida no contiene borrados ni `create_all`. La suite completa en SQLite pasa.
+- **Escritas y NO ejecutadas con éxito (PostgreSQL real, optativas con `CPSTORE_TEST_PG_URL`):** `EsquemaV2PostgresTests` (7 pruebas): base nueva en versión 2; subida de 1 a 2 sin cambiar ningún conteo de otras tablas; subida con una tabla nueva ya creada; versión desconocida (7 y 0) rechazada; versión 1 incompleta rechazada; versión 2 incompleta rechazada; fallo a la mitad sin dejar nada. Cada una trabaja en un esquema `cp_test_<id>` propio que se elimina al terminar y comprueba que ya no existe.
+- **Por qué no se ejecutaron:** el usuario de la base de pruebas no tiene permiso `CREATE` sobre la base (`permission denied for database`), así que no se pudo crear el esquema temporal. Se comprobó, con conteos antes y después, que la base compartida quedó sin cambios: 41 tablas en `public`, mismo número de filas, `cp_schema_revision = 1`, sin las tres tablas y sin esquemas `cp_test_` sobrantes.
+- **Cómo completarlas:** darle al usuario de pruebas `CREATE` sobre la base de desarrollo, o usar un PostgreSQL local descartable, y ejecutar `python -m unittest -v test_postgres_esquema_v2` con `CPSTORE_TEST_PG_URL` apuntando a una base de desarrollo (nunca producción).
+- **Hallazgo para decidir antes de aplicarla:** `ingresos_gastos.valor_cents` es `Integer` de 32 bits en el modelo; en PostgreSQL desborda con un importe mayor a 21.474.836,47 pesos por registro (SQLite no tiene ese límite). Los demás importes en centavos ya son `BigInteger`. Cambiarlo a `BigInteger` antes de crear la tabla es barato; después exigiría otra migración.
+
+### Aplicación y recuperación
+
+1. Antes de aplicarla: copia verificada de la base (`scripts/respaldo_postgres.py`, que sigue sin probar, o la copia de Render) y validar las pruebas anteriores.
+2. Aplicarla: `python -m flask --app run.py inicializar-postgres` con la base de pruebas. Debe decir que actualizó de la versión 1 a la 2. Después `comprobar-db` debe decir `Tablas del aplicativo: 43` y terminar sin error.
+3. Si falla: al ser una sola transacción, PostgreSQL deshace todo y la base queda en la versión 1; se puede reintentar.
+4. Si ya se aplicó y hay que volver atrás **antes de que las tablas tengan datos**: `DROP TABLE ingresos_gastos, correcciones_clasificacion, reportes_generados;` y `UPDATE cp_schema_revision SET version = 1;`, dentro de una transacción. Si ya tienen filas, no borrar: restaurar desde la copia o dejar la versión 2.
+5. Con la versión 2 aplicada, una rama anterior que espere la versión 1 se negará a arrancar la preparación ("Versión de esquema no compatible"); por eso la rama debe actualizarse con esta migración.
 
 ## Cambios técnicos
 
