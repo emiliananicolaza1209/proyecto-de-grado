@@ -1,3 +1,4 @@
+from ..database import begin_write
 """Controladores del módulo financiero; escrituras serializadas en SQLite."""
 import secrets
 from datetime import date
@@ -36,7 +37,7 @@ def index():
     if request.method=='POST':
         try:
             # Impide cierres/pagos simultáneos calculados sobre saldos ya modificados.
-            db.session.execute(text('BEGIN IMMEDIATE'))
+            begin_write()
             d=svc.find_day(day)
             action=request.form.get('action')
             if action=='open':
