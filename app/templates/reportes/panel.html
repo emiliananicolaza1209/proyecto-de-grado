@@ -1,0 +1,27 @@
+<details class="panel reporte-panel" id="reporte-panel"{% if panel_abierto %} open{% endif %}>
+  <summary>Reporte por periodo</summary>
+  <form class="reporte-form" method="get" action="{{ url_for('reportes.ver', modulo=panel_modulo) }}">
+    {% if panel_modulo == 'inventario' %}
+      <p class="muted reporte-nota">El inventario es una foto de hoy: no depende del periodo. El reporte muestra los equipos disponibles ahora.</p>
+    {% endif %}
+    <div class="reporte-campos">
+      <div>
+        <label for="reporte-periodo-{{ panel_modulo }}">Periodo</label>
+        <select id="reporte-periodo-{{ panel_modulo }}" name="periodo" class="form-select"{% if panel_modulo == 'inventario' %} disabled{% endif %}>
+          {% for clave, etiqueta in reporte_opciones %}<option value="{{ clave }}"{% if panel_sel.tipo == clave %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="reporte-rango"{% if panel_sel.tipo != 'rango' or panel_modulo == 'inventario' %} hidden{% endif %}>
+        <div>
+          <label for="reporte-ini-{{ panel_modulo }}">Desde</label>
+          <input id="reporte-ini-{{ panel_modulo }}" class="form-control" type="date" name="ini" value="{{ panel_sel.ini }}" max="{{ reporte_hoy }}">
+        </div>
+        <div>
+          <label for="reporte-fin-{{ panel_modulo }}">Hasta</label>
+          <input id="reporte-fin-{{ panel_modulo }}" class="form-control" type="date" name="fin" value="{{ panel_sel.fin }}" max="{{ reporte_hoy }}">
+        </div>
+      </div>
+      <div class="reporte-accion"><button class="btn btn-primary" type="submit">Generar reporte</button></div>
+    </div>
+  </form>
+</details>

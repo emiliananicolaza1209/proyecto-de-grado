@@ -1,0 +1,19 @@
+<article class="panel reporte-tarjeta">
+  <div class="reporte-cab">
+    <h2>{{ t.titulo }}</h2>
+    <span class="reporte-estado estado-{{ t.estado }}">{{ reporte_estados.get(t.estado, t.estado) }}</span>
+    {% if t.provisional %}<span class="reporte-estado estado-provisional">Provisional</span>{% endif %}
+  </div>
+  {% if t.periodo.etiqueta %}<p class="reporte-periodo">Periodo: {{ t.periodo.etiqueta }}</p>
+  {% elif t.periodo.fecha_corte %}<p class="reporte-periodo">Estado a {{ t.periodo.fecha_corte }}</p>{% endif %}
+  {% if t.cifras %}
+    <dl class="reporte-cifras">
+      {% for c in t.cifras %}<div class="reporte-cifra"><dt>{{ c.etiqueta }}</dt><dd>{{ c.valor }}</dd></div>{% endfor %}
+    </dl>
+  {% else %}
+    <p class="reporte-mensaje">{{ texto }}</p>
+  {% endif %}
+  {% for n in t.notas %}<p class="reporte-nota-linea">Nota: {{ n }}</p>{% endfor %}
+  {% if t.advertencias %}<ul class="reporte-advertencias">{% for a in t.advertencias %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+  <p class="reporte-fuente">Fuente: {{ t.fuente }}</p>
+</article>

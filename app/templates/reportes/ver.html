@@ -1,0 +1,28 @@
+{% extends 'layouts/base.html' %}
+{% block title %}{{ conf.titulo }} · CP Store{% endblock %}
+{% block content %}
+<div class="reporte-pagina">
+  <p class="eyebrow">REPORTE POR PERIODO</p>
+  <h1>{{ conf.titulo }}</h1>
+  {% if reporte %}
+    <p class="muted">{% if reporte.periodo %}{{ reporte.periodo.etiqueta }}{% else %}Estado de hoy ({{ reporte.generado_en }}){% endif %} · generado el {{ reporte.generado_en }}. Las cifras son las mismas del chat y de las pantallas de cada módulo.</p>
+  {% endif %}
+
+  {% with panel_modulo=modulo, panel_sel=seleccion, panel_abierto=true %}{% include 'reportes/panel.html' %}{% endwith %}
+
+  {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+
+  {% if reporte %}
+    {% for t in reporte.tarjetas %}{% with texto=reporte.textos[loop.index0] %}{% include 'reportes/tarjeta.html' %}{% endwith %}{% endfor %}
+
+    <section class="panel reporte-exportar" aria-labelledby="reporte-exportar-titulo">
+      <h2 id="reporte-exportar-titulo">Exportar</h2>
+      <p class="muted">El CSV trae exactamente lo que ves en pantalla. Los demás enlaces son las exportaciones que ya existen en la aplicación, para el mismo periodo.</p>
+      <p class="reporte-enlaces">
+        <a class="btn btn-outline-primary" href="{{ url_for('reportes.ver', modulo=modulo, periodo=seleccion.tipo, ini=seleccion.ini, fin=seleccion.fin, formato='csv') }}">Descargar este reporte (CSV)</a>
+        {% for e in exportaciones %}<a class="btn btn-light" href="{{ e.url }}">{{ e.etiqueta }}</a>{% endfor %}
+      </p>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

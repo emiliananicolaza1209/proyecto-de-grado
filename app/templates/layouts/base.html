@@ -13,6 +13,7 @@
   {% if active=='finanzas' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas.css',v='2') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='4') }}">{% endif %}
   {% if active=='tributario' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}">{% endif %}
   {% if active=='chat' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/chat.css',v='1') }}">{% endif %}
+  {% if reporte_panel_modulo or request.endpoint=='reportes.ver' %}<link rel="stylesheet" href="{{ url_for('static',filename='css/reportes.css',v='1') }}">{% endif %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}"></head>
 <body>
 <a class="skip" href="#contenido">Saltar al contenido</a>
@@ -33,6 +34,7 @@
     <span class="workspace">CP <span>Gestión interna</span></span>
   </header>
   {% for category,msg in get_flashed_messages(with_categories=True) %}<div role="status" class="alert alert-{{ 'danger' if category in ['danger','error'] else 'warning' if category=='warning' else 'success' }}">{{ msg }}</div>{% endfor %}
+  {% if reporte_panel_modulo %}{% with panel_modulo=reporte_panel_modulo, panel_sel=reporte_seleccion_inicial %}{% include 'reportes/panel.html' %}{% endwith %}{% endif %}
   {% block content %}{% endblock %}
   <footer>CP STORE <span>Control y claridad en cada operación.</span></footer>
 </main>
@@ -42,5 +44,6 @@
 {% if active=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='16.3') }}" defer></script>{% endif %}
 {% if active=='tributario' %}<script src="{{ url_for('static',filename='js/contabilidad.js',v='16.3') }}" defer></script>{% endif %}
 {% if active=='chat' %}<script src="{{ url_for('static',filename='js/chat.js',v='1') }}" defer></script>{% endif %}
+{% if reporte_panel_modulo or request.endpoint=='reportes.ver' %}<script src="{{ url_for('static',filename='js/reportes.js',v='1') }}" defer></script>{% endif %}
 {% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/gestion.js',v='16') }}"></script></body></html>

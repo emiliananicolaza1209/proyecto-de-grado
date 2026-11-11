@@ -98,6 +98,11 @@ FILAS = [
     # --- chat (solo quien tenga habilitada alguna consulta en ROLES_CONSULTAS: hoy el Propietario) ---
     ('GET', '/chat', {}, 'P'),
     ('POST', '/chat/consultar', {'pregunta': 'ventas de hoy'}, 'P'),
+    # --- reporte por periodo (mismo criterio que el chat: quien tenga alguna consulta habilitada en ROLES_CONSULTAS) ---
+    ('GET', '/reportes/ventas?periodo=semana', {}, 'P'),
+    ('GET', '/reportes/finanzas?periodo=15dias', {}, 'P'),
+    ('GET', '/reportes/inventario', {}, 'P'),
+    ('GET', '/reportes/ventas?periodo=rango&ini=2026-11-01&fin=2026-11-05&formato=csv', {}, 'P'),
     # --- usuarios ---
     ('GET', '/usuarios', {}, 'P'),
     ('POST', '/usuarios', {'role': 'Socio'}, 'P'),

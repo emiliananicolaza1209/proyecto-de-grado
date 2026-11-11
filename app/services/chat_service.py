@@ -302,11 +302,11 @@ def tarjeta(resultado, periodo_etiqueta=None, notas=()):
 
 
 # --- registro ---------------------------------------------------------------------------------------------------------
-def _registrar(usuario_id, usuario, rol, herramienta, periodo, estado):
+def _registrar(usuario_id, usuario, rol, herramienta, periodo, estado, entidad='chat', accion='Consulta del chat'):
     """Una fila por consulta en registro_gestion. Sin pregunta, sin cifras, sin secretos. Un fallo aquí no rompe la respuesta."""
     try:
         db.session.add(RegistroGestion(
-            entidad='chat', entidad_id=int(usuario_id or 0), accion='Consulta del chat', motivo='Consulta de solo lectura',
+            entidad=entidad, entidad_id=int(usuario_id or 0), accion=accion, motivo='Consulta de solo lectura',
             actor=str(usuario or 'Sin usuario')[:120],
             datos={'herramienta': herramienta, 'periodo': {'ini': periodo['ini'], 'fin': periodo['fin']} if periodo else None,
                    'estado': estado, 'rol': rol, 'fecha': ahora_colombia().isoformat(timespec='seconds')}))

@@ -28,9 +28,11 @@ class PantallaBase(VentasBase):
         self.app.config['AUTH_REQUIRED'] = True
 
     def cliente(self, rol, **extra):
-        u = Usuario(nombre=f'{rol.upper()} PRUEBA', login=rol.lower(), rol=rol, password_hash=generate_password_hash('clave_prueba_123'), **extra)
-        db.session.add(u)
-        db.session.commit()
+        u = db.session.scalar(db.select(Usuario).where(Usuario.login == rol.lower()))
+        if u is None:  # varias peticiones del mismo perfil en una prueba reutilizan el usuario
+            u = Usuario(nombre=f'{rol.upper()} PRUEBA', login=rol.lower(), rol=rol, password_hash=generate_password_hash('clave_prueba_123'), **extra)
+            db.session.add(u)
+            db.session.commit()
         c = self.app.test_client()
         with c.session_transaction() as s:
             s.update(usuario_id=u.id, usuario_version=u.session_version, csrf='test')
