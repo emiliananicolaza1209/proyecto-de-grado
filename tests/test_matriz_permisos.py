@@ -102,6 +102,9 @@ FILAS = [
     ('GET', '/reportes/ventas?periodo=semana', {}, 'P'),
     ('GET', '/reportes/finanzas?periodo=15dias', {}, 'P'),
     ('GET', '/reportes/inventario', {}, 'P'),
+    ('GET', '/reportes/ventas?periodo=semana&comparar=1', {}, 'P'),
+    ('GET', '/reportes/finanzas?periodo=mes&comparar=1', {}, 'P'),
+    ('GET', '/reportes/inventario?umbral=90', {}, 'P'),
     ('GET', '/reportes/ventas?periodo=rango&ini=2026-11-01&fin=2026-11-05&formato=csv', {}, 'P'),
     # --- usuarios ---
     ('GET', '/usuarios', {}, 'P'),

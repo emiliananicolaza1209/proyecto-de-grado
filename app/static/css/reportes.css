@@ -24,4 +24,7 @@
 .reporte-estado.estado-sin_datos{background:#eef0f4;color:#454f63}
 .reporte-estado.estado-sin_autorizacion,.reporte-estado.estado-error_temporal{background:#fde8e5;color:#8a2d22}
 .reporte-enlaces{display:flex;gap:10px;flex-wrap:wrap}
+.reporte-aviso{font-size:12px;margin:12px 0 0}
+.reporte-tabla{overflow-x:auto}
+.reporte-baja-rotacion .table{font-size:13px;white-space:normal}
 @media(max-width:760px){.reporte-cifra{flex-direction:column;gap:2px}.reporte-cifra dd{text-align:left}.reporte-campos .form-select,.reporte-campos .form-control{min-width:100%}}

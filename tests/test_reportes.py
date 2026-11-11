@@ -87,7 +87,7 @@ class GenerarTests(VentasBase):
         r = rs.generar('Propietario', 'inventario', 'rango', 'basura', 'basura', usuario='P', usuario_id=1)  # el periodo no se usa
         self.assertIsNone(r['periodo'])
         self.assertTrue(r['foto_actual'])
-        self.assertEqual([t['consulta'] for t in r['tarjetas']], ['estado_inventario'])
+        self.assertEqual([t['consulta'] for t in r['tarjetas']], ['estado_inventario', 'permanencia_inventario'])
         self.assertIn(('Costo inmovilizado', '$2.500.000'), [(c['etiqueta'], c['valor']) for c in r['tarjetas'][0]['cifras']])
 
     def test_sin_autorizacion_no_trae_cifras(self):

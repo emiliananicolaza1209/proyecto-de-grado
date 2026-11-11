@@ -20,9 +20,13 @@ OPCIONES = (('semana', 'Semana'), ('15dias', '15 días'), ('mes', 'Mes'), ('rang
 ETIQUETAS_ESTADO = {'ok': 'Completo', 'parcial': 'Parcial', 'sin_datos': 'Sin datos', 'sin_autorizacion': 'Sin autorización',
                     'error_temporal': 'Error temporal'}
 MODULOS = {
-    'ventas': {'titulo': 'Reporte de ventas', 'consultas': ('resumen_ventas',), 'periodo': True},
-    'finanzas': {'titulo': 'Reporte financiero', 'consultas': ('resumen_financiero', 'creditos_pendientes'), 'periodo': True},
-    'inventario': {'titulo': 'Reporte de inventario', 'consultas': ('estado_inventario',), 'periodo': False},
+    # 'comparar': el reporte admite el botón "Comparar con el periodo anterior" (una comparación, no una predicción).
+    'ventas': {'titulo': 'Reporte de ventas', 'consultas': ('resumen_ventas',), 'periodo': True, 'comparar': True},
+    'finanzas': {'titulo': 'Reporte financiero', 'consultas': ('resumen_financiero', 'creditos_pendientes'), 'periodo': True,
+                 'comparar': True},
+    # El inventario es una foto de hoy; además del estado trae la lista de equipos de baja rotación sobre un umbral de días.
+    'inventario': {'titulo': 'Reporte de inventario', 'consultas': ('estado_inventario', 'permanencia_inventario'), 'periodo': False,
+                   'comparar': False},
 }
 
 
@@ -56,19 +60,28 @@ def resolver_periodo(tipo, ini=None, fin=None, hoy=None):
             else f'{ini_d.isoformat()} a {fin_d.isoformat()}'}
 
 
-def generar(rol, modulo, tipo=None, ini=None, fin=None, usuario=None, usuario_id=0, hoy=None):
-    """Ejecuta las consultas del módulo y devuelve las tarjetas y los textos ya redactados."""
+def generar(rol, modulo, tipo=None, ini=None, fin=None, usuario=None, usuario_id=0, hoy=None, comparar=False, umbral=None):
+    """Ejecuta las consultas del módulo y devuelve las tarjetas y los textos ya redactados.
+
+    ``comparar`` agrega la comparación con el periodo anterior de igual duración (solo ventas y finanzas); ``umbral`` fija los días de
+    baja rotación del reporte de inventario."""
     if modulo not in MODULOS:
         raise ReporteInvalido('Ese reporte no existe.')
     conf = MODULOS[modulo]
     periodo = None
     if conf['periodo']:
         periodo = resolver_periodo(tipo, ini, fin, hoy)
+    comparado = bool(comparar and conf['comparar'])
     resultados, tarjetas, textos = [], [], []
-    for nombre in conf['consultas']:
+    for nombre in (*conf['consultas'], *(('comparar_periodos',) if comparado else ())):
         consulta = getattr(cs, nombre)
         try:
-            r = consulta(rol, periodo['ini'], periodo['fin']) if periodo and nombre in chat.TIENEN_PERIODO else consulta(rol)
+            if nombre == 'permanencia_inventario':
+                r = consulta(rol, umbral)
+            elif periodo and nombre in chat.TIENEN_PERIODO:
+                r = consulta(rol, periodo['ini'], periodo['fin'])
+            else:
+                r = consulta(rol)
         except cs.ParametroInvalido as exc:
             raise ReporteInvalido(str(exc))
         usa_periodo = bool(periodo and nombre in chat.TIENEN_PERIODO)
@@ -78,7 +91,8 @@ def generar(rol, modulo, tipo=None, ini=None, fin=None, usuario=None, usuario_id
         tarjetas.append(chat.tarjeta(r, periodo['etiqueta'] if usa_periodo else None))
         textos.append(chat.redactar_respuesta(r))
     return {'modulo': modulo, 'titulo': conf['titulo'], 'periodo': periodo, 'resultados': resultados, 'tarjetas': tarjetas,
-            'textos': textos, 'generado_en': today(), 'foto_actual': not conf['periodo']}
+            'textos': textos, 'generado_en': today(), 'foto_actual': not conf['periodo'], 'comparado': comparado,
+            'puede_comparar': conf['comparar']}
 
 
 def _segura(texto):

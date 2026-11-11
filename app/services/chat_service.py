@@ -29,6 +29,9 @@ NOMBRE_MES = {1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'j
 
 # Orden de prioridad cuando una pregunta menciona varias cosas: se responde la primera y se avisa de las demás.
 INTENCIONES = (
+    ('comparar_periodos', ('compar', 'periodo anterior', 'versus', 'respecto al', 'frente al', 'vs')),
+    ('permanencia_inventario', ('baja rotacion', 'rotacion', 'permanencia', 'estancad', 'dias en inventario', 'antiguedad del inventario',
+                                'antiguedad de los equipos', 'equipos viejos', 'sin rotar')),
     ('resumen_financiero', ('resultado', 'utilidad', 'ganancia', 'ganamos', 'financier', 'balance', 'liquidacion', 'comision',
                             'cierre')),
     ('creditos_pendientes', ('credito', 'cartera', 'aliado', 'addi', 'sistecredito', 'su pay', 'sufi')),
@@ -37,14 +40,22 @@ INTENCIONES = (
     ('resumen_ventas', ('venta', 'vend', 'facturamos')),
 )
 TITULOS = {'resumen_ventas': 'Ventas', 'resumen_financiero': 'Resultado financiero', 'estado_inventario': 'Inventario disponible',
-           'creditos_pendientes': 'Créditos pendientes'}
+           'creditos_pendientes': 'Créditos pendientes', 'comparar_periodos': 'Comparación con el periodo anterior',
+           'permanencia_inventario': 'Baja rotación del inventario'}
+# Lo que ya forma parte de la consulta elegida: mencionarlo no es pedir otra cosa y no genera la nota de "también mencionaba".
+ABSORBIDAS = {'comparar_periodos': ('resumen_ventas', 'resumen_financiero'),
+              'permanencia_inventario': ('estado_inventario',)}
+LISTA_EN_EL_CHAT = 10  # equipos de baja rotación que se muestran en la tarjeta del chat (el reporte lista hasta 200)
 FUENTES = {
     'resumen_ventas': 'Finanzas: operaciones Venta no anuladas por fecha de jornada (cierre de las jornadas cerradas)',
     'resumen_financiero': 'Finanzas: cierre de las jornadas cerradas y reporte de las abiertas (provisional)',
     'estado_inventario': 'Inventario: equipos disponibles no archivados, al momento de la consulta',
     'creditos_pendientes': 'Finanzas: créditos de aliados, saldo = neto - recibido, al momento de la consulta',
+    'comparar_periodos': 'Finanzas: resumen de ventas y resumen financiero del periodo y del periodo anterior de igual duración '
+                         '(es una comparación, no una predicción)',
+    'permanencia_inventario': 'Inventario: días desde el ingreso (lote o creación) de los equipos disponibles, al momento de la consulta',
 }
-TIENEN_PERIODO = ('resumen_ventas', 'resumen_financiero')
+TIENEN_PERIODO = ('resumen_ventas', 'resumen_financiero', 'comparar_periodos')
 # Datos que el chat nunca entrega, aunque se pidan: se responde que no se puede, sin intentar nada.
 TEMAS_PRIVADOS = ('vendedor', 'cliente', 'imei', 'cedula', 'sueldo', 'salario', 'nomina', 'proveedor', 'margen', 'consignacion',
                   'banco', 'contrasena', 'password', 'usuario')
@@ -54,13 +65,19 @@ VERBOS_DE_ESCRITURA = ('borra', 'borrar', 'elimina', 'eliminar', 'crea', 'crear'
 CAPACIDADES = ('ventas de un periodo (ej. "ventas de hoy", "ventas del 1 al 15 de octubre")',
                'resultado financiero de un periodo (ej. "resultado de esta semana")',
                'inventario disponible (ej. "inventario disponible")',
-               'créditos pendientes por aliado (ej. "créditos pendientes")')
+               'créditos pendientes por aliado (ej. "créditos pendientes")',
+               'comparación con el periodo anterior de igual duración (ej. "comparar esta semana con el periodo anterior")',
+               'equipos de baja rotación (ej. "baja rotación" o "baja rotación de más de 90 días")')
 # Por qué un resultado es parcial, según la consulta (lo provisional de las jornadas abiertas se dice aparte).
 PARCIAL = {
     'estado_inventario': 'Resultado parcial: algunos equipos no están clasificados en el catálogo (ubicación o referencia); '
                          'el total de equipos disponibles sí está completo.',
     'creditos_pendientes': 'Resultado parcial: hay créditos con datos inconsistentes o sin aprobación confirmada que no entran en '
                            'el saldo; revisa las advertencias.',
+    'comparar_periodos': 'Resultado parcial: al menos una de las dos comparaciones no se pudo hacer (falta cobertura en alguno de los '
+                         'periodos) o incluye cifras provisionales; revisa las advertencias.',
+    'permanencia_inventario': 'Resultado parcial: algunos equipos no tienen una fecha de ingreso válida; los días se calcularon con '
+                              'los demás.',
     'otras': 'Resultado parcial: la cobertura del periodo está incompleta o hay cifras que no se pueden calcular; '
              'revisa las advertencias.',
 }
@@ -170,6 +187,17 @@ def interpretar_periodo(pregunta, hoy=None):
 
 
 # --- intención --------------------------------------------------------------------------------------------------------
+def interpretar_umbral(pregunta):
+    """Umbral de días de la pregunta ("más de 90 días", "umbral de 45 días", "90 días o más"), o None si no dice ninguno."""
+    t = normalizar(pregunta)
+    for patron in (r'(?:mas de|mas que|superior a|mayor a|por encima de|umbral(?: de)?)\s*(\d{1,6})\s*dias?',
+                   r'(\d{1,6})\s*dias?\s*(?:o mas|en adelante)'):
+        m = re.search(patron, t)
+        if m:
+            return int(m.group(1))
+    return None
+
+
 def detectar_intenciones(pregunta):
     t = normalizar(pregunta)
     return [nombre for nombre, palabras in INTENCIONES if any(re.search(r'\b' + re.escape(p), t) for p in palabras)]
@@ -247,11 +275,51 @@ def _filas_tarjeta(resultado):
         for a in (resultado['detalle'] or {}).get('por_aliado', [])[:8]:
             filas.append((f"Aliado: {a['aliado']}", f"{formatear_pesos(a['saldo_cents'])} ({_n(a['creditos'])})"))
         return filas
+    if e == 'comparar_periodos':
+        filas = [('Periodo pedido', f"{c['periodo_actual']['ini']} a {c['periodo_actual']['fin']}"),
+                 ('Periodo anterior (igual duración)', f"{c['periodo_anterior']['ini']} a {c['periodo_anterior']['fin']}")]
+        for clave, nombre in (('ventas_netas', 'Ventas netas'), ('resultado_final', 'Resultado final del día')):
+            v = c[clave]
+            filas.append((f'{nombre} — periodo pedido', formatear_pesos(v['actual_cents'])))
+            filas.append((f'{nombre} — periodo anterior', formatear_pesos(v['anterior_cents'])))
+            if not v['comparable']:
+                filas.append((f'{nombre} — comparación', 'no disponible: falta cobertura en alguno de los periodos'))
+                continue
+            filas.append((f'{nombre} — diferencia', formatear_pesos(v['diferencia_cents'])))
+            filas.append((f'{nombre} — variación', _porcentaje(v['variacion_bp']) if v['variacion_bp'] is not None
+                          else 'sin porcentaje (el periodo anterior es cero o negativo)'))
+        return filas
+    if e == 'permanencia_inventario':
+        filas = [('Umbral de baja rotación', f"más de {c['umbral_dias']} días"), ('Equipos disponibles', _n(c['disponibles'])),
+                 ('Con fecha de ingreso válida', _n(c['con_fecha_de_ingreso'])), ('Promedio de días en inventario', _decimal(c['promedio_dias'])),
+                 ('Mediana de días', _decimal(c['mediana_dias'])), ('Máximo de días', _n(c['maximo_dias'])),
+                 ('Equipos sobre el umbral', _n(c['sobre_umbral']['equipos']))]
+        if 'costo_inmovilizado_cents' in c:
+            filas.append(('Costo inmovilizado total', formatear_pesos(c['costo_inmovilizado_cents'])))
+            filas.append(('Costo inmovilizado sobre el umbral', formatear_pesos(c['sobre_umbral']['costo_inmovilizado_cents'])))
+        for x in (resultado['detalle'] or {}).get('equipos_sobre_umbral', [])[:LISTA_EN_EL_CHAT]:
+            texto = f"{x['dias']} días (ingreso {x['ingreso']})"
+            if 'costo_inmovilizado_cents' in x:
+                texto += f" · {formatear_pesos(x['costo_inmovilizado_cents'])}"
+            filas.append((f"Equipo #{x['equipo_id']} · {x['referencia']} · {x['ubicacion']}", texto))
+        return filas
     return []
+
+
+def _porcentaje(puntos_basicos):
+    """Variación en puntos básicos (entero) a texto con coma decimal: 5000 -> +50,0 %."""
+    return f'{puntos_basicos / 100:+.1f}'.replace('.', ',') + ' %'
+
+
+def _decimal(valor):
+    return 'no calculable' if valor is None else f'{valor:.1f}'.replace('.', ',')
 
 
 def _es_provisional(resultado):
     cob = resultado.get('cobertura') or {}
+    if resultado['consulta'] == 'comparar_periodos':
+        c = resultado.get('cifras') or {}
+        return bool(c and (c['ventas_netas']['provisional'] or c['resultado_final']['provisional']))
     return bool(resultado['consulta'] in TIENEN_PERIODO and cob.get('abiertas'))
 
 
@@ -347,8 +415,9 @@ def responder(rol, pregunta, usuario=None, usuario_id=0, hoy=None):
         return cerrar('fuera_de_alcance', fuera_de_alcance())
     herramienta = intenciones[0]
     notas = []
-    if len(intenciones) > 1:
-        otras = ', '.join(TITULOS[i].lower() for i in intenciones[1:])
+    otras_intenciones = [i for i in intenciones[1:] if i not in ABSORBIDAS.get(herramienta, ())]
+    if otras_intenciones:
+        otras = ', '.join(TITULOS[i].lower() for i in otras_intenciones)
         notas.append(f'Tu pregunta también mencionaba {otras}; respondí {TITULOS[herramienta].lower()}. Pregunta lo otro por separado.')
 
     periodo = None
@@ -375,7 +444,16 @@ def responder(rol, pregunta, usuario=None, usuario_id=0, hoy=None):
     else:
         if pedido is not None:
             notas.append('Esta consulta muestra el estado de hoy; ignoré el periodo que indicaste.')
-        resultado = getattr(cs, herramienta)(rol)
+        if herramienta == 'permanencia_inventario':
+            umbral = interpretar_umbral(pregunta)
+            try:
+                resultado = cs.permanencia_inventario(rol, umbral)
+            except cs.ParametroInvalido as exc:
+                return cerrar('parametro_invalido', f'No pude usar ese umbral: {exc}', herramienta, intencion=herramienta)
+            if umbral is None:
+                notas.append(f'No indicaste un umbral; usé el valor por defecto: más de {cs.UMBRAL_PERMANENCIA_DIAS} días.')
+        else:
+            resultado = getattr(cs, herramienta)(rol)
     texto = redactar_respuesta(resultado, notas)
     return cerrar(resultado['estado'], texto, herramienta, periodo,
                   tarjeta(resultado, periodo['etiqueta'] if periodo else None, notas), herramienta)

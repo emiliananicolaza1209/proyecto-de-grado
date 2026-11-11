@@ -2,6 +2,7 @@
 from flask import Blueprint, Response, abort, g, render_template, request, url_for
 
 from ..auth import can, require, role
+from ..services import consultas_service as cs
 from ..services import reporte_service
 from ..services.operacion_service import today
 
@@ -16,7 +17,9 @@ def contexto_del_panel():
     modulo = PAGINAS_CON_PANEL.get(request.endpoint) if can('reportes') else None
     return {'reporte_panel_modulo': modulo, 'reporte_opciones': reporte_service.OPCIONES,
             'reporte_estados': reporte_service.ETIQUETAS_ESTADO, 'reporte_hoy': today(),
-            'reporte_seleccion_inicial': {'tipo': 'semana', 'ini': '', 'fin': ''}}
+            'reporte_seleccion_inicial': {'tipo': 'semana', 'ini': '', 'fin': '', 'umbral': '', 'comparar': False},
+            'reporte_umbral_defecto': cs.UMBRAL_PERMANENCIA_DIAS, 'reporte_umbral_maximo': cs.MAX_UMBRAL_DIAS,
+            'reporte_modulos_que_comparan': [m for m, c in reporte_service.MODULOS.items() if c['comparar']]}
 
 
 def _exportaciones(reporte):
@@ -40,11 +43,13 @@ def ver(modulo):
     if modulo not in reporte_service.MODULOS:
         abort(404)
     usuario = getattr(g, 'usuario', None)
-    seleccion = {'tipo': request.args.get('periodo', 'semana'), 'ini': request.args.get('ini', ''), 'fin': request.args.get('fin', '')}
+    seleccion = {'tipo': request.args.get('periodo', 'semana'), 'ini': request.args.get('ini', ''), 'fin': request.args.get('fin', ''),
+                 'umbral': request.args.get('umbral', ''), 'comparar': request.args.get('comparar') == '1'}
     error, reporte = None, None
     try:
         reporte = reporte_service.generar(role(), modulo, seleccion['tipo'], seleccion['ini'], seleccion['fin'],
-                                          usuario=usuario.nombre if usuario else None, usuario_id=usuario.id if usuario else 0)
+                                          usuario=usuario.nombre if usuario else None, usuario_id=usuario.id if usuario else 0,
+                                          comparar=seleccion['comparar'], umbral=seleccion['umbral'])
     except reporte_service.ReporteInvalido as exc:
         error = str(exc)
     formato = request.args.get('formato', 'html')

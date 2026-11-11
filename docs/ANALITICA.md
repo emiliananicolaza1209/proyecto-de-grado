@@ -89,7 +89,9 @@ Un parámetro mal escrito (fecha inexistente, ID que no corresponde) no es un es
   exportaciones existentes.
 - **Comparación y baja rotación en pantalla y chat:** el botón "Comparar con el periodo anterior" en los reportes de Ventas y de Finanzas, la lista de
   equipos de baja rotación en el reporte de Inventario y las intenciones del chat "comparar con el periodo anterior" y "baja rotación" usan las
-  consultas de las secciones 3.2 y 3.3, sin cálculos propios.
+  consultas de las secciones 3.2 y 3.3, sin cálculos propios. El botón y la pantalla avisan que es una comparación de periodos pasados, no una
+  predicción. El umbral de baja rotación se elige en el panel del reporte de Inventario (por defecto 60 días) o en la pregunta del chat ("más de 90 días").
+  El IMEI no se muestra: la lista enlaza al detalle del equipo. Solo el Propietario ve estas pantallas.
 - Cada consulta del chat y de los reportes queda en `registro_gestion`.
 
 ## 5. Límites conocidos
@@ -150,6 +152,7 @@ Todo se prueba con la suite automática (`$env:PYTHONPATH='tests'; python -m uni
 | Comparación de periodos | `tests/test_analitica_comparar_periodos.py` | `test_analitica_comparar_periodos.ComparacionCompletaTests.test_el_periodo_anterior_es_el_inmediato_y_de_igual_duracion`, `test_analitica_comparar_periodos.ComparacionCompletaTests.test_redondeo_de_la_variacion`, `test_analitica_comparar_periodos.SinCoberturaTests.test_falta_cobertura_en_el_periodo_actual`, `test_analitica_comparar_periodos.SinCoberturaTests.test_ninguna_respuesta_sin_cobertura_trae_un_porcentaje`, `test_analitica_comparar_periodos.SinCoberturaTests.test_el_periodo_anterior_en_cero_no_da_porcentaje`, `test_analitica_comparar_periodos.ProvisionalTests.test_con_la_jornada_de_hoy_abierta_se_marca_provisional_y_es_parcial`, `test_analitica_comparar_periodos.EstadosYPermisosTests.test_sin_autorizacion_para_todo_perfil_distinto_del_propietario` |
 | Permanencia del inventario | `tests/test_analitica_permanencia_inventario.py` | `test_analitica_permanencia_inventario.DiasYUmbralTests.test_sobre_el_umbral_significa_mas_dias_que_el_umbral`, `test_analitica_permanencia_inventario.DiasYUmbralTests.test_umbrales_invalidos`, `test_analitica_permanencia_inventario.FechaDeIngresoTests.test_la_fecha_del_lote_manda_sobre_la_de_creacion`, `test_analitica_permanencia_inventario.FechaDeIngresoTests.test_fechas_vacias_mal_escritas_o_futuras_no_se_inventan`, `test_analitica_permanencia_inventario.CostoYPrivacidadTests.test_quien_no_ve_costos_no_los_recibe_ni_una_clave`, `test_analitica_permanencia_inventario.CostoYPrivacidadTests.test_nunca_devuelve_imei_proveedor_ni_personas` |
 | Chat y reportes | `tests/test_chat.py`, `tests/test_chat_pantalla.py`, `tests/test_reportes.py` | `test_chat.MismosTotalesTests.test_ventas`, `test_reportes.PermisosTests.test_solo_el_propietario_abre_los_reportes` |
+| Comparación y baja rotación en pantalla y chat | `tests/test_analitica_pantalla.py` | `test_analitica_pantalla.ReporteCompararTests.test_ventas_y_finanzas_ofrecen_el_boton_con_el_aviso`, `test_analitica_pantalla.ReporteBajaRotacionTests.test_lista_los_equipos_sobre_el_umbral_sin_imei`, `test_analitica_pantalla.ChatTests.test_baja_rotacion_en_el_chat`, `test_analitica_pantalla.ChatTests.test_comparar_con_el_periodo_anterior_en_el_chat`, `test_analitica_pantalla.PoliticaTests.test_sin_scripts_ni_estilos_en_linea_en_las_pantallas_nuevas` |
 | Permisos de todas las rutas | `tests/test_matriz_permisos.py`, `tests/test_accesos_directos.py` | `test_matriz_permisos.MatrizPermisos.test_toda_ruta_de_la_aplicacion_esta_clasificada` |
 
 Las reglas de este documento que no tienen prueba propia están marcadas como límites o propuestas. `tests/test_analitica_doc.py` comprueba que cada prueba

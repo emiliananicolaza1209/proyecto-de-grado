@@ -21,7 +21,19 @@
           <input id="reporte-fin-{{ panel_modulo }}" class="form-control" type="date" name="fin" value="{{ panel_sel.fin }}" max="{{ reporte_hoy }}">
         </div>
       </div>
+      {% if panel_modulo == 'inventario' %}
+      <div>
+        <label for="reporte-umbral-inventario">Baja rotación: más de (días)</label>
+        <input id="reporte-umbral-inventario" class="form-control" type="number" name="umbral" min="1" max="{{ reporte_umbral_maximo }}" step="1" value="{{ panel_sel.umbral or reporte_umbral_defecto }}">
+      </div>
+      {% endif %}
       <div class="reporte-accion"><button class="btn btn-primary" type="submit">Generar reporte</button></div>
+      {% if panel_modulo in reporte_modulos_que_comparan %}
+      <div class="reporte-accion"><button class="btn btn-outline-primary" type="submit" name="comparar" value="1">Comparar con el periodo anterior</button></div>
+      {% endif %}
     </div>
+    {% if panel_modulo in reporte_modulos_que_comparan %}
+      <p class="muted reporte-aviso">"Comparar" pone el periodo elegido frente al periodo inmediatamente anterior de igual duración. Es una comparación de periodos que ya ocurrieron, no una predicción.</p>
+    {% endif %}
   </form>
 </details>

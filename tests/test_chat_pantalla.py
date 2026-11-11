@@ -192,8 +192,10 @@ class MensajeParcialTests(VentasBase):
         r = chat.responder('Propietario', 'ventas de esta semana', usuario='P', usuario_id=1, hoy=self.hoy)
         if r['estado'] == 'parcial':
             self.assertIn('la cobertura del periodo está incompleta', r['respuesta'])
-        self.assertEqual(set(chat.PARCIAL), {'estado_inventario', 'creditos_pendientes', 'otras'})
-        self.assertNotIn('provisional', ' '.join(chat.PARCIAL.values()).lower())
+        self.assertEqual(set(chat.PARCIAL), {'estado_inventario', 'creditos_pendientes', 'comparar_periodos',
+                                                'permanencia_inventario', 'otras'})
+        # La comparación sí es parcial también por jornadas abiertas (lo dice su propio texto); las demás no mezclan lo provisional.
+        self.assertNotIn('provisional', ' '.join(v for k, v in chat.PARCIAL.items() if k != 'comparar_periodos').lower())
 
     def test_lo_provisional_se_sigue_diciendo_aparte_cuando_hay_jornadas_abiertas(self):
         self.vender(monto='650000', con_equipo=False)
