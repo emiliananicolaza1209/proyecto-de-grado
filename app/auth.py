@@ -1,6 +1,7 @@
 """Sesiones y permisos en servidor; sin contraseñas predeterminadas."""
 import functools
 import os
+import secrets
 import time
 from collections import defaultdict, deque
 from flask import Blueprint,request,session,g,current_app,redirect,url_for,abort,render_template,flash
@@ -21,6 +22,12 @@ LIMITE_IP=20         # fallos por red (cualquier usuario) en la ventana; frena p
 # LIMITACIÓN CONOCIDA: los contadores viven en memoria del proceso. Se pierden al reiniciar el servidor y no se
 # comparten entre procesos; con varios procesos el límite real es el de cada uno. Los fallos sí quedan en la
 # auditoría (registro_gestion), que es persistente. Ver docs/SEGURIDAD.md.
+
+_ficticio=[]
+def _hash_ficticio():
+    """Hash de una clave que nadie conoce, con el mismo método y costo que los reales; se calcula una sola vez por proceso."""
+    if not _ficticio:_ficticio.append(generate_password_hash(secrets.token_hex(16)))
+    return _ficticio[0]
 
 def _vigentes(cola,ahora):
     while cola and cola[0]<ahora-VENTANA:cola.popleft()
@@ -120,7 +127,9 @@ def login():
         if len(q)>=LIMITE_USUARIO or len(qi)>=LIMITE_IP:error='Espera cinco minutos antes de volver a intentar.'
         else:
             u=db.session.scalar(db.select(Usuario).where(Usuario.login==key[1]))
-            if u and u.activo and check_password_hash(u.password_hash,request.form.get('password','')):
+            # Siempre se calcula UN hash, exista o no el usuario y esté activo o no: así el tiempo de respuesta no delata qué usuarios existen.
+            clave_correcta=check_password_hash(u.password_hash if u else _hash_ficticio(),request.form.get('password','')) and bool(u)
+            if u and u.activo and clave_correcta:
                 session.clear();session['usuario_id']=u.id;session['usuario_version']=u.session_version;session['ultimo_acceso']=int(time.time())
                 _attempts.pop(key,None)
                 return redirect(url_for('main.home'))

@@ -7,6 +7,7 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from ..extensions import db
 from ..auth import require,can,ROLES
 from ..passwords import validar_clave
@@ -87,6 +88,7 @@ def lotes():
 @gestion.route('/inventario/compras/<int:lot_id>',methods=['GET','POST'])
 @require('inventario')
 def lote(lot_id):
+    if not db.session.get(Lote,lot_id):abort(404)
     def write():
         lot=get_id(Lote,lot_id);c=compras.control(lot_id,request.form.get('revision'));action=request.form.get('action')
         if action=='add':
@@ -142,12 +144,21 @@ def plantilla():
     out=BytesIO();w.save(out);out.seek(0)
     return send_file(out,as_attachment=True,download_name='Plantilla_lote_CP_Store.xlsx')
 
+def _factura_valida(nombre):
+    """Las facturas se guardan con 48 caracteres hexadecimales y una extensión conocida; cualquier otra cosa no se sirve."""
+    nombre=nombre or '';base=nombre[:-4] if nombre[-4:] in ('.pdf','.png','.jpg') else ''
+    return len(base)==48 and all(c in '0123456789abcdef' for c in base)
+
 @gestion.get('/inventario/facturas/<int:invoice_id>')
 @require('inventario')
 def factura(invoice_id):
-    row=get_id(FacturaLote,invoice_id);path=Path(current_app.instance_path)/'facturas'/row.archivo
-    if not path.exists():abort(404)
-    return send_file(path,mimetype=row.mime,as_attachment=True,download_name=row.nombre)
+    row=db.session.get(FacturaLote,invoice_id)
+    if not row or not _factura_valida(row.archivo):abort(404)
+    carpeta=(Path(current_app.instance_path)/'facturas').resolve();path=(carpeta/row.archivo).resolve()
+    if path.parent!=carpeta or not path.is_file():abort(404)  # nunca fuera de instance/facturas (tampoco por un enlace simbólico)
+    respuesta=send_file(path,mimetype=row.mime,as_attachment=True,download_name=secure_filename(row.nombre or '') or 'factura'+path.suffix)
+    respuesta.headers['Cache-Control']='private, no-store'
+    return respuesta
 
 @gestion.route('/inventario/articulos',methods=['GET','POST'])
 @require('inventario')
@@ -276,7 +287,9 @@ def usuarios():
 def historial():
     rows=db.select(RegistroGestion).order_by(RegistroGestion.id.desc())
     if request.args.get('entidad'):rows=rows.where(RegistroGestion.entidad==request.args['entidad'])
-    if request.args.get('id'):rows=rows.where(RegistroGestion.entidad_id==int(request.args['id']))
+    if request.args.get('id'):
+        try:rows=rows.where(RegistroGestion.entidad_id==int(request.args['id']))
+        except ValueError:abort(400,'El id debe ser un número.')
     return render_template('gestion/historial.html',active='finanzas',rows=db.session.scalars(rows.limit(300)).all())
 
 @gestion.get('/inventario/inversion')

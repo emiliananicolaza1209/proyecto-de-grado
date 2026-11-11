@@ -162,7 +162,8 @@ def index():
 @finanzas.get('/finanzas/exportar')
 @require('admin')
 def export():
-    d=svc.find_day(request.args.get('date',''))
+    try:d=svc.find_day(request.args.get('date',''))
+    except ValueError as exc:abort(400,str(exc))
     if not d:abort(404)
     r=svc.report(d);out=io.StringIO();writer=csv.writer(out,delimiter=';')
     writer.writerow(['FECHA','TIPO','DESCRIPCIÓN','RESPONSABLE','VALOR COP','COSTOS MENORES COP','ANULADO'])

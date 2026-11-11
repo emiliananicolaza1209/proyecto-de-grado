@@ -31,14 +31,30 @@ Documento vivo. Lo que sigue describe lo que la aplicación hace hoy y lo que **
 - Limitación: no se consulta una lista pública de claves filtradas (sería una dependencia nueva) y los usuarios no
   pueden cambiar su propia clave: la fija el Propietario.
 
-## Pendientes de seguridad (anotados, sin tocar)
-Estos puntos salieron del diagnóstico de usuarios y se dejan para una etapa posterior por decisión del equipo.
-7. **Lectura de créditos para la Vendedora:** `/finanzas/creditos` (créditos, aliados y desembolsos) es visible para el
-   perfil Vendedora aunque sus escrituras estén bloqueadas. Decidir si la lectura debe cerrarse.
-8. **Errores 500 en vez de 400/404:** `/inventario/facturas/<id>` con un id inexistente, `/finanzas/exportar` sin fecha
-   y `/gestion/historial?id=abc` terminan en error interno. No filtran datos, pero conviene responder 400 o 404.
-9. **Enumeración de usuarios por tiempo de respuesta:** si el usuario no existe no se calcula el hash, así que la
-   respuesta es más rápida que con un usuario existente. Mitigación posible: calcular siempre un hash ficticio.
+## Pendientes de seguridad
+Salieron del diagnóstico de usuarios. Estado actual:
+
+7. **Lectura de créditos para la Vendedora — PENDIENTE (a la espera de decisión).** `/finanzas/creditos` muestra a la Vendedora
+   cada crédito de todas las ventas (descripción de la venta, aliado, bruto, comisión del aliado, neto, recibido y saldo). Las
+   escrituras (confirmar desembolsos, editar aliados) ya están cerradas. Propuesta: exigir `admin` también para leer esa pantalla,
+   ocultar su enlace del menú a los demás perfiles y pasar la fila de la matriz de `PAV` a `PA`. La Vendedora seguiría registrando
+   ventas a crédito desde Finanzas, porque esa lista de aliados no depende de esta pantalla.
+8. **Errores 500 en vez de 400/404 — CORREGIDO.** `/inventario/facturas/<id>` y `/inventario/compras/<id>` con un id inexistente
+   ahora dan 404; `/finanzas/exportar` sin fecha, con fecha inválida o futura da 400; `/gestion/historial?id=abc` da 400. Un
+   recorrido automático de todas las rutas GET y POST con parámetros raros ya no encuentra ningún 500
+   (`tests/test_accesos_directos.py`).
+9. **Enumeración de usuarios por tiempo de respuesta — CORREGIDO.** El acceso calcula siempre un hash (el real, o uno ficticio del
+   mismo método y costo si el usuario no existe o está inactivo), así que el tiempo no delata qué usuarios existen. La
+   auditoría sigue registrando el motivo real de cada fallo.
+
+## Facturas adjuntas (`instance/facturas`)
+- Solo se sirven por `/inventario/facturas/<id numérico>`, con la capacidad `inventario` (Propietario, Administrador e Inventario).
+  Vendedora, Socio y anónimos no reciben ni un byte, y la respuesta es la misma exista o no la factura.
+- El archivo sale de la base de datos, nunca de la URL: el id es un entero. Aun así, el nombre guardado debe ser de 48 caracteres
+  hexadecimales con extensión `.pdf`, `.png` o `.jpg`, y la ruta resuelta debe quedar **dentro** de la carpeta (no se sigue un
+  enlace simbólico hacia afuera). Si algo de eso falla, responde 404.
+- Se entrega siempre como descarga (`Content-Disposition: attachment`), con `nosniff` y `Cache-Control: private, no-store`.
+- La carpeta no se sirve como archivos estáticos.
 
 ## Cobertura automática
 `tests/test_matriz_permisos.py` fija qué roles pueden usar cada ruta y cada acción de escritura. Falla si una ruta
