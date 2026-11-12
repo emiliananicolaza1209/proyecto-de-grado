@@ -36,6 +36,15 @@ class DefinicionTests(unittest.TestCase):
         self.addCleanup(self.ctx.pop)
         self.addCleanup(release, self.app)
 
+    def test_valor_cents_de_ingresos_gastos_es_biginteger(self):
+        from sqlalchemy import BigInteger
+        from sqlalchemy.dialects import postgresql
+        from sqlalchemy.schema import CreateTable
+        columna = db.metadata.tables['ingresos_gastos'].c.valor_cents
+        self.assertIsInstance(columna.type, BigInteger)
+        ddl = str(CreateTable(db.metadata.tables['ingresos_gastos']).compile(dialect=postgresql.dialect()))
+        self.assertRegex(ddl, r'valor_cents\s+BIGINT')
+
     def test_la_version_del_esquema_es_2_y_las_tablas_nuevas_son_exactamente_tres(self):
         self.assertEqual(SCHEMA_VERSION, 2)
         self.assertEqual(set(SCHEMA_V2_TABLES), NUEVAS)

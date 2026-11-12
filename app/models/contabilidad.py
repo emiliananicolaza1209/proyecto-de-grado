@@ -90,7 +90,7 @@ class IngresoGasto(db.Model):
     tipo = db.Column(db.String(10), nullable=False)  # INGRESO | GASTO
     concepto = db.Column(db.String(120), nullable=False)
     categoria = db.Column(db.String(30), nullable=False, default='OTRO')
-    valor_cents = db.Column(db.Integer, nullable=False)
+    valor_cents = db.Column(db.BigInteger, nullable=False)
     fecha = db.Column(db.String(10), nullable=False)  # YYYY-MM-DD
     relacion = db.Column(db.String(120), nullable=False, default='')
     soporte_ref = db.Column(db.String(100), nullable=False, default='')
