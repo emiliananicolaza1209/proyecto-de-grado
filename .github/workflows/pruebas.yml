@@ -40,6 +40,7 @@ jobs:
           node --check app/static/js/experiencia.js
           node --check app/static/js/reportes.js
           node --check app/static/js/finanzas.js
+          node --check app/static/js/usuarios.js
           node --test tests/test_navigation_v18.cjs tests/test_sidebar_v18_1.cjs
 
       - name: Preparar navegador de pruebas
@@ -62,3 +63,41 @@ jobs:
           PYCODE
           node tests/check_business_ui_v18.cjs
           node tests/check_ajustes_pool_v19.cjs
+
+  responsive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Preparar Chromium y WebKit
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium webkit
+      - name: Revisar módulos en móviles, tabletas y escritorio
+        run: |
+          python scripts/preview_ui.py > /tmp/cpstore-responsive.log 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          python - <<'PYCODE'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:5018/healthz',timeout=2) as r:
+                      if r.status==200: break
+              except OSError: time.sleep(1)
+          else: raise SystemExit('No inició el servidor temporal')
+          PYCODE
+          node tests/check_responsive_v20.cjs
+      - name: Guardar resultados y capturas de datos ficticios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-v20
+          retention-days: 7
+          path: instance/responsive-v20/
+          if-no-files-found: warn

@@ -87,7 +87,9 @@ class CatalogReviewTests(unittest.TestCase):
     def test_users_have_no_finance_subnav_and_other_modules_keep_theirs(self):
         html=self.client.get('/usuarios').get_data(as_text=True)
         self.assertIn('Usuarios y permisos',html);self.assertIn('Volver al resumen',html)
-        self.assertNotIn('Créditos y desembolsos',html)
+        # La matriz de permisos sí debe nombrar Créditos; no es una subnavegación.
+        self.assertNotIn('Créditos y desembolsos',html.split('</aside>',1)[0])
+        self.assertIn('data-module="creditos"',html)
         self.assertNotIn('class="g-nav"',html)
         sales=self.client.get('/ventas').get_data(as_text=True)
         self.assertIn('Sociedades y liquidaciones',sales)

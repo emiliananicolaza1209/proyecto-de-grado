@@ -45,8 +45,8 @@ class DefinicionTests(unittest.TestCase):
         ddl = str(CreateTable(db.metadata.tables['ingresos_gastos']).compile(dialect=postgresql.dialect()))
         self.assertRegex(ddl, r'valor_cents\s+BIGINT')
 
-    def test_la_version_del_esquema_es_2_y_las_tablas_nuevas_son_exactamente_tres(self):
-        self.assertEqual(SCHEMA_VERSION, 2)
+    def test_version_3_conserva_las_tres_tablas_contables_de_v2(self):
+        self.assertEqual(SCHEMA_VERSION, 3)
         self.assertEqual(set(SCHEMA_V2_TABLES), NUEVAS)
         self.assertEqual(len(SCHEMA_V2_TABLES), 3)
         self.assertTrue(NUEVAS.issubset(db.metadata.tables))
@@ -118,7 +118,7 @@ class EsquemaV2PostgresTests(unittest.TestCase):
 
     def base_en_version_1(self, con_tablas_nuevas=()):
         """Una base como la que dejó la versión 1: sin las tres tablas contables, con catálogos y revisión 1."""
-        resto = [t for t in db.metadata.sorted_tables if t.name not in NUEVAS or t.name in con_tablas_nuevas]
+        resto = [t for t in db.metadata.sorted_tables if t.name!='permisos_usuario' and (t.name not in NUEVAS or t.name in con_tablas_nuevas)]
         with db.engine.begin() as conn:
             db.metadata.create_all(conn, tables=resto)
             seed_catalogs(conn)
@@ -126,13 +126,13 @@ class EsquemaV2PostgresTests(unittest.TestCase):
             conn.execute(text('INSERT INTO cp_schema_revision(version) VALUES (1)'))
 
     # --- pruebas ------------------------------------------------------------------------------------------------------
-    def test_una_base_nueva_se_crea_ya_en_version_2_con_las_tres_tablas(self):
+    def test_base_nueva_version_3_incluye_tablas_contables_y_accesos(self):
         self.assertEqual(initialize_postgres(), 'creada')
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
         self.assertTrue(NUEVAS.issubset(self.tablas()))
         self.assertEqual(set(db.metadata.tables) | {'cp_schema_revision'}, self.tablas())
         self.assertFalse(initialize_postgres())
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
 
     def test_actualizar_se_niega_a_crear_una_base_vacia(self):
         with self.assertRaisesRegex(click.ClickException, 'No existe una versión'):
@@ -144,21 +144,21 @@ class EsquemaV2PostgresTests(unittest.TestCase):
         antes = self.conteos()
         self.assertEqual(initialize_postgres(allow_create=False), 'actualizada')
         despues = self.conteos()
-        self.assertEqual({t: n for t, n in despues.items() if t not in NUEVAS}, antes)
+        self.assertEqual({t: n for t, n in despues.items() if t not in NUEVAS|{'permisos_usuario'}}, antes)
         self.assertTrue(NUEVAS.issubset(self.tablas()))
         self.assertEqual(set(db.metadata.tables) | {'cp_schema_revision'}, self.tablas())
         self.assertFalse(initialize_postgres())  # repetirla no hace nada
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
 
-    def test_una_base_en_version_1_sube_a_2_y_no_toca_ningun_dato(self):
+    def test_base_version_1_sube_a_3_y_no_toca_ningun_dato(self):
         self.base_en_version_1()
         self.assertFalse(NUEVAS & self.tablas())
         antes = self.conteos()
         self.assertGreater(antes['catalog'], 0)
         self.assertEqual(initialize_postgres(), 'actualizada')
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
         despues = self.conteos()
-        self.assertEqual({t: n for t, n in despues.items() if t not in NUEVAS}, antes)  # ninguna otra tabla cambió
+        self.assertEqual({t: n for t, n in despues.items() if t not in NUEVAS|{'permisos_usuario'}}, antes)  # ninguna otra tabla cambió
         self.assertEqual({despues[t] for t in NUEVAS}, {0})
         self.assertEqual(set(db.metadata.tables) | {'cp_schema_revision'}, self.tablas())
         self.assertFalse(initialize_postgres())  # idempotente
@@ -197,13 +197,13 @@ class EsquemaV2PostgresTests(unittest.TestCase):
         self.assertFalse(NUEVAS & self.tablas())
         self.assertEqual(self.version(), 1)
 
-    def test_una_base_en_version_2_incompleta_se_rechaza(self):
+    def test_base_en_version_actual_incompleta_se_rechaza(self):
         initialize_postgres()
         with db.engine.begin() as conn:
             conn.execute(text('DROP TABLE reportes_generados'))
         with self.assertRaisesRegex(click.ClickException, 'Faltan tablas'):
             initialize_postgres()
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
 
     def test_si_algo_falla_a_la_mitad_no_queda_nada_a_medias(self):
         self.base_en_version_1()
@@ -222,7 +222,7 @@ class EsquemaV2PostgresTests(unittest.TestCase):
         self.assertFalse(NUEVAS & self.tablas())  # la primera tabla creada se deshizo con la transacción
         self.assertEqual((self.version(), self.conteos()), (1, antes))
         self.assertEqual(initialize_postgres(), 'actualizada')  # y se puede volver a intentar
-        self.assertEqual(self.version(), 2)
+        self.assertEqual(self.version(), 3)
 
 
 if __name__ == '__main__':

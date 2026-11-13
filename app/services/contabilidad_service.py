@@ -214,10 +214,14 @@ def consolidar_periodo(ini, fin):
             faltantes.append(f"{m.tipo} '{m.concepto}' sin clasificar (categoría OTRO).")
 
     # Solo consignaciones activas: las anuladas no suman (igual que la alerta UVT y el desglose por banco).
+    # Límites DateTime tipados: PostgreSQL no admite date(fecha) >= VARCHAR.
+    # Incluye todo el último día, con la misma hora local almacenada en fecha.
+    inicio = datetime.fromisoformat(ini)
+    siguiente = datetime.fromisoformat(fin) + timedelta(days=1)
     cons_q = db.session.query(ConsignacionBancaria).filter(
         ConsignacionBancaria.activa == True,  # noqa: E712
-        func.date(ConsignacionBancaria.fecha) >= ini,
-        func.date(ConsignacionBancaria.fecha) <= fin,
+        ConsignacionBancaria.fecha >= inicio,
+        ConsignacionBancaria.fecha < siguiente,
     ).order_by(ConsignacionBancaria.fecha).all()
     cons_total = sum(int(Decimal(str(c.monto)) * 100) for c in cons_q)
     consignaciones = {'total_cents': cons_total, 'count': len(cons_q), 'detalle': [

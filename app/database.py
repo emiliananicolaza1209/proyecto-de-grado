@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from .extensions import db
 
 WRITE_LOCK = 0x435053544f52
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 # Versión 2 del esquema PostgreSQL: agrega solo las tablas del módulo contable (v17/v18 de SQLite). Sin columnas nuevas en tablas existentes.
 SCHEMA_V2_TABLES = ('ingresos_gastos', 'correcciones_clasificacion', 'reportes_generados')
 
@@ -76,6 +76,8 @@ def initialize_sqlite(app):
     v15(database)
     upgrade_v17(database)
     upgrade_v18(database)
+    from migrations.accesos_v20 import upgrade as access_upgrade
+    access_upgrade(database)
     seed()
 
 
@@ -138,7 +140,7 @@ def seed_catalogs(connection):
 
 
 def initialize_postgres(allow_create=True):
-    """Prepara PostgreSQL. Devuelve False si no hizo nada, 'creada' si la base era nueva o 'actualizada' si subió de la versión 1 a la 2.
+    """Prepara PostgreSQL. Versión 3 agrega permisos_usuario sin cambiar reglas ni filas anteriores.
 
     Todo ocurre en una sola transacción con el bloqueo común: si algo falla, no queda nada a medias. Nunca borra ni modifica filas."""
     if db.engine.name != 'postgresql':
@@ -156,13 +158,20 @@ def initialize_postgres(allow_create=True):
                 return False
             if version == 1:
                 # Subida 1 -> 2: solo se crean las tablas nuevas (si ya existen se respetan); el resto debe estar completo y no se toca.
-                if not (set(db.metadata.tables) - set(SCHEMA_V2_TABLES)).issubset(tables):
+                if not (set(db.metadata.tables) - set(SCHEMA_V2_TABLES) - {'permisos_usuario'}).issubset(tables):
                     raise click.ClickException('Faltan tablas en un esquema existente. Requiere revisión.')
                 for nombre in SCHEMA_V2_TABLES:
                     db.metadata.tables[nombre].create(conn, checkfirst=True)
                 actualizadas = conn.execute(versions.update().where(versions.c.version == 1).values(version=2)).rowcount
                 if actualizadas != 1:
                     raise click.ClickException('No se pudo registrar la versión 2 del esquema. No se modificó la base.')
+                version=2
+            if version == 2:
+                if not (set(db.metadata.tables) - {'permisos_usuario'}).issubset(set(inspect(conn).get_table_names())):
+                    raise click.ClickException('Faltan tablas en un esquema existente. Requiere revisión.')
+                db.metadata.tables['permisos_usuario'].create(conn,checkfirst=True)
+                if conn.execute(versions.update().where(versions.c.version==2).values(version=3)).rowcount!=1:
+                    raise click.ClickException('No se pudo registrar la versión 3 del esquema.')
                 return 'actualizada'
             raise click.ClickException('Versión de esquema no compatible. No se modificó la base.')
         if not allow_create:
@@ -181,7 +190,7 @@ def register_database_commands(app):
     def initialize():
         resultado = initialize_postgres()
         if resultado == 'actualizada':
-            click.echo('Esquema actualizado de la versión 1 a la 2: se crearon solo las tablas contables nuevas. No se modificaron los datos.')
+            click.echo('Esquema actualizado a versión 3: tres tablas contables de v2 y permisos de usuario de v3. No se modificaron los datos anteriores.')
         elif resultado:
             click.echo('PostgreSQL preparado con catálogos, sin movimientos de prueba.')
         else:
@@ -190,7 +199,7 @@ def register_database_commands(app):
     @app.cli.command('actualizar-postgres')
     def update_existing():
         resultado=initialize_postgres(allow_create=False)
-        if resultado=='actualizada':click.echo('Esquema actualizado a versión 2: tres tablas contables nuevas; los datos anteriores se conservan.')
+        if resultado=='actualizada':click.echo('Esquema actualizado a versión 3: tres tablas contables de v2 y permisos de usuario de v3; los datos anteriores se conservan.')
         else:click.echo('El esquema ya está actualizado. No se modificaron los datos.')
 
     @app.cli.command('comprobar-db')

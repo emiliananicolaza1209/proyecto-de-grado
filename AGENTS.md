@@ -19,8 +19,8 @@ Usar el entorno virtual del proyecto y `requirements.txt`. En Windows:
 
 SQLite temporal para pruebas locales; PostgreSQL para la instalación compartida.
 No hay migración PostgreSQL automática al arrancar la aplicación.
-`actualizar-postgres` actualiza una base existente del esquema 1 al 2 agregando
-solo tres tablas. `inicializar-postgres` se reserva para bases nuevas.
+`actualizar-postgres` actualiza una base existente del esquema 1 o 2 al 3 agregando
+las tres tablas contables de v2 y la tabla permisos_usuario de v3. `inicializar-postgres` se reserva para bases nuevas.
 Las pruebas PostgreSQL requieren `CPSTORE_TEST_PG_URL` de una base de ensayo,
 crean esquemas aislados y los eliminan. Nunca heredan `DATABASE_URL` para probar.
 
@@ -29,7 +29,7 @@ crean esquemas aislados y los eliminan. Nunca heredan `DATABASE_URL` para probar
 - Dinero en centavos enteros; Decimal para entradas. Nunca float en cálculos monetarios.
 - Fechas operativas YYYY-MM-DD, hora Colombia. Separar fecha de origen y pago real.
 - Migraciones nuevas e idempotentes; no reutilizar revisiones ya aplicadas.
-  PostgreSQL está en revisión 2; SQLite incluye la reconciliación 19 de ramas.
+  PostgreSQL está en revisión 3; SQLite incluye la reconciliación 19 y accesos 20.
 - Rutas, servicios y modelos separados. Sin request/session en servicios.
 - CSRF y permisos en servidor; importar modelos nuevos en `app/models/__init__.py`.
 - Mantener validación de concurrencia, sesiones, auditoría y cierres guardados.

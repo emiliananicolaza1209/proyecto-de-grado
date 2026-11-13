@@ -16,9 +16,10 @@
   {% if section=='finanzas' %}<link href="{{ url_for('static',filename='css/finanzas.css',v='2') }}" rel="stylesheet"><link href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='19') }}" rel="stylesheet">{% endif %}
   {% if section=='tributario' %}<link href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}" rel="stylesheet">{% endif %}
   <link href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}" rel="stylesheet">
+  {% if section=='usuarios' %}<link href="{{ url_for('static',filename='css/usuarios.css',v='20') }}" rel="stylesheet">{% endif %}
   {% if reporte_panel_modulo or section=='analitica' or (request.endpoint and request.endpoint.startswith('reportes.')) %}<link href="{{ url_for('static',filename='css/reportes.css',v='19') }}" rel="stylesheet">{% endif %}
   {% if section=='chat' %}<link href="{{ url_for('static',filename='css/chat.css',v='19') }}" rel="stylesheet">{% endif %}
-  <link href="{{ url_for('static',filename='css/business.css',v='19.1') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='css/business.css',v='20') }}" rel="stylesheet">
   {% if section=='inicio' %}<link href="{{ url_for('static',filename='css/dashboard.css',v='18') }}" rel="stylesheet">{% endif %}
 </head>
 <body class="business-app" data-page-path="{{ current_page }}" data-return-to="{{ back_url }}" data-has-error="{{ 'true' if error|default(none) else 'false' }}">
@@ -28,16 +29,18 @@
  <p class="nav-label">ESPACIO DE TRABAJO</p>
  <nav class="app-nav" aria-label="Navegación principal">
  {% for key,label,target,glyph,cap in [('inicio','Resumen','/','dashboard','consulta'),('inventario','Inventario','/inventario','inventory','consulta'),('ventas','Ventas y pagos','/ventas','sales','consulta'),('finanzas','Finanzas','/finanzas','wallet','finanzas_venta'),('reportes','Reportes','/reportes','report','consulta'),('analitica','Analítica','/analitica','chart','reportes'),('chat','Chat de consultas','/chat','report','chat'),('tributario','Información contable','/modulos/tributario','report','contabilidad'),('usuarios','Usuarios','/usuarios','users','usuarios')] %}
- {% if can(cap) %}<a class="{{ 'active' if (key==section and not reports_active) or (key=='reportes' and reports_active) else '' }}" {% if (key==section and not reports_active) or (key=='reportes' and reports_active) %}aria-current="page"{% endif %} href="{{ target }}">{{ icon(glyph) }}<span>{{ label }}</span></a>
+ {% if can(cap) and module_allowed({'inicio':'resumen','tributario':'contabilidad'}.get(key,key)) %}<a class="{{ 'active' if (key==section and not reports_active) or (key=='reportes' and reports_active) else '' }}" {% if (key==section and not reports_active) or (key=='reportes' and reports_active) %}aria-current="page"{% endif %} href="{{ target }}">{{ icon(glyph) }}<span>{{ label }}</span></a>
  {% if key=='inventario' and section=='inventario' %}<div class="app-subnav" aria-label="Secciones de inventario">
- {% if can('inventario') %}<a href="{{ url_for('gestion.lotes') }}">Compras y lotes</a><a href="{{ url_for('gestion.articulos') }}">Accesorios y repuestos</a>{% endif %}
- {% if can('catalogos') %}<a href="{{ url_for('catalogos.index') }}">Catálogos</a><a href="{{ url_for('gestion.proveedores') }}">Proveedores</a><a href="{{ url_for('gestion.alias') }}">Alias de referencias</a>{% endif %}
+ {% if can('inventario') and allowed('inventario.costos') %}<a href="{{ url_for('gestion.lotes') }}">Compras y lotes</a><a href="{{ url_for('gestion.articulos') }}">Accesorios y repuestos</a>{% endif %}
+ {% if can('catalogos') and allowed('inventario.catalogos') %}<a href="{{ url_for('catalogos.index') }}">Catálogos</a><a href="{{ url_for('gestion.proveedores') }}">Proveedores</a><a href="{{ url_for('gestion.alias') }}">Alias de referencias</a>{% endif %}
  </div>{% endif %}
  {% if key=='ventas' and section=='ventas' %}<div class="app-subnav" aria-label="Secciones de ventas">
- {% if can('admin') %}<a href="{{ url_for('ventas.receipts') }}">Recepción de dinero</a><a href="{{ url_for('gestion.sociedades') }}">Sociedades y liquidaciones</a>{% endif %}
+ {% if can('admin') %}{% if allowed('ventas.recepciones') %}<a href="{{ url_for('ventas.receipts') }}">Recepción de dinero</a>{% endif %}{% if allowed('sociedades.ver') %}<a href="{{ url_for('gestion.sociedades') }}">Sociedades y liquidaciones</a>{% endif %}{% endif %}
  {% if can('costos') %}<a href="{{ url_for('gestion.inversion') }}">Inversión por ubicación</a>{% endif %}</div>{% endif %}
- {% if key=='finanzas' and section=='finanzas' %}<div class="app-subnav" aria-label="Secciones de finanzas">{% if request.endpoint=='finanzas.index' %}{% for key,label in [('movimientos','Movimientos'),('proveedores','Proveedores y gastos'),('personal','Personal y reglas'),('cierre','Cierre de jornada')] if can('admin') or key=='movimientos' %}<a href="{{ url_for('finanzas.index',date=day,tab=key) }}" {% if tab==key %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}{% else %}<a href="{{ url_for('finanzas.index',date=day if day is defined else none) }}">Jornada</a>{% endif %}{% if can('admin') %}<a href="{{ url_for('gestion.creditos') }}">Créditos y desembolsos</a><a href="{{ url_for('gestion.historial') }}">Historial de gestión</a>{% endif %}</div>{% endif %}
+ {% if key=='finanzas' and section=='finanzas' %}<div class="app-subnav" aria-label="Secciones de finanzas">{% if request.endpoint=='finanzas.index' %}{% for key,label in [('movimientos','Movimientos'),('proveedores','Proveedores y gastos'),('personal','Personal y reglas'),('cierre','Cierre de jornada')] if (can('admin') or key=='movimientos') and allowed({'movimientos':'finanzas.ver','proveedores':'finanzas.proveedores','personal':'finanzas.personal','cierre':'finanzas.cierre'}[key]) %}<a href="{{ url_for('finanzas.index',date=day,tab=key) }}" {% if tab==key %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}{% else %}<a href="{{ url_for('finanzas.index',date=day if day is defined else none) }}">Jornada</a>{% endif %}{% if can('admin') %}{% if allowed('creditos.ver') %}<a href="{{ url_for('gestion.creditos') }}">Créditos y desembolsos</a>{% endif %}{% if allowed('historial.ver') %}<a href="{{ url_for('gestion.historial') }}">Historial de gestión</a>{% endif %}{% endif %}</div>{% endif %}
  {% endif %}{% endfor %}
+ {% if access_custom and not module_allowed('finanzas') %}{% if allowed('creditos.ver') %}<a href="{{ url_for('gestion.creditos') }}">{{ icon('wallet') }}Créditos y desembolsos</a>{% endif %}{% if allowed('historial.ver') %}<a href="{{ url_for('gestion.historial') }}">{{ icon('report') }}Historial de gestión</a>{% endif %}{% endif %}
+ {% if access_custom and allowed('sociedades.ver') and can('consulta') %}<a href="{{ url_for('gestion.sociedades') }}">{{ icon('wallet') }}Sociedades y liquidaciones</a>{% endif %}
  {% if can('sociedades_consulta') and not can('consulta') %}<a class="active" href="{{ url_for('gestion.sociedades') }}">{{ icon('wallet') }}Sociedades y liquidaciones</a><a href="{{ url_for('gestion.inversion') }}">{{ icon('inventory') }}Inversión por ubicación</a>{% endif %}
  </nav>
  <div class="sidebar-account">{% if usuario %}<span class="account-avatar">{{ usuario.nombre[:1] }}</span><span>{{ usuario.nombre }}<small>{{ usuario.rol }}</small></span>{% else %}<span class="account-avatar">CP</span><span>CP Store<small>Gestión del negocio</small></span>{% endif %}</div>
@@ -65,6 +68,7 @@
 {% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
 {% if reporte_panel_modulo or (request.endpoint and request.endpoint.startswith('reportes.')) %}<script src="{{ url_for('static',filename='js/reportes.js',v='19') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/gestion.js',v='16') }}" defer></script>
+{% if section=='usuarios' %}<script src="{{ url_for('static',filename='js/usuarios.js',v='20') }}" defer></script>{% endif %}
 {% if section=='chat' %}<script src="{{ url_for('static',filename='js/chat.js',v='19') }}" defer></script>{% endif %}
 {% if section=='inicio' %}<script src="{{ url_for('static',filename='js/dashboard.js',v='18') }}" defer></script>{% endif %}
 </body></html>

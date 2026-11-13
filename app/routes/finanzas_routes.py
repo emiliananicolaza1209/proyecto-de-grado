@@ -62,7 +62,7 @@ def index():
                     svc.editable(d,request.form.get('revision'))
                     if action!='config' and not d.config.get('reviewed'):raise ValueError('Confirma primero Personal y reglas antes de registrar movimientos.')
                     if action=='config':svc.save_config(d,request.form)
-                    elif action=='operation':svc.add_operation(d,request.form if can('admin') else _sin_costos(request.form))
+                    elif action=='operation':svc.add_operation(d,request.form if can('admin') and can('costos') else _sin_costos(request.form))
                     elif action=='edit_operation':svc.edit_operation(d,request.form)
                     elif action=='pool_purchase':
                         if request.form.get('product_id'):
@@ -183,11 +183,11 @@ def index():
     return render_template('finanzas/index.html',active='finanzas',day=day,d=d,r=r,error=error,
         allies=db.session.scalars(db.select(AliadoCredito).where(AliadoCredito.activo==True)).all() if d and tab=='movimientos' else [],
         articles=articles,stock_units=db.session.scalars(db.select(UnidadStock).where(UnidadStock.disponible==True)).all() if articles else [],
-        stock_costs={str(a.id):a.costo_administracion for a in articles} if can('admin') else {},
+        stock_costs={str(a.id):a.costo_administracion for a in articles} if can('admin') and can('costos') else {},
         retomas=[p for p in equipment if p.source_type=='Retoma'],
         providers=providers,provider_categories={p.name:p.supplier_category or 'Accesorios' for p in providers},drink_prices=svc.DRINK_PRICES,
         available_equipment=equipment,
-        equipment_costs={p.imei:{'purchase':p.cost_cents+pool_gain.get(p.id,0),'pool':p.source_type=='Retoma'} for p in equipment} if can('admin') else {},
+        equipment_costs={p.imei:{'purchase':p.cost_cents+pool_gain.get(p.id,0),'pool':p.source_type=='Retoma'} for p in equipment} if can('admin') and can('costos') else {},
         equipment_options={p.imei:{'pool':p.source_type=='Retoma'} for p in equipment},
         pool_sale_commission=POOL_SALE_COMMISSION,
         pool_catalog=list_items(active_only=True) if request.args.get('accion')=='compra_pool' or bool(error and request.form.get('action')=='pool_purchase') else [],

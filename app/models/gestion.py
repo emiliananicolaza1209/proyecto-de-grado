@@ -12,6 +12,11 @@ class Usuario(db.Model):
     activo=db.Column(db.Boolean,nullable=False,default=True)
     session_version=db.Column(db.Integer,nullable=False,default=1)
 
+class PermisosUsuario(db.Model):
+    __tablename__='permisos_usuario'
+    usuario_id=db.Column(db.Integer,db.ForeignKey('usuarios.id'),primary_key=True)
+    permisos=db.Column(db.JSON,nullable=False)
+
 class RegistroGestion(db.Model):
     __tablename__='registro_gestion'
     id=db.Column(db.Integer,primary_key=True)

@@ -8,7 +8,8 @@ from flask import Blueprint,request,session,g,current_app,redirect,url_for,abort
 from werkzeug.security import generate_password_hash, check_password_hash
 import click
 from .extensions import db
-from .models.gestion import Usuario
+from .models.gestion import Usuario, PermisosUsuario
+from .services.permisos_service import profile_can, user_keys, route_keys, READ_KEYS, KIND_KEYS
 from .services.gestion_comun import audit
 from .passwords import validar_clave
 
@@ -49,16 +50,17 @@ def enabled():return current_app.config.get('AUTH_REQUIRED',not current_app.test
 def idle_seconds():return max(1,int(current_app.config.get('SESSION_IDLE_MINUTES',30)*60))
 def role():return getattr(g,'usuario',None).rol if getattr(g,'usuario',None) else ('Propietario' if not enabled() else '')
 def can(capability):
-    r=role()
-    if capability in ('chat','reportes'):  # entra quien tenga habilitada al menos una consulta del chat (ROLES_CONSULTAS: hoy solo el Propietario)
-        from .services.consultas_service import ROLES_CONSULTAS
-        return any(r in roles for roles in ROLES_CONSULTAS.values())
-    if r=='Propietario':return True
-    if r=='Administrador':return capability not in ('usuarios','sociedades_config')
-    if r=='Inventario':return capability in ('inventario','catalogos','consulta','traslado','costos')
-    if r=='Vendedora':return capability in ('consulta','venta','cobro','finanzas_venta','finanzas_pool','traslado')
-    if r=='Socio':return capability=='sociedades_consulta'
-    return False
+    if capability=='costos' and getattr(g,'usuario',None) and hasattr(g,'permisos_efectivos'):
+        return 'inventario.costos' in g.permisos_efectivos
+    return profile_can(role(),capability)
+
+def allowed(key):
+    if role()=='Propietario':return True
+    if hasattr(g,'permisos_efectivos'):return key in g.permisos_efectivos
+    from .services.permisos_service import profile_keys
+    return key in profile_keys(role())
+
+def module_allowed(module):return allowed(READ_KEYS.get(module,''))
 
 def require(capability):
     def wrap(fn):
@@ -71,6 +73,8 @@ def require(capability):
 
 def guard():
     g.usuario=None
+    g.acceso_personalizado=False
+    g.pop('permisos_efectivos',None)
     if not enabled():return
     uid=session.get('usuario_id')
     expirada=False
@@ -86,9 +90,27 @@ def guard():
     if request.endpoint in ('static','auth.login','main.health') or request.endpoint is None:return
     if not g.usuario:return redirect(url_for('auth.login',expirada=1 if expirada else None))
     if request.endpoint=='auth.logout':return
+    from sqlalchemy import inspect
+    # No DDL web ni permisos inferidos si falta la nueva tabla. La actualización
+    # es explícita y transaccional mediante actualizar-postgres.
+    if not inspect(db.session.connection()).has_table('permisos_usuario'):
+        return render_template('error.html',title='Actualización de accesos pendiente',
+            message='El administrador debe actualizar el esquema antes de continuar.'),503
+    g.permisos_efectivos=user_keys(g.usuario)
+    g.acceso_personalizado=role()!='Propietario' and db.session.get(PermisosUsuario,g.usuario.id) is not None
     endpoint=request.endpoint
     if role()=='Socio' and endpoint not in ('gestion.sociedades','gestion.inversion'):
         return redirect(url_for('gestion.sociedades'))
+    params=dict(request.values)
+    route_args=dict(request.view_args or {})
+    if role()=='Socio':route_args['_socio']=True
+    keys=route_keys(endpoint,request.method,params,route_args)
+    if g.acceso_personalizado and any(not allowed(key) for key in keys):
+        if endpoint=='main.home':
+            for module,target in [('inventario','inventory.index'),('ventas','ventas.index'),('finanzas','finanzas.index'),
+                    ('creditos','gestion.creditos'),('contabilidad','contabilidad.index'),('reportes','reportes.index'),('sociedades','gestion.sociedades')]:
+                if module_allowed(module):return redirect(url_for(target))
+        abort(403,'No tienes habilitada esta función. Solicita al propietario que revise tus permisos.')
     if request.method=='GET':
         if endpoint in ('ventas.receipts','ventas.receipt_detail') and not can('admin'):abort(403)
         if endpoint.startswith('finanzas.') and not can('finanzas_venta'):abort(403)
@@ -161,7 +183,11 @@ def init_auth(app):
     except ValueError:minutos=30
     app.config.setdefault('SESSION_IDLE_MINUTES',minutos if minutos>0 else 30)
     app.before_request(guard)
-    app.context_processor(lambda:dict(can=can,usuario=getattr(g,'usuario',None)))
+    from .access_ui import restrict_forms
+    app.after_request(restrict_forms)
+    app.context_processor(lambda:dict(can=can,allowed=allowed,module_allowed=module_allowed,
+        finance_kind_allowed=lambda kind:allowed(KIND_KEYS.get(kind,'')),
+        access_keys=sorted(getattr(g,'permisos_efectivos',[])),access_custom=getattr(g,'acceso_personalizado',False),usuario=getattr(g,'usuario',None)))
     app.register_blueprint(auth)
     @app.cli.command('crear-propietario')
     @click.option('--usuario',prompt='Usuario')

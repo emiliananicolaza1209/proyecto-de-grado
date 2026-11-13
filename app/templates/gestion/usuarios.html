@@ -1,1 +1,43 @@
-{% extends 'gestion/base.html' %}{% import 'gestion/macros.html' as m with context %}{% block title %}Usuarios y permisos{% endblock %}{% block body %}<p>El propietario administra accesos. Un cambio de contraseña, perfil o estado invalida las sesiones anteriores.</p>{% for u in [none]+users %}<details class="g-card" {{ 'open' if not u }}><summary>{{ u.nombre+' · '+u.rol if u else 'Crear usuario' }}</summary><form method="post" class="g-grid">{{ m.hidden(id=u.id if u else '') }}{{ m.input('name','Nombre',u.nombre if u else '') }}{{ m.input('login','Usuario',u.login if u else '') }}<label>Contraseña {{ '· deja vacía para conservarla' if u }}<input name="password" type="password" minlength="12" autocomplete="new-password" {{ 'required' if not u }}></label><label>Perfil<select name="role">{% for r in roles %}<option {{ 'selected' if u and u.rol==r }}>{{ r }}</option>{% endfor %}</select></label><label>Socio asociado · solo perfil Socio<select name="partner_id"><option value="">No aplica</option>{% for p in partners %}<option value="{{ p.id }}" {{ 'selected' if u and u.socio_id==p.id }}>{{ p.nombre }}</option>{% endfor %}</select></label>{{ m.active(u.activo if u else true) }}<button>Guardar acceso</button></form></details>{% endfor %}{% endblock %}
+{% extends 'gestion/base.html' %}
+{% import 'gestion/macros.html' as m with context %}
+{% block title %}Usuarios y permisos{% endblock %}
+{% block body %}
+<div class="users-page">
+  <div class="users-intro"><div><h2>Un acceso para cada responsabilidad</h2><p>Asigna varios módulos y elige qué puede hacer cada persona dentro de ellos.</p></div><span class="users-count">{{ users|length }} usuarios</span></div>
+  <div class="users-guide"><strong>Perfil + permisos</strong><p>El perfil define el acceso máximo. Elige <b>Personalizar</b> para limitar módulos y acciones. Para distribuir funciones de administración entre varios módulos, usa el perfil Administrador y marca solo lo necesario. Propietario conserva el control completo; Socio conserva la consulta de sus propios resultados.</p><small>Guardar un cambio de acceso cierra las sesiones anteriores de esa persona.</small></div>
+  <div class="users-toolbar"><label>Buscar usuario<input type="search" data-user-search placeholder="Nombre o usuario" autocomplete="off"></label><a class="btn btn-primary" href="#crear-usuario" data-open-user>+ Crear usuario</a></div>
+  {% for u in [none]+users %}
+  {% set role_value=u.rol if u else 'Vendedora' %}
+  {% set custom=u and u.id in permissions_by_user %}
+  {% set selected=permissions_by_user[u.id] if custom else profile_permissions[role_value] %}
+  <details class="user-card" id="{{ 'usuario-' ~ u.id if u else 'crear-usuario' }}" {% if u %}data-user-card data-search="{{ (u.nombre ~ ' ' ~ u.login)|lower }}"{% endif %}>
+    <summary><span class="user-avatar" aria-hidden="true">{{ u.nombre[0]|upper if u else '+' }}</span><span class="user-identity"><strong>{{ u.nombre if u else 'Crear usuario' }}</strong><small>{{ '@' ~ u.login if u else 'Define su perfil y los módulos que necesita' }}</small></span>{% if u %}<span class="user-status {{ 'is-inactive' if not u.activo }}">{{ 'Activo' if u.activo else 'Inactivo' }}</span><span class="user-profile">{{ u.rol }} · {{ 'Personalizado' if custom else 'Perfil completo' }}</span>{% endif %}<span class="user-toggle" aria-hidden="true">⌄</span></summary>
+    <form method="post" class="user-form" data-user-form>
+      {{ m.hidden(id=u.id if u else '') }}<input type="hidden" name="access_version" value="{{ u.session_version if u else '' }}">
+      <div class="g-grid user-basics">
+        {{ m.input('name','Nombre',u.nombre if u else '') }}
+        {{ m.input('login','Usuario',u.login if u else '') }}
+        <label>Contraseña {{ '· vacía para conservarla' if u }}<input name="password" type="password" minlength="12" autocomplete="new-password" {{ 'required' if not u }}></label>
+        <label>Perfil<select name="role">{% for r in roles %}<option value="{{ r }}" {{ 'selected' if role_value==r }}>{{ r }}</option>{% endfor %}</select></label>
+        <label>Socio asociado<select name="partner_id"><option value="">No aplica</option>{% for p in partners %}<option value="{{ p.id }}" {{ 'selected' if u and u.socio_id==p.id }}>{{ p.nombre }}</option>{% endfor %}</select></label>
+        {{ m.active(u.activo if u else true) }}
+      </div>
+      <div class="user-access-heading"><div><h3>Módulos y funcionalidades</h3><p>Activa la consulta del módulo y luego las acciones permitidas.</p></div><label>Configuración<select name="permission_mode"><option value="perfil" {{ 'selected' if not custom }}>Usar permisos del perfil</option><option value="personalizado" {{ 'selected' if custom }}>Personalizar módulos y acciones</option></select></label></div>
+      <p class="user-profile-note" data-permission-note role="status">Las opciones no disponibles requieren otro perfil. El propietario siempre conserva todos los accesos.</p>
+      <div class="permission-grid">
+      {% for module,label,actions in permission_modules %}
+        <fieldset class="permission-module" data-module="{{ module }}"><legend>{{ label }}</legend>
+          {% for action,label,cap in actions %}{% set key=module ~ '.' ~ action %}
+          <label class="permission-choice"><input type="checkbox" name="permission" value="{{ key }}" {{ 'checked' if key in selected }} data-permission data-read="{{ 'true' if loop.first else 'false' }}"><span>{{ label }}</span></label>
+          {% endfor %}
+        </fieldset>
+      {% endfor %}
+      </div>
+      <div class="user-form-footer"><small>Las restricciones también se verifican en el servidor.</small><button type="submit">{{ 'Guardar acceso' if u else 'Crear usuario' }}</button></div>
+    </form>
+  </details>
+  {% endfor %}
+  <p data-user-empty hidden>No hay usuarios que coincidan con la búsqueda.</p>
+  <script type="application/json" id="profile-permissions">{{ profile_permissions|tojson }}</script>
+</div>
+{% endblock %}

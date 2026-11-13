@@ -263,10 +263,18 @@ def pool():
 @gestion.route('/usuarios',methods=['GET','POST'])
 @require('usuarios')
 def usuarios():
+    from ..services.permisos_service import MODULES, profile_keys, validate_permissions
     def write():
         f=request.form;u=get_id(Usuario,f['id']) if f.get('id') else Usuario()
         rol=f.get('role')
         if rol not in ROLES:raise ValueError('Perfil inválido.')
+        selected=validate_permissions(rol,f.get('permission_mode','perfil'),f.getlist('permission'))
+        # Una página anterior a esta versión no borra una personalización existente.
+        previous=db.session.get(PermisosUsuario,u.id) if u.id else None
+        if previous and 'permission_mode' not in f:raise ValueError('Recarga Usuarios antes de cambiar este acceso.')
+        if u.id and 'permission_mode' in f and f.get('access_version')!=str(u.session_version):
+            raise ValueError('Este usuario cambió en otra ventana. Recarga antes de guardar.')
+        before=dict(rol=u.rol,activo=u.activo,permisos=previous.permisos if previous else None)
         active=f.get('active','1')=='1'
         if u.id and u.rol=='Propietario' and (not active or rol!='Propietario'):
             if db.session.scalar(db.select(db.func.count(Usuario.id)).where(Usuario.rol=='Propietario',Usuario.activo==True,Usuario.id!=u.id))==0:
@@ -278,10 +286,17 @@ def usuarios():
         u.nombre=text(f.get('name'));u.login=f.get('login','').strip().lower()
         if not u.login or len(u.login)>120:raise ValueError('Usuario inválido.')
         u.rol=rol;u.activo=active;u.socio_id=get_id(Socio,f.get('partner_id')).id if rol=='Socio' else None
-        u.session_version=(u.session_version or 0)+1;db.session.add(u);db.session.flush();audit('usuario',u.id,'Actualizar acceso',{'rol':rol,'activo':active})
+        u.session_version=(u.session_version or 0)+1;db.session.add(u);db.session.flush()
+        if selected is None:
+            if previous:db.session.delete(previous)
+        elif previous:previous.permisos=selected
+        else:db.session.add(PermisosUsuario(usuario_id=u.id,permisos=selected))
+        audit('usuario',u.id,'Actualizar acceso',{'antes':before,'rol':rol,'activo':active,'permisos':selected})
     response=save(write)
     if response:return response
-    return render_template('gestion/usuarios.html',active='usuarios',users=db.session.scalars(db.select(Usuario)).all(),roles=ROLES,**context())
+    return render_template('gestion/usuarios.html',active='usuarios',users=db.session.scalars(db.select(Usuario).order_by(Usuario.nombre)).all(),
+        roles=ROLES,permission_modules=MODULES,profile_permissions={r:sorted(profile_keys(r)) for r in ROLES},
+        permissions_by_user={r.usuario_id:r.permisos for r in db.session.scalars(db.select(PermisosUsuario))},**context())
 
 @gestion.get('/gestion/historial')
 @require('admin')

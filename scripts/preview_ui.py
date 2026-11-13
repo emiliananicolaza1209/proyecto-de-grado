@@ -21,6 +21,10 @@ def main():
     app=create_app(dict(TESTING=True,DATABASE=str(Path(tmp.name)/'preview.sqlite'),
         SECRET_KEY=secrets.token_hex(32),APP_ENV='development'))
     with app.app_context():
+        from app.models.gestion import Usuario
+        from werkzeug.security import generate_password_hash
+        db.session.add(Usuario(nombre='PERSONA DEMOSTRACIÓN UI',login='demostracion-ui',rol='Administrador',
+            password_hash=generate_password_hash(secrets.token_hex(32))))
         for i in range(24):
             sold=i%2==0
             p=Producto(imei='99000000'+str(i).zfill(7),model='PREVIEW IPHONE '+str(i),capacity=128,

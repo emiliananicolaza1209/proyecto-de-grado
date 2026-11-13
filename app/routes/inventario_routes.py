@@ -105,7 +105,11 @@ def detail(product_id):
     if request.method == 'GET':
         data.update(imei=product.imei, revision=str(product.revision))
     from ..auth import can
-    if not can('costos') and request.method=='GET':return redirect(url_for('ventas.detail',product_id=product_id))
+    if not can('costos') and request.method=='GET':
+        from flask import g
+        if getattr(g,'acceso_personalizado',False):
+            return render_template('inventario/consulta.html',product=product.to_dict(),catalog=list_items(active_only=True),active='inventario')
+        return redirect(url_for('ventas.detail',product_id=product_id))
     error = None
     if request.method == 'POST':
         try:

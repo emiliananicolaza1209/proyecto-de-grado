@@ -1,0 +1,8 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<div class="heading"><div><p class="eyebrow">CONSULTA DEL EQUIPO</p><h1>{{ product.model }}</h1><p>IMEI {{ product.imei }} · {{ product.capacity }} GB · {{ product.color }}</p></div><span class="pill">{{ product.status }}</span></div>
+<section class="panel"><h2>Datos de inventario</h2><p>Ubicación: <strong>{{ product.location }}</strong></p><p>Condición: {{ product.condition }}</p><p>Origen: {{ 'POOL · retoma' if product.source_type=='Retoma' else 'Compra por lote' }}</p><p class="muted">Los costos de adquisición requieren un permiso adicional.</p><a class="btn btn-secondary" href="{{ url_for('inventory.index') }}">Volver al inventario</a>{% if allowed('ventas.ver') %} <a class="btn btn-primary" href="{{ url_for('ventas.detail',product_id=product.id) }}">Abrir Ventas y pagos</a>{% endif %}</section>
+{% if allowed('inventario.trasladar') and product.status=='Disponible' and not product.archived %}
+<section class="panel"><h2>Trasladar equipo</h2><form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}"><input type="hidden" name="action" value="transfer"><input type="hidden" name="revision" value="{{ product.revision }}"><label>Bodega de destino<select name="location_id" required class="form-select"><option value="">Seleccionar otra bodega</option>{% for item in catalog if item.kind=='location' and item.active and item.id!=product.location_id %}<option value="{{ item.id }}">{{ item.name }}</option>{% endfor %}</select></label><label>Motivo del traslado<textarea name="reason" class="form-control" required minlength="3" maxlength="500"></textarea></label><button class="btn btn-primary">Confirmar traslado</button></form></section>
+{% endif %}
+{% endblock %}
