@@ -127,6 +127,7 @@ class DistributionTests(unittest.TestCase):
             row=ConsignacionBancaria(persona_id=self.person,banco_id=self.bank,monto=Decimal('123.00'),
                                      referencia='ANTERIOR')
             db.session.add(row);db.session.commit();record_id=row.id
+            db.session.remove()
             db.engine.dispose()
         path=Path(self.tmp.name)/'data.sqlite'
         with sqlite_connection(path) as conn:

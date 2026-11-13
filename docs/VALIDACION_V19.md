@@ -44,3 +44,32 @@ de ambos autores, restauración PostgreSQL real ni despliegue público. Seguir
 Los logs finales sin datos del negocio se incluyen en `evidencia` del paquete.
 El instalador se verifica por separado sobre copias V18.2/V18.3/V18.3.1,
 incluyendo repetición, reversión y rechazo de archivos con cambios desconocidos.
+
+
+## Corrección del cierre de la conexión de la prueba de migración (13/11/2026)
+
+Se identificó un fallo al limpiar `data.sqlite` en Windows: en
+`DistributionTests.test_migration_preserves_existing_accounting_records`, leer
+`row.id` después del commit reactiva la sesión. Descartar el motor con esa sesión
+activa deja una conexión en el pool anterior, que el cierre del nuevo pool no
+recupera. Se corrige llamando `db.session.remove()` antes de `db.engine.dispose()`
+en esa prueba. No se omiten excepciones, no se añaden reintentos y no se cambian
+los cálculos, las migraciones ni sus verificaciones de conservación de datos.
+
+Una comprobación con conexiones SQLite reales retenidas reproduce una conexión
+abierta antes del cambio y cero después. La nueva regresión
+`test_migration_connections_v19.MigrationConnectionTests.test_migration_releases_every_real_connection`
+comprueba el ciclo completo de esa prueba, manteniendo referencias a las
+conexiones para que el recolector no oculte la fuga.
+
+Verificación posterior: 10 pruebas dirigidas aprobadas (distribución/migración,
+conexiones y recursos SQLite). En una copia V18.3 con solo la línea corregida:
+227 casos, 190 aprobados y 37 PostgreSQL omitidos. La suite completa de 815 casos
+de la tabla anterior corresponde al estado previo a esta corrección de pruebas;
+no se presenta como una nueva ejecución integral posterior. No se dispuso de
+Windows para validación nativa: repetir la prueba y la suite en el equipo donde
+apareció WinError 32. PostgreSQL real sigue pendiente.
+
+El instalador acepta tanto la prueba original V18.2/V18.3/V18.3.1 como su variante
+con esa única línea corregida. El bundle Git incorpora la corrección y su
+regresión. El registro detallado posterior se incluye en la evidencia del paquete.
