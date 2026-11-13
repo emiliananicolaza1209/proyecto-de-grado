@@ -1,5 +1,21 @@
 # Validación de la entrega integrada V19
 
+## Estado posterior a GitHub Actions (13/11/2026)
+
+El commit `5e644a151cb53ad50cd54b2d631a1fb784898dab` aprobó el workflow
+`43388481696`: 816 casos Python, 810 aprobados y 6 omitidos; también aprobaron
+la validación JavaScript y el recorrido de interfaz con Chromium. PostgreSQL 17
+se ejecutó en el contenedor temporal del workflow. Esta es la validación más
+reciente de la rama publicada; los resultados iniciales de abajo son históricos.
+
+Las seis omisiones dependían de una copia SQLite privada que no está disponible.
+La actualización descrita en `MIGRACION_REPRODUCIBLE_V19.md` reconstruye su
+esquema desde el código histórico y ejecuta los seis escenarios con registros
+ficticios. Localmente, los 10 casos de unión pasan sin omisiones en Python 3.12
+y 3.13. La nueva ejecución completa de CI queda pendiente de subir este cambio.
+El respaldo privado exacto continúa **sin verificar**; se conserva su validación
+opcional con la huella original. Las pruebas manuales y el despliegue siguen pendientes.
+
 ## Código revisado
 
 Finanzas V18.3.1 + rama de Andrés `ia-analitica-contable` en
@@ -8,7 +24,7 @@ Base común real verificada: `cd7fe8da08bc06b04dc184421e89b7127af5dde6`.
 Los archivos de aplicación, pruebas y migraciones de la referencia utilizada
 coinciden con esa base; la integración se contrastó con el historial Git.
 
-## Resultados ejecutados
+## Resultados iniciales del paquete
 
 | Verificación | Resultado |
 | --- | --- |
@@ -27,8 +43,9 @@ no se retiraron fallos de negocio para obtener un resultado aprobado.
 
 ## Lo que no demuestra esta ejecución
 
-Las **55 pruebas omitidas requieren PostgreSQL real**. No se configuró una
-conexión de ensayo en este entorno. Los contratos y DDL se probaron sin servidor,
+De las **55 pruebas omitidas inicialmente**, 49 requerían PostgreSQL y 6 el
+respaldo privado histórico. En aquella ejecución no se configuró una conexión
+de ensayo. Los contratos y DDL se probaron sin servidor,
 pero eso no demuestra la actualización 1→2, transacciones o recorridos en una
 PostgreSQL real. Tampoco se modificó la base del usuario.
 

@@ -1,13 +1,14 @@
 """Unión Andres + desarrollo: las migraciones v17/v18 y el esquema final sobre bases de ambos orígenes.
 
 Escenarios (todos sobre copias temporales; nunca se toca instance/ ni el respaldo):
-  A. BD con el esquema de Andres (v1..v12), tomada de la copia verificada del respaldo.
+  A. BD de ensayo con el esquema de Andres (v1..v12), reconstruido del commit histórico.
   B. BD con el esquema de desarrollo (hasta v16, sin las tablas contables de Andres).
   C. BD fresca.
+
+La comprobación del respaldo privado original se conserva por separado en
+validar_respaldo_andres.py y no se presenta como ejecutada por estos casos.
 """
-import hashlib
-import os
-import shutil
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -19,10 +20,7 @@ from app import create_app
 from app.extensions import db
 from migrations.contabilidad_v17 import upgrade_v17, upgrade_v18
 
-# Copia verificada (tamaño y SHA-256 iguales al original) hecha antes de la unión.
-RESPALDO = Path(os.getenv('CPSTORE_RESPALDO_ANDRES') or
-                Path(__file__).resolve().parents[2] / 'respaldo_instance_20261108_163211' / 'cpstore.sqlite')
-SHA256_RESPALDO = '11c990140b809d5dc6a8f104b9c41e6f1ab0f2faad6ce6515a1672249d141723'
+ESQUEMA_ANDRES = Path(__file__).parent / 'fixtures' / 'andres_v12_c6ef7c0.sql'
 TABLAS_ANDRES = ('reportes_generados', 'ingresos_gastos', 'correcciones_clasificacion')
 
 
@@ -68,26 +66,64 @@ class UnionBase(unittest.TestCase):
         self.assertFalse(faltan_cols, f'Columnas que faltan: {faltan_cols}')
 
 
-@unittest.skipUnless(RESPALDO.exists(), f'No está la copia verificada del respaldo: {RESPALDO}')
 class BaseConEsquemaDeAndres(UnionBase):
+    def preparar_base(self):
+        """DDL histórico fijo: no lo genera el código que se está probando."""
+        with closing(sqlite3.connect(str(self.path))) as conn, conn:
+            conn.executescript(ESQUEMA_ANDRES.read_text(encoding='utf-8'))
+            conn.execute("INSERT INTO personas_contables(id,nombre,identificacion,tipo) VALUES(101,'PERSONA DE ENSAYO','ENSAYO-101','Natural')")
+            conn.execute("INSERT INTO bancos_destino(id,nombre) VALUES(101,'BANCO DE ENSAYO')")
+            conn.execute("INSERT INTO consignaciones_bancarias(id,persona_id,banco_id,monto,fecha,referencia) VALUES(101,101,101,25000.25,'2026-09-30 10:11:12','ENSAYO-101')")
+            conn.execute("""INSERT INTO equipment(id,imei,model,capacity,color,condition,cost_cents,location,supplier,
+                status,seller,sale_value_cents,paid_cents,sale_date,payment_status)
+                VALUES(101,'990000000000101','EQUIPO DE ENSAYO',128,'AZUL','Nuevo',30000000,
+                    'LOCAL CP STORE','PROVEEDOR DE ENSAYO','Vendido','VENDEDORA DE ENSAYO',50000000,10000000,'2026-09-30','Abono')""")
+            conn.execute("""INSERT INTO customer_collection(id,product_id,amount_cents,destination,collector,method,effective_date,note)
+                VALUES(101,101,10000000,'Negocio','VENDEDORA DE ENSAYO','Efectivo','2026-09-30','COBRO FICTICIO')""")
+            conn.execute("""INSERT INTO admin_receipt(id,collection_id,amount_cents,administrator,method,effective_date,note)
+                VALUES(101,101,10000000,'ADMINISTRACION DE ENSAYO','Efectivo','2026-09-30','RECEPCION FICTICIA')""")
+            # Configuración antigua deliberada, tanto abierta como cerrada: v19 no debe reescribirla.
+            config = json.dumps({'opening': 1234500, 'accounts': ['EFECTIVO', 'BANCO'], 'staff': []})
+            snapshot = json.dumps({'utilidad': 19500000, 'efectivo_entregado': 9500000, 'ensayo': True})
+            conn.execute("INSERT INTO finance_day(id,date,status,config,snapshot) VALUES(101,'2026-09-30','Cerrada',?,?)", (config, snapshot))
+            conn.execute("INSERT INTO finance_day(id,date,status,config) VALUES(102,'2026-09-29','Abierta',?)", (config,))
+            conn.execute("""INSERT INTO finance_operation(id,day_id,token,kind,description,seller,amount,minor_cost,product_id,costs,payments)
+                VALUES(101,101,'ENSAYO-OPERACION-101','Venta','VENTA FICTICIA','VENDEDORA DE ENSAYO',50000000,500000,101,
+                    '[{"supplier":"PROVEEDOR DE ENSAYO","amount":30000000}]','[{"account":"EFECTIVO","amount":10000000}]')""")
+            conn.execute("""INSERT INTO finance_supplier_payment(id,day_id,operation_id,cost_index,amount,account,token)
+                VALUES(101,101,101,0,1000000,'EFECTIVO','ENSAYO-PAGO-101')""")
+            conn.execute("INSERT INTO finance_audit(id,day_id,action,reason,detail) VALUES(101,101,'ENSAYO','REGISTRO FICTICIO','{}')")
+
     def setUp(self):
         super().setUp()
-        self.assertEqual(hashlib.sha256(RESPALDO.read_bytes()).hexdigest(), SHA256_RESPALDO,
-                         'El respaldo no coincide con la copia verificada')
-        shutil.copyfile(RESPALDO, self.path)
+        self.preparar_base()
         with closing(sqlite3.connect(str(self.path))) as conn, conn:
             conn.execute("INSERT INTO reportes_generados(fecha_ini,fecha_fin,actor,totales_json) VALUES('2026-09-01','2026-09-30','ANA','{}')")
             conn.execute("INSERT INTO ingresos_gastos(tipo,concepto,valor_cents,fecha) VALUES('GASTO','ARRIENDO LOCAL',150000000,'2026-09-05')")
             conn.execute("INSERT INTO correcciones_clasificacion(entidad_id,anterior,nueva,motivo) VALUES(1,'OTRO','ARRIENDO','prueba')")
         self.antes = {t: self.filas(t) for t in TABLAS_ANDRES}
+        with closing(sqlite3.connect(str(self.path))) as conn:
+            self.columnas_legado = {t: tuple(r[1] for r in conn.execute(f'PRAGMA table_info("{t}")'))
+                                    for t in tablas(self.path) - {'schema_version', 'catalog'}}
+        self.antes_legado = self.estado_legado()
 
     def filas(self, tabla):
         with closing(sqlite3.connect(str(self.path))) as conn:
             return conn.execute(f'SELECT * FROM {tabla} ORDER BY id').fetchall()
 
+    def estado_legado(self):
+        """Compara columnas originales, aunque la migración añada otras nuevas."""
+        with closing(sqlite3.connect(str(self.path))) as conn:
+            return {t: conn.execute('SELECT ' + ','.join(f'"{c}"' for c in cols) +
+                                    f' FROM "{t}" ORDER BY id').fetchall()
+                    for t, cols in self.columnas_legado.items()}
+
     def test_parte_de_v1_a_v12_con_las_tablas_de_andres(self):
         self.assertEqual(versiones(self.path), list(range(1, 13)))
         self.assertTrue(set(TABLAS_ANDRES) <= tablas(self.path))
+        self.assertNotIn('person_id', columnas(self.path, 'finance_operation'))
+        self.assertNotIn('activa', columnas(self.path, 'consignaciones_bancarias'))
+        self.assertNotIn('usuarios', tablas(self.path))
 
     def test_migra_a_la_version_unida_y_existen_las_tablas_de_ambos_lados(self):
         originales = tablas(self.path)
@@ -101,6 +137,10 @@ class BaseConEsquemaDeAndres(UnionBase):
     def test_conserva_filas_y_no_duplica_versiones(self):
         self.migrar()
         self.assertEqual({t: self.filas(t) for t in TABLAS_ANDRES}, self.antes)
+        self.assertEqual(self.estado_legado(), self.antes_legado)
+        with closing(sqlite3.connect(str(self.path))) as conn:
+            self.assertEqual(conn.execute('PRAGMA foreign_key_check').fetchall(), [])
+            self.assertEqual(conn.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
         vs = versiones(self.path)
         self.assertEqual(len(vs), len(set(vs)))
         self.assertEqual(vs.count(17), 1)
@@ -110,9 +150,11 @@ class BaseConEsquemaDeAndres(UnionBase):
         self.migrar()
         v1, t1 = versiones(self.path), tablas(self.path)
         datos = {t: self.filas(t) for t in TABLAS_ANDRES}
+        datos_legado = self.estado_legado()
         self.migrar()
         self.assertEqual((versiones(self.path), tablas(self.path)), (v1, t1))
         self.assertEqual({t: self.filas(t) for t in TABLAS_ANDRES}, datos)
+        self.assertEqual(self.estado_legado(), datos_legado)
 
     def test_deja_copias_bak_antes_de_cada_migracion(self):
         self.migrar()
@@ -121,6 +163,9 @@ class BaseConEsquemaDeAndres(UnionBase):
             self.assertTrue(bak.exists(), sufijo)
             with closing(sqlite3.connect(str(bak))) as conn:  # la copia es el estado ANTERIOR a esa versión
                 self.assertNotIn(version, [r[0] for r in conn.execute('SELECT version FROM schema_version')], sufijo)
+                self.assertEqual(conn.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
+                for tabla in TABLAS_ANDRES:
+                    self.assertEqual(conn.execute(f'SELECT * FROM {tabla} ORDER BY id').fetchall(), self.antes[tabla])
 
     def test_v19_agrega_la_estructura_de_desarrollo_sin_tocar_jornadas(self):
         with closing(sqlite3.connect(str(self.path))) as conn:
@@ -131,6 +176,7 @@ class BaseConEsquemaDeAndres(UnionBase):
         self.assertIn('activa', columnas(self.path, 'consignaciones_bancarias'))
         with closing(sqlite3.connect(str(self.path))) as conn:
             self.assertEqual(conn.execute('SELECT * FROM finance_day ORDER BY id').fetchall(), jornadas)
+        self.assertEqual(self.estado_legado(), self.antes_legado)
 
 
 class BaseConEsquemaDeDesarrollo(UnionBase):
