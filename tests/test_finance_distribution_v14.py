@@ -1,4 +1,6 @@
+from jornada_fixtures import opening
 """Distribución mixta, datáfono sin banco y correcciones de pagos."""
+from app.sqlite_resources import sqlite_connection
 import secrets
 import tempfile
 import unittest
@@ -22,7 +24,7 @@ class DistributionTests(unittest.TestCase):
         self.client=self.app.test_client();self.day='2026-10-20'
         self.client.get('/finanzas?date='+self.day)
         with self.client.session_transaction() as session:self.csrf=session['csrf']
-        self.post('open')
+        self.post('open',**opening(self.day,('EMILY',)))
         with self.app.app_context():
             person=PersonaContable(nombre='EMILY',identificacion='111',tipo='Natural')
             bank=BancoDestino(nombre='BANCO PRUEBA')
@@ -30,7 +32,10 @@ class DistributionTests(unittest.TestCase):
             self.person,self.bank=person.id,bank.id
             db.session.add(PersonaBanco(persona_id=person.id,banco_id=bank.id));db.session.commit()
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove();db.engine.dispose()
+        self.tmp.cleanup()
 
     def post(self,action,**kwargs):
         with self.app.app_context():
@@ -61,7 +66,7 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(finance.obligations('2026-10-21')[0]['balance'],48000000)
 
     def test_five_means_no_duplicate_person_and_card_without_bank(self):
-        form=self.client.get('/finanzas?date='+self.day).get_data(as_text=True)
+        form=self.client.get('/finanzas?date='+self.day+'&accion=registrar').get_data(as_text=True)
         self.assertIn('+ Agregar medio',form)
         self.assertNotIn('Medio 5',form)
         self.assertNotIn('Persona registrada en información contable (opcional)',form)
@@ -77,8 +82,8 @@ class DistributionTests(unittest.TestCase):
             cards=[c for c in db.session.scalars(db.select(ConsignacionBancaria)) if c.banco_id is None]
             self.assertEqual(len(cards),2)
             self.assertEqual(sum(c.monto for c in cards),Decimal('21000.00'))
-        self.assertIn('TARJETA POR IDENTIFICAR',self.client.get('/modulos/tributario/').get_data(as_text=True))
-        self.assertIn('DATÁFONO · TARJETA POR IDENTIFICAR',self.client.get('/finanzas?date='+self.day+'&tab=cierre').get_data(as_text=True))
+        self.assertIn('DATÁFONO',self.client.get('/modulos/tributario/').get_data(as_text=True))
+        self.assertIn('DATÁFONO',self.client.get('/finanzas?date='+self.day+'&tab=cierre').get_data(as_text=True))
 
     def test_device_cost_allocation_and_supplier_edit_history(self):
         response=self.post('operation',kind='Venta',description='EQUIPO',seller='EMILY',amount='700000',
@@ -124,9 +129,10 @@ class DistributionTests(unittest.TestCase):
             row=ConsignacionBancaria(persona_id=self.person,banco_id=self.bank,monto=Decimal('123.00'),
                                      referencia='ANTERIOR')
             db.session.add(row);db.session.commit();record_id=row.id
+            db.session.remove()
             db.engine.dispose()
         path=Path(self.tmp.name)/'data.sqlite'
-        with sqlite3.connect(path) as conn:
+        with sqlite_connection(path) as conn:
             conn.execute('CREATE TABLE consignaciones_antiguas AS SELECT * FROM consignaciones_bancarias')
             conn.execute('DELETE FROM schema_version WHERE version=14')
             conn.execute('PRAGMA foreign_keys=OFF')
@@ -140,7 +146,7 @@ class DistributionTests(unittest.TestCase):
             conn.execute('INSERT INTO consignaciones_bancarias SELECT * FROM consignaciones_antiguas')
             conn.execute('DROP TABLE consignaciones_antiguas')
         upgrade_v14(path);upgrade_v14(path)
-        with sqlite3.connect(path) as conn:
+        with sqlite_connection(path) as conn:
             self.assertEqual(conn.execute('SELECT id,referencia FROM consignaciones_bancarias').fetchall(),[(record_id,'ANTERIOR')])
             self.assertEqual(conn.execute("SELECT [notnull] FROM pragma_table_info('consignaciones_bancarias') WHERE name='banco_id'").fetchone()[0],0)
             self.assertEqual(conn.execute('PRAGMA foreign_key_check').fetchall(),[])

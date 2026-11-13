@@ -1,3 +1,4 @@
+from jornada_fixtures import opening
 """Casos de caja, pagos mixtos, auditoría y control contable."""
 import secrets
 import tempfile
@@ -18,13 +19,16 @@ class IntegrationTests(unittest.TestCase):
         self.day='2026-10-01'
         self.client.get('/finanzas?date='+self.day)
         with self.client.session_transaction() as session:self.csrf=session['csrf']
-        self.post('open')
+        self.post('open',**opening(self.day,('ANA',)))
         with self.app.app_context():
             db.session.add_all([PersonaContable(nombre='EMILY',identificacion='889',tipo='Natural'),BancoDestino(nombre='BANCO TEST')]);db.session.commit()
             self.bank_person_id=db.session.scalar(db.select(PersonaContable.id));self.bank_id=db.session.scalar(db.select(BancoDestino.id))
             db.session.add(PersonaBanco(persona_id=self.bank_person_id,banco_id=self.bank_id));db.session.commit()
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove();db.engine.dispose()
+        self.tmp.cleanup()
 
     def post(self, action, **values):
         with self.app.app_context():

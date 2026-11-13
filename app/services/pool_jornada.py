@@ -6,7 +6,7 @@ from ..models.finanzas import Jornada, OperacionFinanciera as Op
 from ..models.gestion import CompraPool, ComisionPool, Sociedad
 
 
-def context(day):
+def context(day, include_candidates=True):
     purchases = db.session.execute(
         db.select(CompraPool, Producto).join(Producto, Producto.id == CompraPool.producto_id)
         .join(Op, Op.id == CompraPool.operacion_id).join(Jornada, Jornada.id == Op.day_id)
@@ -14,22 +14,24 @@ def context(day):
     candidates = db.session.scalars(
         db.select(Producto).where(Producto.source_type == 'Retoma', Producto.status == 'Disponible',
             Producto.archived == 0, ~Producto.id.in_(db.select(CompraPool.producto_id)))
-        .order_by(Producto.model, Producto.imei)).all()
+        .order_by(Producto.model, Producto.imei)).all() if include_candidates else []
     sale_candidates = db.session.execute(
         db.select(Op, Jornada.date).join(Jornada, Jornada.id == Op.day_id)
         .where(Op.kind == 'Venta', Op.voided == False, Jornada.date <= day)
-        .order_by(Jornada.date.desc(), Op.id.desc())).all()
+        .order_by(Jornada.date.desc(), Op.id.desc())).all() if include_candidates else []
     sales = [(op, date) for op, date in sale_candidates
              if any(p.get('account') == 'RETOMA' for p in op.payments)]
     paid_op, paid_day = aliased(Op), aliased(Jornada)
     commissions = db.session.execute(
-        db.select(ComisionPool, Jornada.date, paid_day.date)
+        db.select(ComisionPool, Jornada.date, paid_day.date, paid_op)
         .join(Op, Op.id == ComisionPool.operacion_id).join(Jornada, Jornada.id == Op.day_id)
         .outerjoin(paid_op, paid_op.id == ComisionPool.pago_operacion_id)
         .outerjoin(paid_day, paid_day.id == paid_op.day_id)
         .where(Op.voided == False, Jornada.date <= day,
-               db.or_(ComisionPool.pago_operacion_id.is_(None), paid_day.date == day))
+               db.or_(Jornada.date == day, ComisionPool.pago_operacion_id.is_(None), paid_day.date == day))
         .order_by(Jornada.date, ComisionPool.id)).all()
-    return dict(candidates=candidates, purchases=purchases, sales=sales, commissions=commissions,
+    return dict(candidates=candidates, purchases=purchases, sales=sales,
+                commissions=[(c,origin,paid) for c,origin,paid,payment in commissions],
+                commission_payments={c.id:payment for c,origin,paid,payment in commissions if payment},
                 societies=db.session.scalars(db.select(Sociedad).where(Sociedad.activa == True)
-                                            .order_by(Sociedad.nombre)).all())
+                                            .order_by(Sociedad.nombre)).all() if include_candidates else [])

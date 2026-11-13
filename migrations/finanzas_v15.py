@@ -1,15 +1,16 @@
 """Conserva por equipo la asignación comercial y la reserva de administración del POOL."""
 import sqlite3
+from app.sqlite_resources import sqlite_connection
 from pathlib import Path
 
 
 def upgrade(path):
-    with sqlite3.connect(path) as conn:
+    with sqlite_connection(path) as conn:
         if conn.execute('SELECT 1 FROM schema_version WHERE version=15').fetchone():
             return
         backup=Path(str(path)+'.antes_pool_v15.bak')
         if not backup.exists():
-            with sqlite3.connect(backup) as target:
+            with sqlite_connection(backup) as target:
                 conn.backup(target)
         existing={row[1] for row in conn.execute('PRAGMA table_info(equipment)')}
         if 'pool_assigned_cost_cents' not in existing:

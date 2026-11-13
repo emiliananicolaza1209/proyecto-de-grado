@@ -20,7 +20,7 @@ class ModuleTests(unittest.TestCase):
             p.status='En pasamano';p.responsible='LOCAL';p.due_date='2020-01-01'
             db.session.commit()
         page=self.client.get('/').get_data(as_text=True)
-        self.assertIn('Resumen de trabajo',page)
+        self.assertIn('Resumen del negocio',page)
         self.assertIn('Devoluciones vencidas · 1',page)
         self.assertIn(self.imei(0),page)
         self.assertIn('/ventas?estado=En+pasamano',page)
@@ -43,7 +43,7 @@ class ModuleTests(unittest.TestCase):
             p=products[0];p.status='Vendido';p.sale_value_cents=100000;p.paid_cents=0;p.payment_status='Pendiente'
             p.sale_date=today();p.movement_date=today();db.session.commit();pid=p.id;revision=p.revision
         page=self.client.get('/inventario?todos=1').get_data(as_text=True)
-        self.assertIn(self.imei(0),page);self.assertIn(self.imei(1),page);self.assertIn('status-sold',page)
+        self.assertIn(self.imei(0),page);self.assertIn(self.imei(1),page);self.assertIn('ui-status is-green',page)
         page=self.client.get('/ventas?saldo=1').get_data(as_text=True)
         self.assertIn(self.imei(0),page);self.assertNotIn(self.imei(1),page)
         response=self.client.post(f'/ventas/{pid}',data={'csrf':self.csrf,'revision':str(revision),'action':'reverse_sale','reason':'Venta registrada por error'})
@@ -86,7 +86,7 @@ class ModuleTests(unittest.TestCase):
         self.assertIn(self.imei(0),page);self.assertNotIn(self.imei(1),page)
         self.assertIn('name="saldo" value="1" checked',page)
         self.assertIn('aria-current="page"',page)
-        self.assertIn('sales-state status-sold',page)
+        self.assertIn('ui-status is-green',page)
         page=self.client.get(f'/ventas?saldo=1&q={self.imei(0)}').get_data(as_text=True)
         self.assertIn('name="saldo" value="1" checked',page)
         self.assertIn(self.imei(0),page)

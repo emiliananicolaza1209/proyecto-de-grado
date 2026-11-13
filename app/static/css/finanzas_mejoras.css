@@ -16,3 +16,17 @@
 .finance .f-cost-detail:not([hidden]){grid-column:span 2}.finance .remove-payment{grid-column:1/-1;justify-self:end;min-height:36px}@media(max-width:650px){.finance .f-cost-detail:not([hidden]){grid-column:1}}
 
 .finance .f-breakdown{margin-top:24px;align-items:start}.finance .f-breakdown>div{min-width:0}.finance .f-cash-difference{padding:12px;border-radius:10px;align-self:end;background:#eef3ff}.finance .f-cash-difference.f-short{background:#fee2e2;color:#991b1b;font-weight:700}.finance .f-cash-difference.f-over{background:#dcfce7;color:#166534;font-weight:700}.finance .f-cash-difference.f-even{background:#e0f2fe;color:#075985;font-weight:700}
+/* Pagos compactos: una tabla y un solo formulario, sin tarjetas por persona. */
+.finance .f-staff-payments td,.finance #comisiones-pool td{padding:12px 16px;vertical-align:middle}
+.finance .f-staff-payments .btn{padding:8px 14px;min-height:38px;white-space:nowrap}
+.finance .f-money{white-space:nowrap;font-variant-numeric:tabular-nums}
+.finance .f-compact-payment{margin-top:20px;padding:20px;background:#f7f9fd;border:1px solid #dce4f1;border-radius:12px}
+.finance .f-compact-payment[hidden]{display:none!important}
+.finance .f-compact-payment h3{margin:0}
+.finance .f-staff-payment-fields{grid-template-columns:minmax(230px,2fr) minmax(140px,1fr) minmax(150px,1fr);gap:16px;margin:16px 0}
+.finance .f-compact-payment input,.finance .f-compact-payment select{min-height:44px;padding:10px 12px}
+.finance #comisiones-pool details{min-width:180px}
+.finance #comisiones-pool details[open]{max-width:460px}
+.finance .f-pool-payment label{display:block;margin:12px 0}
+.finance .f-total strong{white-space:nowrap}
+@media(max-width:800px){.finance .f-staff-payment-fields{grid-template-columns:1fr}.finance .f-compact-payment{padding:16px}.finance #comisiones-pool details[open]{max-width:100%}.finance .f-total{gap:12px}.finance .f-total strong{flex-shrink:0}}

@@ -1,5 +1,6 @@
 """Categoría de proveedores y datáfono identificado por persona sin banco ficticio."""
 import sqlite3
+from app.sqlite_resources import sqlite_connection
 import re
 import unicodedata
 from pathlib import Path
@@ -14,11 +15,11 @@ def key(name):
 
 
 def upgrade(path):
-    with sqlite3.connect(path) as conn:
+    with sqlite_connection(path) as conn:
         if conn.execute('SELECT 1 FROM schema_version WHERE version=14').fetchone():return
         backup=Path(str(path)+'.antes_finanzas_v14.bak')
         if not backup.exists():
-            with sqlite3.connect(backup) as copy:conn.backup(copy)
+            with sqlite_connection(backup) as copy:conn.backup(copy)
         conn.execute('PRAGMA foreign_keys=OFF')
         conn.execute('BEGIN')
         if 'supplier_category' not in {r[1] for r in conn.execute('PRAGMA table_info(catalog)')}:

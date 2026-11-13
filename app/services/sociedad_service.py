@@ -61,6 +61,7 @@ def assign_ownership(p,society_id=None,capital=None):
     return row
 
 def capital_basis(p):
+    if p.source_type!='Retoma':return p.cost_cents
     buy=db.session.get(CompraPool,p.id)
     return p.cost_cents+(buy.ganancia if buy else 0)
 
@@ -225,7 +226,7 @@ def register_purchase(p,f):
     return row
 
 def pay_pool_commission(f):
-    from .finanzas_service import find_day,valid_date
+    from .finanzas_service import find_day,valid_date,text
     c=get_id(ComisionPool,f.get('commission_id'));origin=get_id(Op,c.operacion_id)
     if c.pago_operacion_id or origin.voided:raise ValueError('Comisión pagada o venta anulada.')
     d=find_day(valid_date(f.get('date')))
@@ -233,10 +234,15 @@ def pay_pool_commission(f):
     if d.date < get_id(Jornada,origin.day_id).date:
         raise ValueError('La entrega de la comisión no puede ser anterior a su venta.')
     if f.get('confirmed')!='1':raise ValueError('Confirma la entrega de la comisión extra.')
+    source=f.get('payment_source') or 'EFECTIVO'
+    if source not in ('EFECTIVO','ADMINISTRACIÓN DIRECTA'):raise ValueError('Selecciona de dónde salió el dinero de la comisión.')
+    reference=text(f.get('reference'),source=='ADMINISTRACIÓN DIRECTA',300)
     op=Op(day_id=d.id,token=secrets.token_hex(16),kind='Salida caja',description='PAGO COMISIÓN EXTRA POOL #'+str(origin.id),
-        seller=actor(),amount=c.monto,minor_cost=0,costs=[],payments=[dict(account='EFECTIVO',amount=c.monto)])
+        seller=actor(),amount=c.monto,minor_cost=0,costs=[],payments=[dict(account=source,amount=c.monto,reference=reference)])
     db.session.add(op);db.session.flush();c.pago_operacion_id=op.id;d.revision+=1
-    audit('comision_pool',c.id,'Confirmar entrega',{'reparto':c.reparto})
+    audit('comision_pool',c.id,'Confirmar entrega',{'reparto':c.reparto,'venta':origin.id,
+        'fecha_origen':get_id(Jornada,origin.day_id).date,'fecha_entrega':d.date,
+        'fuente':source,'referencia':reference,'pago':op.id})
 
 def refresh_result(op,reason):
     rows=db.session.scalars(db.select(ResultadoSocio).where(ResultadoSocio.operacion_id==op.id)).all()
@@ -250,3 +256,17 @@ def refresh_result(op,reason):
     previous=[{'socio':r.socio_id,'utilidad':r.utilidad} for r in rows]
     for r,v in zip(rows,values):r.utilidad=v
     audit('operacion',op.id,'Recalcular utilidades no liquidadas',{'antes':previous,'utilidad':gain},reason)
+
+
+def reverse_pool_commission(d,f):
+    from .finanzas_service import text, audit as day_audit
+    c=get_id(ComisionPool,f.get('commission_id'))
+    if not c.pago_operacion_id:raise ValueError('La comisión no tiene una entrega activa.')
+    payment=get_id(Op,c.pago_operacion_id)
+    if payment.day_id!=d.id or d.status!='Abierta' or payment.voided:raise ValueError('Reabre la jornada de la entrega para corregirla.')
+    # Revertir la entrega no cambia el gasto causado ni el cierre de la venta.
+    if f.get('returned')!='1':raise ValueError('Confirma el reintegro real del dinero antes de anular la entrega.')
+    reason=text(f.get('reason'),True,500)
+    payment.voided=True;c.pago_operacion_id=None
+    day_audit(d,'Anular entrega de comisión POOL',reason,{'commission':c.id,'payment':payment.id,'amount':payment.amount,'returned':True,'source':payment.payments[0]['account']})
+    audit('comision_pool',c.id,'Reintegro de entrega',{'payment':payment.id,'amount':payment.amount},reason)

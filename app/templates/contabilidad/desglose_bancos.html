@@ -25,7 +25,7 @@
             <span style="width: {{ banco.ancho }}%"></span>
           </div>
           <div class="accounting-bank-caption"><span>{{ banco.cantidad }} {{ 'consignación' if banco.cantidad==1 else 'consignaciones' }} {{ 'activa' if banco.cantidad==1 else 'activas' }}</span><span>{{ '%.2f'|format(banco.porcentaje) }} % del total</span></div>
-          {% if banco.banco_id is none %}<p class="accounting-bank-note">Incluye movimientos, como los de datáfono, que se registraron sin un banco destino. Siguen incluidos en el total.</p>{% endif %}
+          {% if banco.nombre=='Ingresos sin banco asociado' %}<p class="accounting-bank-note">Movimientos sin destino identificado. Los cobros identificados como datáfono se muestran por separado. Siguen incluidos en el total.</p>{% endif %}
         </article>
         {% else %}<p class="accounting-bank-empty">Esta persona todavía no tiene bancos asociados.</p>{% endfor %}
       </div>

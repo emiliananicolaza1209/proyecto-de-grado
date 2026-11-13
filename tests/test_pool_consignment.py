@@ -1,3 +1,4 @@
+from jornada_fixtures import opening
 """Retomas y conciliación bancaria entre Finanzas y Contabilidad."""
 import secrets
 import unittest
@@ -52,9 +53,12 @@ class LinkedConsignmentTests(unittest.TestCase):
             bank=BancoDestino(nombre='BANCO TEST');db.session.add_all([person,bank]);db.session.commit()
             self.person_id=person.id;self.bank_id=bank.id
             db.session.add(PersonaBanco(persona_id=person.id,banco_id=bank.id));db.session.commit()
-        self.post('open')
+        self.post('open',**opening(self.day,('EMILY',)))
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove();db.engine.dispose()
+        self.tmp.cleanup()
 
     def post(self,action,**values):
         with self.app.app_context():
@@ -87,7 +91,7 @@ class LinkedConsignmentTests(unittest.TestCase):
         accounting_page=self.client.get('/modulos/tributario/').get_data(as_text=True)
         self.assertIn('Registrar una persona',accounting_page)
         self.assertIn('Agregar banco a una persona',accounting_page)
-        self.assertIn('Registrar persona o banco',self.client.get('/finanzas?date='+self.day).get_data(as_text=True))
+        self.assertIn('Registrar persona o banco',self.client.get('/finanzas?date='+self.day+'&accion=registrar').get_data(as_text=True))
         self.assertEqual(self.client.get('/modulos/tributario/acceso').status_code,404)
         r=self.post('operation',kind='Venta',description='FORRO',seller='EMILY',amount='50000',
                     payment_account=['TRANSFERENCIA'],payment_amount=['50000'],payment_person_id=[''],payment_bank_id=[''])

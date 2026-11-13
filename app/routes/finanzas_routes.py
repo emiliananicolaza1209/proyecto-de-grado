@@ -6,6 +6,7 @@ import csv
 import io
 from flask import Blueprint,render_template,request,redirect,url_for,flash,Response,abort
 from sqlalchemy import text
+from sqlalchemy.orm import selectinload, load_only
 from ..extensions import db
 from ..models import Catalogo, Producto, PersonaContable
 from ..models.contabilidad import BancoDestino, PersonaBanco
@@ -33,7 +34,7 @@ def index():
             d=svc.find_day(day)
             action=request.form.get('action')
             if action=='open':
-                svc.open_day(day)
+                svc.start_reviewed_day(day,request.form)
             else:
                 if not d:raise ValueError('Primero abre la jornada.')
                 if action=='reopen':
@@ -44,6 +45,7 @@ def index():
                     d.status='Abierta';d.snapshot=None
                 else:
                     svc.editable(d,request.form.get('revision'))
+                    if action!='config' and not d.config.get('reviewed'):raise ValueError('Confirma primero Personal y reglas antes de registrar movimientos.')
                     if action=='config':svc.save_config(d,request.form)
                     elif action=='operation':svc.add_operation(d,request.form)
                     elif action=='edit_operation':svc.edit_operation(d,request.form)
@@ -54,6 +56,10 @@ def index():
                     elif action=='pool_commission':
                         from ..services.sociedad_service import pay_pool_commission
                         pay_pool_commission(request.form)
+                    elif action=='void_pool_commission':
+                        from ..services.sociedad_service import reverse_pool_commission
+                        reverse_pool_commission(d,request.form)
+                    elif action=='staff_payment':svc.pay_staff(d,request.form)
                     elif action=='contribution':svc.confirm_contribution(d,request.form)
                     elif action=='incorporate_all':
                         for p in svc.report(d)['pending_sales']:
@@ -90,6 +96,8 @@ def index():
                             p.get('attended',True) for p in d.config.get('staff',[])):
                             raise ValueError('Confirma personal y reglas en Configuración antes de cerrar.')
                         r=svc.report(d);t=r['totals']
+                        tasks=svc.closing_tasks(d,r)
+                        if tasks:raise ValueError('No se puede cerrar: '+ '; '.join(x['label'] for x in tasks))
                         if t['overflow']:raise ValueError('La comisión supera la tabla disponible. No se cerrará con un importe inventado.')
                         if r['pending_sales']:raise ValueError('Incorpora las ventas pendientes del módulo 03.')
                         if any('cambió en MOD03' in w for w in t['warnings']):raise ValueError('Revisa las ventas modificadas en MOD03.')
@@ -110,47 +118,64 @@ def index():
     r=svc.report(d) if d else None
     live_totals=r['totals'] if r else None
     if d and d.status=='Cerrada':r['totals']=d.snapshot['totals']
-    history=db.session.scalars(db.select(Audit).where(Audit.day_id==d.id).order_by(Audit.id.desc())).all() if d else []
+    history=db.session.scalars(db.select(Audit).where(Audit.day_id==d.id).order_by(Audit.id.desc()).limit(100)).all() if d and request.args.get('tab') in ('cierre','proveedores') else []
     payment_origins={}
-    if r:
+    if r and r['supplier_payments']:
+        ids={p.operation_id for p in r['supplier_payments']}
+        sources={o.id:(o,date) for o,date in db.session.execute(db.select(Op,Jornada.date).join(Jornada,Jornada.id==Op.day_id).where(Op.id.in_(ids)))}
         for payment in r['supplier_payments']:
-            source=db.session.get(Op,payment.operation_id)
-            origin=db.session.get(Jornada,source.day_id) if source else None
+            source,origin_date=sources.get(payment.operation_id,(None,''))
             if source and 0<=payment.cost_index<len(source.costs):
-                payment_origins[payment.id]={'name':source.costs[payment.cost_index].get('name','Sin detalle'),
-                                             'date':origin.date if origin else 'Fecha no disponible'}
+                payment_origins[payment.id]={'name':source.costs[payment.cost_index].get('name','Sin detalle'),'date':origin_date}
     tab=request.values.get('return_tab') or request.args.get('tab','movimientos')
     if tab not in ('movimientos','proveedores','personal','cierre'):tab='movimientos'
     if not can('admin'):tab='movimientos'
-    providers=db.session.scalars(db.select(Catalogo).where(Catalogo.kind=='supplier',Catalogo.active==1).order_by(Catalogo.supplier_category,Catalogo.name)).all()
+    providers=db.session.scalars(db.select(Catalogo).where(Catalogo.kind=='supplier',Catalogo.active==1).order_by(Catalogo.supplier_category,Catalogo.name)).all() if d and tab in ('movimientos','proveedores') else []
     closed_days=db.session.scalars(db.select(Jornada).where(Jornada.status=='Cerrada',Jornada.snapshot.is_not(None))
-                                    .order_by(Jornada.date.desc()).limit(14)).all()
+                                    .order_by(Jornada.date.desc()).limit(14)).all() if tab=='cierre' else []
     trend=[dict(date=item.date,sales=(item.snapshot.get('totals') or {}).get('gross',0),
                 count=(item.snapshot.get('totals') or {}).get('sales_count',0),
                 result=(item.snapshot.get('totals') or {}).get('owner_result')) for item in reversed(closed_days)]
     trend_max=max((row['sales'] for row in trend),default=0)
     for row in trend:
         row['percentage']=round(row['sales']*100/trend_max,1) if trend_max else 0
-    from ..models.gestion import AliadoCredito,ArticuloStock,UnidadStock
-    from ..services.sociedad_service import capital_basis
+    from ..models.gestion import AliadoCredito,ArticuloStock,UnidadStock,CompraPool
     from ..services.pool_jornada import context as pool_context
-    articles=db.session.scalars(db.select(ArticuloStock).where(ArticuloStock.activo==True)).all()
+    warning_links=[]
+    for warning in r['totals']['warnings'] if r else []:
+        lower=warning.lower();target=url_for('finanzas.index',date=day,tab='movimientos',_anchor='movimientos-jornada')
+        if 'sueldo' in lower:target=url_for('finanzas.index',date=day,tab='personal',_anchor='pagos-personal')
+        elif 'base' in lower or 'aporte' in lower or 'rojo' in lower:target=url_for('finanzas.index',date=day,tab='cierre',_anchor='aporte-caja')
+        elif 'vendedora' in lower:target=url_for('ventas.receipts')
+        elif 'cuenta bancaria' in lower or 'titular' in lower:target=url_for('contabilidad.index')
+        elif 'control excel' in lower:target=url_for('finanzas.index',date=day,tab='cierre',_anchor='resumen-cierre')
+        warning_links.append(dict(label=warning,href=target))
+    articles=db.session.scalars(db.select(ArticuloStock).where(ArticuloStock.activo==True)).all() if d and tab=='movimientos' else []
+    people=db.session.scalars(db.select(PersonaContable).options(selectinload(PersonaContable.bancos_asociados)).order_by(PersonaContable.nombre)).all() if d and tab in ('movimientos','proveedores','personal') else []
+    equipment=db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0).order_by(Producto.model,Producto.imei)).all() if d and tab=='movimientos' else []
+    pool_ids=[p.id for p in equipment if p.source_type=='Retoma']
+    pool_gain={buy.producto_id:buy.ganancia for buy in db.session.scalars(db.select(CompraPool).where(CompraPool.producto_id.in_(pool_ids)))} if pool_ids else {}
+    staff_rows=svc.staff_dues(d,r['totals']) if d and can('admin') and tab in ('personal','cierre') else []
     return render_template('finanzas/index.html',active='finanzas',day=day,d=d,r=r,error=error,
-        allies=db.session.scalars(db.select(AliadoCredito).where(AliadoCredito.activo==True)).all(),
-        articles=articles,stock_units=db.session.scalars(db.select(UnidadStock).where(UnidadStock.disponible==True)).all(),
+        allies=db.session.scalars(db.select(AliadoCredito).where(AliadoCredito.activo==True)).all() if d and tab=='movimientos' else [],
+        articles=articles,stock_units=db.session.scalars(db.select(UnidadStock).where(UnidadStock.disponible==True)).all() if articles else [],
         stock_costs={str(a.id):a.costo_administracion for a in articles},
-        retomas=db.session.scalars(db.select(Producto).where(Producto.source_type=='Retoma',Producto.status=='Disponible',Producto.archived==0)).all(),
+        retomas=[p for p in equipment if p.source_type=='Retoma'],
         providers=providers,provider_categories={p.name:p.supplier_category or 'Accesorios' for p in providers},drink_prices=svc.DRINK_PRICES,
-        available_equipment=db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0).order_by(Producto.model,Producto.imei)).all(),
-        equipment_costs={p.imei:{'purchase':capital_basis(p),'pool':p.source_type=='Retoma'} for p in db.session.scalars(db.select(Producto).where(Producto.status=='Disponible',Producto.archived==0)).all()},
-        accounting_people=db.session.scalars(db.select(PersonaContable).order_by(PersonaContable.nombre)).all(),
-        banks_destino=db.session.scalars(db.select(BancoDestino).order_by(BancoDestino.nombre)).all(),
+        available_equipment=equipment,
+        equipment_costs={p.imei:{'purchase':p.cost_cents+pool_gain.get(p.id,0),'pool':p.source_type=='Retoma'} for p in equipment},
+        accounting_people=people,
+        banks_destino=db.session.scalars(db.select(BancoDestino).order_by(BancoDestino.nombre)).all() if people else [],
         person_bank_map={p.id:[link.banco_id for link in p.bancos_asociados]
-                         for p in db.session.scalars(db.select(PersonaContable)).all()},
-        tab=tab,day_weekday=date.fromisoformat(day).weekday(),token=secrets.token_hex(16),funds=svc.FUNDS,obligations=svc.obligations(day) if d else [],
+                         for p in people},
+        warning_links=warning_links,draft=__import__('types').SimpleNamespace(config=svc.draft_config(day),status='Preparación',revision=0) if not d else None,
+        calendar=__import__('app.services.calendario_co',fromlist=['day_info']).day_info(day),
+        staff_dues=staff_rows,
+        closing_tasks=svc.closing_tasks(d,r,staff_rows) if d and can('admin') and tab=='cierre' else [],
+        tab=tab,day_weekday=date.fromisoformat(day).weekday(),token=secrets.token_hex(16),funds=svc.FUNDS,obligations=svc.obligations(day) if d and tab=='proveedores' else [],
         history=history,form=request.form if error else {},live_totals=live_totals,payment_origins=payment_origins,
-        days=db.session.scalars(db.select(Jornada).order_by(Jornada.date.desc()).limit(60)).all(),trend=trend,
-        pool=pool_context(day) if can('admin') else None)
+        days=db.session.scalars(db.select(Jornada).options(load_only(Jornada.date,Jornada.status)).order_by(Jornada.date.desc()).limit(60)).all(),trend=trend,
+        pool=pool_context(day,include_candidates=request.args.get('accion')=='compra_pool' or bool(error and request.form.get('action')=='pool_purchase')) if d and can('admin') and tab in ('movimientos','proveedores') else None)
 
 @finanzas.get('/finanzas/exportar')
 @require('admin')
