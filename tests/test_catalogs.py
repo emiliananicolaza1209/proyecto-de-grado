@@ -1,4 +1,5 @@
 from app.extensions import db
+from _cleanup import release
 import sqlite3
 import tempfile
 import unittest
@@ -47,8 +48,7 @@ class CatalogTests(unittest.TestCase):
             self.fields['lot_id'] = lot.id
 
     def tearDown(self):
-        with self.app.app_context():
-            db.session.remove();db.engine.dispose()
+        release(self.app)
         self.temp.cleanup()
 
     def imei(self, n):

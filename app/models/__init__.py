@@ -15,6 +15,9 @@ from .contabilidad import (
     PersonaBanco,
     ConsignacionBancaria,
     HistorialConsignacion,
+    ReporteGenerado,
+    IngresoGasto,
+    CorreccionClasificacion,
 )
 
 __all__ = [
@@ -33,6 +36,9 @@ __all__ = [
     "PersonaBanco",
     "ConsignacionBancaria",
     "HistorialConsignacion",
+    "ReporteGenerado",
+    "IngresoGasto",
+    "CorreccionClasificacion",
 ]
 
 from .gestion import *

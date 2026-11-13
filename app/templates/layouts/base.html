@@ -1,6 +1,6 @@
 {% from 'ui/macros.html' import icon %}
 {% set section = active|default('') %}
-{% set reports_active = request.endpoint|default('',true) in ['reportes.index','reportes.export'] %}
+{% set reports_active = request.endpoint|default('',true) in ['reportes.index','reportes.export','reportes.ver'] %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -13,11 +13,12 @@
   <link href="{{ url_for('static',filename='css/experiencia.css',v='4') }}" rel="stylesheet">
   {% if request.endpoint=='catalogos.index' %}<link href="{{ url_for('static',filename='css/catalogos.css',v='16.2') }}" rel="stylesheet">{% endif %}
   {% if section=='ventas' %}<link href="{{ url_for('static',filename='css/ventas.css',v='16.2') }}" rel="stylesheet">{% endif %}
-  {% if section=='finanzas' %}<link href="{{ url_for('static',filename='css/finanzas.css',v='2') }}" rel="stylesheet"><link href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='18.3') }}" rel="stylesheet">{% endif %}
+  {% if section=='finanzas' %}<link href="{{ url_for('static',filename='css/finanzas.css',v='2') }}" rel="stylesheet"><link href="{{ url_for('static',filename='css/finanzas_mejoras.css',v='19') }}" rel="stylesheet">{% endif %}
   {% if section=='tributario' %}<link href="{{ url_for('static',filename='css/contabilidad.css',v='16.2') }}" rel="stylesheet">{% endif %}
   <link href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}" rel="stylesheet">
-  {% if request.endpoint and request.endpoint.startswith('reportes.') %}<link href="{{ url_for('static',filename='css/reportes.css',v='18.1') }}" rel="stylesheet">{% endif %}
-  <link href="{{ url_for('static',filename='css/business.css',v='18.3') }}" rel="stylesheet">
+  {% if reporte_panel_modulo or section=='analitica' or (request.endpoint and request.endpoint.startswith('reportes.')) %}<link href="{{ url_for('static',filename='css/reportes.css',v='19') }}" rel="stylesheet">{% endif %}
+  {% if section=='chat' %}<link href="{{ url_for('static',filename='css/chat.css',v='19') }}" rel="stylesheet">{% endif %}
+  <link href="{{ url_for('static',filename='css/business.css',v='19') }}" rel="stylesheet">
   {% if section=='inicio' %}<link href="{{ url_for('static',filename='css/dashboard.css',v='18') }}" rel="stylesheet">{% endif %}
 </head>
 <body class="business-app" data-page-path="{{ current_page }}" data-return-to="{{ back_url }}" data-has-error="{{ 'true' if error|default(none) else 'false' }}">
@@ -26,7 +27,7 @@
  <div class="sidebar-heading"><a class="brand" href="{{ url_for('main.home') }}"><span class="brand-mark">CP</span><span>CP STORE<small>Gestión del negocio</small></span></a><button class="sidebar-close ui-icon-button" type="button" aria-label="Cerrar navegación">{{ icon('close') }}</button></div>
  <p class="nav-label">ESPACIO DE TRABAJO</p>
  <nav class="app-nav" aria-label="Navegación principal">
- {% for key,label,target,glyph,cap in [('inicio','Resumen','/','dashboard','consulta'),('inventario','Inventario','/inventario','inventory','consulta'),('ventas','Ventas y pagos','/ventas','sales','consulta'),('finanzas','Finanzas','/finanzas','wallet','finanzas_venta'),('reportes','Reportes','/reportes','report','consulta'),('analitica','Analítica y chat','/modulos/analitica','chart','admin'),('tributario','Información contable','/modulos/tributario','report','contabilidad'),('usuarios','Usuarios','/usuarios','users','usuarios')] %}
+ {% for key,label,target,glyph,cap in [('inicio','Resumen','/','dashboard','consulta'),('inventario','Inventario','/inventario','inventory','consulta'),('ventas','Ventas y pagos','/ventas','sales','consulta'),('finanzas','Finanzas','/finanzas','wallet','finanzas_venta'),('reportes','Reportes','/reportes','report','consulta'),('analitica','Analítica','/analitica','chart','reportes'),('chat','Chat de consultas','/chat','report','chat'),('tributario','Información contable','/modulos/tributario','report','contabilidad'),('usuarios','Usuarios','/usuarios','users','usuarios')] %}
  {% if can(cap) %}<a class="{{ 'active' if (key==section and not reports_active) or (key=='reportes' and reports_active) else '' }}" {% if (key==section and not reports_active) or (key=='reportes' and reports_active) %}aria-current="page"{% endif %} href="{{ target }}">{{ icon(glyph) }}<span>{{ label }}</span></a>
  {% if key=='inventario' and section=='inventario' %}<div class="app-subnav" aria-label="Secciones de inventario">
  {% if can('inventario') %}<a href="{{ url_for('gestion.lotes') }}">Compras y lotes</a><a href="{{ url_for('gestion.articulos') }}">Accesorios y repuestos</a>{% endif %}
@@ -44,24 +45,26 @@
 </aside>
 <button type="button" class="sidebar-backdrop" hidden aria-label="Cerrar navegación"></button>
 <main id="contenido">
- <header class="app-topbar"><div class="app-topbar-title"><button class="app-menu-toggle ui-icon-button" type="button" aria-label="Abrir navegación" aria-expanded="false" aria-controls="app-sidebar">{{ icon('menu') }}</button><span>CP Store <span class="slash">/</span> {{ 'Reportes' if reports_active else {'inicio':'Resumen','inventario':'Inventario','ventas':'Ventas y pagos','finanzas':'Finanzas','tributario':'Información contable','analitica':'Analítica y chat','usuarios':'Usuarios'}.get(section,'Gestión') }}</span></div>
+ <header class="app-topbar"><div class="app-topbar-title"><button class="app-menu-toggle ui-icon-button" type="button" aria-label="Abrir navegación" aria-expanded="false" aria-controls="app-sidebar">{{ icon('menu') }}</button><span>CP Store <span class="slash">/</span> {{ 'Reportes' if reports_active else {'inicio':'Resumen','inventario':'Inventario','ventas':'Ventas y pagos','finanzas':'Finanzas','tributario':'Información contable','analitica':'Analítica','chat':'Chat de consultas','usuarios':'Usuarios'}.get(section,'Gestión') }}</span></div>
  {% if can('consulta') and section in ('inventario','ventas','inicio') %}<form class="app-quick-search" role="search" action="{{ url_for('ventas.index') }}" method="get"><label class="visually-hidden" for="quick-imei">Buscar equipo o escanear IMEI</label>{{ icon('search') }}<input id="quick-imei" name="q" type="search" placeholder="Buscar equipo o IMEI" autocomplete="off"><button type="submit">Buscar</button></form>{% endif %}
  </header>
  <div class="page-content">
  {% if show_back %}<div class="ui-page-nav"><a class="ui-back" data-app-back href="{{ back_url }}">{{ icon('back') }}Volver</a></div>{% endif %}
  {% for category,msg in get_flashed_messages(with_categories=True) %}<div role="{{ 'alert' if category in ['danger','error'] else 'status' }}" class="alert alert-{{ 'danger' if category in ['danger','error'] else 'warning' if category=='warning' else 'success' }}">{{ msg }}</div>{% endfor %}
+ {% if reporte_panel_modulo %}{% with panel_modulo=reporte_panel_modulo,panel_sel=reporte_seleccion_inicial,panel_abierto=false %}{% include 'reportes/panel.html' %}{% endwith %}{% endif %}
  {% block content %}{% endblock %}
  <footer>CP STORE <span>Control y claridad en cada operación.</span></footer>
  </div>
 </main>
 <script src="{{ url_for('static',filename='js/experiencia.js',v='18') }}" defer></script>
-<script src="{{ url_for('static',filename='js/navigation.js',v='18.3') }}" defer></script>
+<script src="{{ url_for('static',filename='js/navigation.js',v='19') }}" defer></script>
 <script src="{{ url_for('static',filename='js/inventario.js',v='12') }}" defer></script>
 {% if section=='ventas' %}<script src="{{ url_for('static',filename='js/ventas.js',v='2') }}" defer></script>{% endif %}
-{% if section=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='18.3') }}" defer></script>{% endif %}
+{% if section=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='19') }}" defer></script>{% endif %}
 {% if section=='tributario' %}<script src="{{ url_for('static',filename='js/contabilidad.js',v='16.2') }}" defer></script>{% endif %}
 {% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
-{% if request.endpoint=='reportes.index' %}<script src="{{ url_for('static',filename='js/reportes.js',v='18.1') }}" defer></script>{% endif %}
+{% if reporte_panel_modulo or (request.endpoint and request.endpoint.startswith('reportes.')) %}<script src="{{ url_for('static',filename='js/reportes.js',v='19') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/gestion.js',v='16') }}" defer></script>
+{% if section=='chat' %}<script src="{{ url_for('static',filename='js/chat.js',v='19') }}" defer></script>{% endif %}
 {% if section=='inicio' %}<script src="{{ url_for('static',filename='js/dashboard.js',v='18') }}" defer></script>{% endif %}
 </body></html>

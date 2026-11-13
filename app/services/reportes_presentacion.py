@@ -10,7 +10,7 @@ from ..models.gestion import AliadoCredito, Sociedad
 
 TITLES = {
     'inventario': 'Inventario actual', 'ventas': 'Ventas del periodo',
-    'creditos': 'Créditos y saldos', 'finanzas': 'Resultados por jornada',
+    'creditos': 'Créditos y saldos', 'finanzas': 'Utilidad por jornada',
     'compras': 'Compras y lotes', 'contable': 'Consignaciones por persona y banco',
     'auditoria': 'Historial de gestión', 'consolidado_adicional': 'Fondos y sueldos',
 }
@@ -31,11 +31,11 @@ COLUMNS = {
         ('costo', 'Costo del aliado · COP', 'money'), ('neto', 'Neto pactado · COP', 'money'),
         ('recibido', 'Desembolsado · COP', 'money'), ('pendiente', 'Pendiente · COP', 'money'),
         ('estado', 'Estado', 'status')],
-    'finanzas': [('fecha', 'Jornada', 'text'), ('fuente', 'Estado del resultado', 'status'),
+    'finanzas': [('fecha', 'Jornada', 'text'), ('fuente', 'Estado de la jornada', 'status'),
         ('debe', 'Margen antes de costos menores · COP', 'money'),
         ('haber', 'Costos menores · COP', 'money'), ('service', 'Gastos de servicio · COP', 'money'),
-        ('pd', 'Gastos del local · COP', 'money'), ('liquidation', 'Liquidación · COP', 'money'),
-        ('commission', 'Comisiones · COP', 'money'), ('owner_result', 'Resultado final · COP', 'money')],
+        ('pd', 'Gastos PD · COP', 'money'), ('liquidation', 'Sueldos y cargos · COP', 'money'),
+        ('commission', 'Comisiones · COP', 'money'), ('owner_result', 'Utilidad del día · COP', 'money')],
     'compras': [('codigo', 'Lote', 'text'), ('fecha', 'Fecha de ingreso', 'text'),
         ('proveedor', 'Proveedor', 'text'), ('estado', 'Estado', 'status'),
         ('esperados', 'Equipos esperados', 'number'), ('equipos', 'Equipos activos', 'number'),
@@ -133,7 +133,7 @@ def present(kind, data, args):
         if key in data:
             view['metrics'].append(dict(label=label, value=str(data[key])))
     if kind == 'finanzas':
-        for key, label in [('debe', 'Margen antes de costos menores'), ('commission', 'Comisiones'), ('owner_result', 'Resultado final')]:
+        for key, label in [('debe', 'Margen antes de costos menores'), ('commission', 'Comisiones'), ('owner_result', 'Utilidad del periodo')]:
             view['metrics'].append(dict(label=label, value=cop(data['totales'].get(key))))
         if data['sueldos']:
             view['additional'].append(dict(title='Sueldos del periodo', **table(SALARIES, data['sueldos'])))

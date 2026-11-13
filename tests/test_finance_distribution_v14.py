@@ -1,6 +1,7 @@
 from jornada_fixtures import opening
 """Distribución mixta, datáfono sin banco y correcciones de pagos."""
 from app.sqlite_resources import sqlite_connection
+from _cleanup import release
 import secrets
 import tempfile
 import unittest
@@ -32,10 +33,7 @@ class DistributionTests(unittest.TestCase):
             self.person,self.bank=person.id,bank.id
             db.session.add(PersonaBanco(persona_id=person.id,banco_id=bank.id));db.session.commit()
 
-    def tearDown(self):
-        with self.app.app_context():
-            db.session.remove();db.engine.dispose()
-        self.tmp.cleanup()
+    def tearDown(self):release(self.app);self.tmp.cleanup()
 
     def post(self,action,**kwargs):
         with self.app.app_context():
