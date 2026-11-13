@@ -41,6 +41,14 @@ const base='http://127.0.0.1:5018';
   await page.locator('tbody tr').first().getByRole('link',{name:'Registrar abono'}).click();
   const form=page.locator('#operation-payment form');await form.locator('[name=amount]').fill('50000');
   await form.locator('[name=destination]').selectOption('Negocio');
+  // El medio de pago se llama method: también debe proteger cambios pendientes.
+  assert.equal(await form.locator('[name=method]').count(),1);
+  const pendingDialog=page.waitForEvent('dialog');
+  const backAttempt=page.locator('.ui-back[data-app-back]').click();
+  const dialog=await pendingDialog;
+  assert.equal(dialog.type(),'beforeunload');
+  await dialog.dismiss();await backAttempt;
+  assert.equal(await form.isVisible(),true);
   await form.getByRole('button',{name:'Registrar cobro del cliente'}).click();
   await page.getByText('Movimiento comercial registrado. La disponibilidad está actualizada.').waitFor();
   // V18.1: contabilidad legible, filtros pertinentes y formularios sin acordeones.

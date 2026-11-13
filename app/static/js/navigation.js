@@ -23,6 +23,9 @@ if(typeof module==='object'&&module.exports)module.exports={localURL,parentFor,s
 if(typeof document==='undefined')return;
 const body=document.body;if(!body.classList.contains('business-app'))return;
 const origin=location.origin,here=()=>location.pathname+location.search+location.hash,storageKey='cpstore.navigation.v18',pendingKey=storageKey+'.pending';
+// Los controles llamados method/action/target ocultan las propiedades del form.
+// Leer sus atributos conserva el método HTTP y no confunde el medio de pago.
+const formMethod=form=>(form.getAttribute('method')||'get').toLowerCase();
 let store={},pending=null;try{store=JSON.parse(sessionStorage.getItem(storageKey)||'{}');pending=JSON.parse(sessionStorage.getItem(pendingKey)||'null');sessionStorage.removeItem(pendingKey);}catch(_){store={};}
 const fallback=localURL(body.dataset.returnTo||'/',origin)||'/';
 let state=history.state?.cpstoreView;
@@ -55,8 +58,8 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('submit',event=>{
  const form=event.target;if(!(form instanceof HTMLFormElement)||!form.checkValidity())return;
- capture();if(form.method.toLowerCase()==='post'){
-   const to=localURL(form.action,origin);if(to)try{sessionStorage.setItem(pendingKey,JSON.stringify({from:here(),to,at:Date.now(),parent:state.parent,post:true}));}catch(_){}
+ capture();if(formMethod(form)==='post'){
+   const to=localURL(new URL(form.getAttribute('action')||location.href,document.baseURI).href,origin);if(to)try{sessionStorage.setItem(pendingKey,JSON.stringify({from:here(),to,at:Date.now(),parent:state.parent,post:true}));}catch(_){}
  }
 });
 window.addEventListener('pagehide',capture);window.addEventListener('pageshow',restore);
@@ -66,7 +69,7 @@ if(document.readyState==='complete')restore();
 let leaving=false;
 const baselines=new Map(),busyButtons=new Map();
 const signature=form=>formSignature(new FormData(form));
-function baseline(form){if(form?.method==='post'&&!form.hasAttribute('data-no-dirty'))baselines.set(form,signature(form));}
+function baseline(form){if(form&&formMethod(form)==='post'&&!form.hasAttribute('data-no-dirty'))baselines.set(form,signature(form));}
 setTimeout(()=>{for(const form of document.forms)baseline(form);},0);
 document.addEventListener('cpstore:form-ready',event=>baseline(event.target));
 function unsaved(){return [...baselines].some(([form,before])=>form.isConnected&&signature(form)!==before);}
@@ -74,12 +77,12 @@ const status=document.createElement('div');status.id='app-loading-status';status
 function loading(message){status.textContent=message;status.hidden=false;}
 function idle(){status.hidden=true;leaving=false;for(const [button,label]of busyButtons){button.textContent=label;button.disabled=false;button.removeAttribute('aria-busy');}busyButtons.clear();}
 document.addEventListener('submit',event=>{
- const form=event.target;if(event.defaultPrevented||!form.checkValidity()||form.target==='_blank')return;
+ const form=event.target;if(!(form instanceof HTMLFormElement)||event.defaultPrevented||!form.checkValidity()||form.getAttribute('target')==='_blank')return;
  // La navegación nativa puede comenzar antes de un temporizador.
  leaving=true;
- queueMicrotask(()=>{if(event.defaultPrevented){idle();return;}loading(form.method==='post'?'Guardando…':'Cargando…');});
+ queueMicrotask(()=>{if(event.defaultPrevented){idle();return;}loading(formMethod(form)==='post'?'Guardando…':'Cargando…');});
  const button=event.submitter;
- setTimeout(()=>{if(!event.defaultPrevented&&button){busyButtons.set(button,button.textContent);button.textContent=form.method==='post'?'Guardando…':'Consultando…';button.disabled=true;button.setAttribute('aria-busy','true');}},0);
+ setTimeout(()=>{if(!event.defaultPrevented&&button){busyButtons.set(button,button.textContent);button.textContent=formMethod(form)==='post'?'Guardando…':'Consultando…';button.disabled=true;button.setAttribute('aria-busy','true');}},0);
 });
 document.addEventListener('click',event=>{
  const link=event.target.closest('a[href]');
