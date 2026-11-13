@@ -35,6 +35,7 @@ def require(capability):
 
 def guard():
     g.usuario=None
+    if request.endpoint=='main.health':return
     if not enabled():return
     uid=session.get('usuario_id')
     if uid:

@@ -14,6 +14,20 @@ from app.services.personas_contables import (nueva_persona, coincidencias, banco
 contabilidad_bp = Blueprint('contabilidad', __name__, url_prefix='/modulos/tributario')
 
 
+
+@contabilidad_bp.app_template_filter('destino_consignacion')
+def destino_consignacion(c):
+    if c.banco:return c.banco.nombre
+    # One read per source in a request; no inferred financial destination.
+    if c.finance_operation_id:
+        op=db.session.get(OperacionFinanciera,c.finance_operation_id)
+        if op and c.payment_index is not None and 0<=c.payment_index<len(op.payments) and op.payments[c.payment_index].get('account')=='DATÁFONO':return 'DATÁFONO'
+    if c.supplier_payment_id:
+        from ..models.finanzas import PagoProveedor
+        payment=db.session.get(PagoProveedor,c.supplier_payment_id)
+        if payment and payment.account=='DATÁFONO':return 'DATÁFONO'
+    return 'Sin banco identificado'
+
 @contabilidad_bp.route('/')
 def index(form_error=None,matched_person=None):
     personas = PersonaContable.query.order_by(PersonaContable.nombre).all()

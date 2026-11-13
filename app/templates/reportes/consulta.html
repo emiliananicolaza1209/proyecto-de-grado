@@ -1,0 +1,6 @@
+{% extends 'layouts/base.html' %}{% block content %}<section class="reportes-panel"><h1>Respuesta: {{tool}}</h1>
+{% if tool=='ventas' %}<p>Las {{data.cantidad}} operaciones incorporadas suman <strong>${{'%.2f'|format(data.venta_neta/100)}} COP netos</strong>. Esta cifra no representa los cobros recibidos.</p>
+{% elif tool=='inventario' %}<p>Hay <strong>{{data.cantidad}} equipos disponibles</strong> en el inventario actual.</p>
+{% elif tool=='creditos' %}<p>El saldo actual de los créditos originados en el periodo es <strong>${{'%.2f'|format(data.pendiente/100)}} COP</strong>.</p>
+{% elif tool=='finanzas' %}<p>Se incluyeron {{data.dias_incluidos}} jornadas. Resultado después de gastos PD: <strong>{% if data.totales.owner_result is not none %}${{'%.2f'|format(data.totales.owner_result/100)}} COP{% else %}No calculable con los datos disponibles{% endif %}</strong>. Días sin jornada: {{data.dias_sin_jornada}}.</p>{% endif %}
+{% for w in data.advertencias %}<p role="status">{{w}}</p>{% endfor %}<details><summary>Datos y fuentes de la respuesta</summary><pre>{{data|tojson(indent=2)}}</pre></details><a href="/analitica">Nueva consulta</a></section>{% endblock %}

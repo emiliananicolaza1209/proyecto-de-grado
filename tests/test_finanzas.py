@@ -1,3 +1,4 @@
+from jornada_fixtures import opening
 import unittest,tempfile,secrets
 from pathlib import Path
 from werkzeug.datastructures import MultiDict
@@ -14,8 +15,11 @@ class FinanceTests(unittest.TestCase):
         self.client=self.app.test_client();self.day='2026-09-01'
         self.client.get('/finanzas?date='+self.day)
         with self.client.session_transaction() as s:self.csrf=s['csrf']
-        self.post('open')
-    def tearDown(self):self.tmp.cleanup()
+        self.post('open',**opening(self.day,('ANA','MARIA','PROPIETARIO')))
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove();db.engine.dispose()
+        self.tmp.cleanup()
     def post(self,action,expected=302,**kw):
         with self.app.app_context():
             d=f.find_day(self.day);revision=d.revision if d else 0
@@ -229,7 +233,7 @@ class FinanceTests(unittest.TestCase):
         self.assertIn('DATÁFONO · $ 30.000',page)
         closing=self.client.get('/finanzas?date='+self.day+'&tab=cierre').get_data(as_text=True)
         self.assertNotIn('Efectivo a entregar, sin base',closing)
-        self.assertIn('TOTAL TRANSFER complementario (ganancia bancaria + fondos propios bancarios)',closing)
+        self.assertIn('Bancos en el control Excel (ganancia + capital propio)',closing)
     def test_fondo_propio_no_sale_de_caja_hasta_registrar_pago(self):
         self.sale(amount='30000',minor_cost='0',cost_name=['CP VARIOS'],cost_type=['Fondo'],
                   cost_qty=['1'],cost_unit=['10000'],payment_account=['EFECTIVO'],payment_amount=['30000'])
@@ -246,7 +250,10 @@ class FinanceTests(unittest.TestCase):
         self.sale()
         with self.app.app_context():
             d=f.find_day(self.day);cfg=dict(d.config);cfg.update(reviewed=True,actor='ANA',staff=[{'name':'ANA','role':'Principal','salary':0,'attended':True}]);d.config=cfg;db.session.commit()
-        self.post('close',counted='1000000');self.sale(expected=200)
+        # La nueva regla exige pagar la comisión causada antes de cerrar.
+        self.assertEqual(self.totals()['unit_commission'],2000000)
+        self.post('operation',kind='Pago comisión',seller='ANA',description='PAGO COMISIÓN',amount='20000',payment_account=['EFECTIVO'],payment_amount=['20000'])
+        self.post('close',counted='980000');self.sale(expected=200)
         with self.app.app_context():d=f.find_day(self.day);self.assertEqual(d.snapshot['difference'],0);self.assertEqual(d.status,'Cerrada')
         self.post('reopen',reason='CORREGIR');self.sale();self.assertEqual(self.totals()['gross'],200000000)
     def test_collection_receipt_not_doubled(self):

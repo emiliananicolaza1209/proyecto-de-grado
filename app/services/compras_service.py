@@ -164,6 +164,8 @@ def reopen(lot,c,reason):
     c.estado='Borrador';c.revision+=1;audit('lote',lot.id,'Reabrir lote',{},reason)
 
 def attach(lot,file):
+    if not current_app.config.get('UPLOADS_ENABLED', True):
+        raise ValueError('La carga de facturas está deshabilitada en este entorno. Solicita al administrador habilitar almacenamiento persistente para conservar los archivos.')
     raw=file.read()
     if not raw or len(raw)>8*1024*1024:raise ValueError('La factura debe tener entre 1 byte y 8 MB.')
     if raw.startswith(b'%PDF-'):mime='application/pdf';ext='.pdf'

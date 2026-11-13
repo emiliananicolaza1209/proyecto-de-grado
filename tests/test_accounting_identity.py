@@ -1,4 +1,5 @@
 """La identidad se registra una sola vez y admite varios bancos."""
+from app.sqlite_resources import sqlite_connection
 import sqlite3
 import tempfile
 import unittest
@@ -19,7 +20,10 @@ class AccountingIdentityTests(unittest.TestCase):
         self.client.get('/modulos/tributario/')
         with self.client.session_transaction() as session:self.csrf=session['csrf']
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove();db.engine.dispose()
+        self.tmp.cleanup()
 
     def post(self,url,**data):
         return self.client.post(url,data={'csrf':self.csrf,**data})
@@ -69,10 +73,10 @@ class AccountingIdentityTests(unittest.TestCase):
             person_id,bank_id=p.id,b.id
             db.session.execute(db.delete(PersonaBanco));db.session.commit()
             db.engine.dispose()
-        with sqlite3.connect(self.path) as conn:conn.execute('DELETE FROM schema_version WHERE version=13')
+        with sqlite_connection(self.path) as conn:conn.execute('DELETE FROM schema_version WHERE version=13')
         upgrade_v13(self.path)
         upgrade_v13(self.path)
-        with sqlite3.connect(self.path) as conn:
+        with sqlite_connection(self.path) as conn:
             self.assertEqual(conn.execute('SELECT persona_id,banco_id FROM persona_banco').fetchall(),[(person_id,bank_id)])
 
 

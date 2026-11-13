@@ -26,21 +26,22 @@ def resumir_por_banco(personas, anio):
     if not grupos:
         return {}
     inicio, fin = datetime(anio, 1, 1), datetime(anio + 1, 1, 1)
-    registros = db.session.execute(
-        db.select(ConsignacionBancaria.persona_id, ConsignacionBancaria.banco_id,
-                  BancoDestino.nombre, func.sum(ConsignacionBancaria.monto),
-                  func.count(ConsignacionBancaria.id))
-        .outerjoin(BancoDestino, BancoDestino.id == ConsignacionBancaria.banco_id)
-        .where(ConsignacionBancaria.persona_id.in_(grupos),
-               ConsignacionBancaria.activa == True,
-               ConsignacionBancaria.fecha >= inicio, ConsignacionBancaria.fecha < fin)
-        .group_by(ConsignacionBancaria.persona_id, ConsignacionBancaria.banco_id,
-                  BancoDestino.nombre)
-    )
-    for persona_id, banco_id, nombre, monto, cantidad in registros:
-        grupos[persona_id][banco_id] = dict(
-            banco_id=banco_id, nombre=nombre or 'Ingresos sin banco asociado',
-            total=monto or Decimal('0.00'), cantidad=cantidad)
+    from ..models.finanzas import OperacionFinanciera as Op, PagoProveedor as Pago
+    registros=db.session.execute(db.select(ConsignacionBancaria,BancoDestino.nombre,Op.payments,Pago.account)
+        .outerjoin(BancoDestino,BancoDestino.id==ConsignacionBancaria.banco_id)
+        .outerjoin(Op,Op.id==ConsignacionBancaria.finance_operation_id)
+        .outerjoin(Pago,Pago.id==ConsignacionBancaria.supplier_payment_id)
+        .where(ConsignacionBancaria.persona_id.in_(grupos),ConsignacionBancaria.activa==True,
+               ConsignacionBancaria.fecha>=inicio,ConsignacionBancaria.fecha<fin))
+    for c,nombre,payments,payment_account in registros:
+        method=payment_account
+        if payments is not None and c.payment_index is not None and 0<=c.payment_index<len(payments):method=payments[c.payment_index].get('account')
+        dataphone=method=='DATÁFONO' or (nombre or '').upper() in ('DATÁFONO','DATAFONO')
+        key=c.banco_id
+        if dataphone:
+            key=next((key for key,v in grupos[c.persona_id].items() if v['nombre'].upper() in ('DATÁFONO','DATAFONO')), 'datafono')
+        entry=grupos[c.persona_id].setdefault(key,dict(banco_id=c.banco_id,nombre='Datáfono' if dataphone else nombre or 'Ingresos sin banco asociado',total=Decimal('0.00'),cantidad=0))
+        entry['total']+=c.monto;entry['cantidad']+=1
     resultado = {}
     for persona_id, bancos in grupos.items():
         total = sum((b['total'] for b in bancos.values()), Decimal('0.00'))

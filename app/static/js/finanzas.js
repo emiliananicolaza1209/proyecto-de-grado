@@ -107,5 +107,37 @@ refreshIndices();preview();updateChoices();filterBankChoices();
   output.textContent='Compra al cliente: '+format(client)+' · Otros costos: '+format(cost-client)+' · Ganancia de compra: '+format(gain)+(gain<0?' · El aporte no cubre compra y costos.':'');
  }
  form.addEventListener('input',update);form.addEventListener('change',update);update();
- if(location.hash==='#compra-pool')form.closest('details').open=true;
+ if(location.hash==='#compra-pool')form.closest('details')?.setAttribute('open','');
+})();
+
+if(new URL(location.href).searchParams.has("accion")){history.scrollRestoration="manual";requestAnimationFrame(()=>window.scrollTo(0,0));}
+
+// Un solo formulario de pagos para todos los sueldos y comisiones habituales.
+(()=>{
+ const form=document.querySelector('#pago-personal-form');if(!form)return;
+ const choice=form.elements.staff_choice,amount=form.elements.amount;
+ function select(value){if(value)choice.value=value;amount.value=choice.selectedOptions[0]?.dataset.amount||'';}
+ if(!amount.value&&!document.querySelector('#finance-restore'))select();
+ for(const link of document.querySelectorAll('.f-select-staff'))link.addEventListener('click',event=>{
+  if(event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  event.preventDefault();select(link.dataset.choice);form.dispatchEvent(new Event('cpstore:form-ready',{bubbles:true}));form.hidden=false;form.scrollIntoView({block:'nearest'});amount.focus({preventScroll:true});
+ });
+ choice.addEventListener('change',()=>select());
+ document.querySelector('#cancel-staff-payment')?.addEventListener('click',()=>{
+  form.reset();select();form.elements.payment_account.dispatchEvent(new Event('change',{bubbles:true}));form.dispatchEvent(new Event('cpstore:form-ready',{bubbles:true}));form.hidden=true;document.querySelector('.f-select-staff')?.focus();
+ });
+})();
+
+(()=>{
+ for(const form of document.querySelectorAll('.f-pool-payment')){
+  function update(){form.elements.reference.required=form.elements.payment_source.value==='ADMINISTRACIÓN DIRECTA';}
+  form.elements.payment_source.addEventListener('change',update);update();
+ }
+ const form=document.querySelector('#pool-purchase-form');if(!form)return;
+ form.elements.product_id.addEventListener('change',()=>{
+  const selected=form.elements.product_id.selectedOptions[0];
+  for(const box of form.querySelectorAll('[data-pool-cost]'))box.hidden=box.dataset.poolCost!==selected?.value;
+  if(selected?.value&&!form.elements.funding.value){form.elements.funding.value=String(Number(selected.dataset.cost)/100);form.dispatchEvent(new Event('input',{bubbles:true}));}
+ });
+ for(const box of form.querySelectorAll('[data-pool-cost]'))box.hidden=box.dataset.poolCost!==form.elements.product_id.value;
 })();

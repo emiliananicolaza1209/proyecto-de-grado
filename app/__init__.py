@@ -16,7 +16,7 @@ def create_app(config=None):
 
     app = Flask(
         __name__,
-        instance_path=str(root / "instance"),
+        instance_path=str(Path(os.getenv('INSTANCE_PATH',str(root / 'instance'))).resolve()),
         instance_relative_config=True,
     )
 
@@ -34,8 +34,14 @@ def create_app(config=None):
     if config:
         app.config.update(config)
 
+    app.config['_SECRET_KEY_CONFIGURED'] = bool(os.getenv('SECRET_KEY') or (config or {}).get('SECRET_KEY'))
+    from .runtime import configure_runtime
+    configure_runtime(app)
+
     from .database import configure_database, initialize_sqlite, register_database_commands
     configure_database(app, root, config)
+    if app.config['APP_ENV'] == 'production':
+        app.config['SESSION_COOKIE_SECURE'] = True
     db.init_app(app)
     from . import models
     with app.app_context():
@@ -53,9 +59,10 @@ def create_app(config=None):
     from .routes.informacion_contable_routes import contabilidad_bp
 
     # Protección de formularios.
-    from .security import protect_forms
+    from .security import protect_forms, response_headers
 
     app.before_request(protect_forms)
+    app.after_request(response_headers)
 
     for blueprint in (
         main,
@@ -70,9 +77,17 @@ def create_app(config=None):
 
     from .auth import init_auth
     init_auth(app)
+    from .navigation import context as navigation_context
+    app.context_processor(navigation_context)
     from .routes.gestion_routes import gestion
     app.register_blueprint(gestion)
+    from .routes.reportes_routes import reportes
+    app.register_blueprint(reportes)
+    from .respaldo import register as register_backups
+    register_backups(app)
     # PostgreSQL serializa las escrituras web antes de leer saldos o existencias.
     from .database import install_write_serialization
     install_write_serialization(app)
+    from .runtime import register_errors
+    register_errors(app)
     return app

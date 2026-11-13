@@ -14,7 +14,7 @@ from .consignaciones_finanzas import BANCARIOS, destino, sincronizar_operacion, 
 
 FUNDS = ('CP VARIOS', 'CP HIDROGELES', 'BATERÍAS', 'MEMORIAS')
 INTERNAL_PROVIDERS = set(FUNDS) | {'CP HIDROGEL','CP HIDRÓGEL', 'CP BATERIAS', 'CP MEMORIAS'}
-KINDS = ('Venta', 'Servicio', 'PD', 'Entrada caja', 'Salida caja', 'Pago sueldo')
+KINDS = ('Venta', 'Servicio', 'PD', 'Entrada caja', 'Salida caja', 'Pago sueldo', 'Pago comisión')
 BASE_CAJA = 20000000  # Centavos de COP; permanece en caja al terminar cada jornada.
 DEFAULT_ACCOUNTS = ['EFECTIVO', 'TRANSFERENCIA', 'DATÁFONO']
 DRINK_PRICES = {'CORONA':400000,'AGUA':200000,'AGUA CON GAS':200000,'PONY':200000,
@@ -24,7 +24,7 @@ def display_account(name):
     upper=(name or '').upper()
     if upper.startswith('TRANSFERENCIA'):return 'TRANSFERENCIA'
     if upper.startswith(('DATÁFONO','DATAFONO')):
-        return 'DATÁFONO · TARJETA POR IDENTIFICAR'
+        return 'DATÁFONO'
     return name
 
 def payment_person(payments):
@@ -60,7 +60,8 @@ def valid_date(value):
     return d.isoformat()
 
 def defaults(day):
-    return dict(holiday=False,opening=BASE_CAJA,normal_base=29100000,sandra_extra=3000000,
+    from .calendario_co import day_info
+    return dict(holiday=day_info(day)['special'],opening=BASE_CAJA,normal_base=29100000,sandra_extra=3000000,
                 extra_a=3000000,extra_b=9000000,normal_return=38100000,
                 sandra=False,sandra_sunday=5000000,sandra_control_sunday=4000000,
                 sandra_control_work=6000000,sandra_control_absent=3000000,
@@ -95,7 +96,8 @@ def open_day(day):
     if previous:
         cfg={**previous.config,'staff':[], 'opening':BASE_CAJA,'sandra':False,'holiday':False,'reviewed':False,'actor':'','note':''}
     cfg['accounts']=DEFAULT_ACCOUNTS[:]
-    cfg['holiday']=day in cfg.get('holidays',[])
+    from .calendario_co import day_info
+    cfg['holiday']=day_info(day)['special'] or day in cfg.get('holidays',[])
     d=Jornada(date=day,config=cfg)
     db.session.add(d)
     try: db.session.commit()
@@ -103,6 +105,7 @@ def open_day(day):
     return d
 
 def save_config(d,form):
+    if form.get('reviewed')!='1':raise ValueError('Debes confirmar que revisaste asistencia, sueldos y reglas.')
     cfg=dict(d.config)
     cfg['opening']=BASE_CAJA
     for k in ('normal_base','sandra_extra','extra_a','extra_b','normal_return',
@@ -129,8 +132,12 @@ def save_config(d,form):
             try: holiday_dates.append(date.fromisoformat(value.strip()).isoformat())
             except ValueError: raise ValueError('Los festivos usan formato AAAA-MM-DD, uno por línea.')
     cfg['holidays']=sorted(set(holiday_dates))
-    cfg['holiday']=cfg['holiday'] or d.date in cfg['holidays']
+    from .calendario_co import day_info
+    cfg['holiday']=cfg['holiday'] or day_info(d.date)['special'] or d.date in cfg['holidays']
     cfg['staff']=staff
+    wages={p['name']:p['salary'] for p in staff if p['attended']}
+    for name,paid in db.session.execute(db.select(Op.seller,db.func.sum(Op.amount)).where(Op.day_id==d.id,Op.kind=='Pago sueldo',Op.voided==False).group_by(Op.seller)):
+        if paid>wages.get(name,0):raise ValueError('El personal o sueldo corregido contradice pagos ya realizados. Concilia primero esos pagos.')
     audit(d,'Configuración',cfg['note'],{'before':d.config,'after':cfg})
     d.config=cfg
 
@@ -167,7 +174,12 @@ def sources(day):
 
 def report(d):
     ops=db.session.scalars(db.select(Op).where(Op.day_id==d.id).order_by(Op.id.desc())).all()
+    paid_cost=defaultdict(int)
+    for pay in db.session.scalars(db.select(Pago).where(Pago.operation_id.in_([o.id for o in ops]))):paid_cost[(pay.operation_id,pay.cost_index)]+=pay.amount
     active=[o for o in ops if not o.voided]
+    products={p.id:p for p in db.session.scalars(db.select(Producto).where(Producto.id.in_([o.product_id for o in active if o.product_id])))} if any(o.product_id for o in active) else {}
+    from ..models.gestion import CompraPool
+    purchases={p.operacion_id:p for p in db.session.scalars(db.select(CompraPool).where(CompraPool.operacion_id.in_([o.id for o in active if o.kind=='Compra POOL'])))} if any(o.kind=='Compra POOL' for o in active) else {}
     collections,receipts,sales=sources(d.date)
     banks=defaultdict(int);funds=defaultdict(int);debe=haber=service=pd=transfer=gross=0
     bank_gross=defaultdict(int);bank_net=defaultdict(int);bank_profit=defaultdict(int)
@@ -181,7 +193,7 @@ def report(d):
     for o in active:
         if o.kind=='Venta':
             if o.product_id:
-                product=db.session.get(Producto,o.product_id)
+                product=products.get(o.product_id)
                 if product and product.source_type=='Retoma':
                     pool_admin_gain+=product.pool_admin_gain_cents or 0
             margin=o.amount-sum(c['amount'] for c in o.costs)
@@ -231,8 +243,7 @@ def report(d):
                                                       own_in_bank=own_in_bank))
         else:
             if o.kind=='Compra POOL':
-                from ..models.gestion import CompraPool
-                buy=db.session.scalar(db.select(CompraPool).where(CompraPool.operacion_id==o.id))
+                buy=purchases.get(o.id)
                 if buy:
                     debe+=buy.ganancia;pool_purchase_gain+=buy.ganancia
                     cash+=buy.aporte-buy.costos_pagados-(buy.pago_cliente if buy.tipo=='Compra directa' else 0)
@@ -274,7 +285,7 @@ def report(d):
     if any(o.product_id for o in active): warnings.append('El control Excel de transferencias no distribuye cobros de equipos entre días. Usa la conciliación de caja para dinero real.')
     for o in active:
         if o.product_id:
-            p=db.session.get(Producto,o.product_id)
+            p=products.get(o.product_id)
             if p.status not in ('Vendido','Garantía') or p.sale_value_cents!=o.amount:
                 warnings.append(f'La venta del equipo {p.imei} cambió en MOD03. Anula y vuelve a revisar su registro financiero.')
     drinks=defaultdict(lambda:dict(quantity=0,cost=0,paid=0))
@@ -282,7 +293,7 @@ def report(d):
         for idx,c in enumerate(o.costs):
             if c['type']=='Bebida':
                 item=drinks[c['name']];item['quantity']+=c['quantity'];item['cost']+=c['amount']
-                item['paid']+=sum(x.amount for x in db.session.scalars(db.select(Pago).where(Pago.operation_id==o.id,Pago.cost_index==idx)))
+                item['paid']+=paid_cost[(o.id,idx)]
     totals=calculate(d.config,d.date,debe,haber,service,pd,funds,transfer)
     if totals['control_cash'] is not None:totals['control_cash']-=retoma_control
     totals.update(retoma_received=retoma_received,retoma_control=retoma_control)
@@ -444,6 +455,9 @@ def add_operation(d,f):
         amount=sale_net_amount(amount,payments)
     elif payment_total(payments,kind)!=amount:
         raise ValueError('Indica la cuenta de salida/entrada por el importe completo.')
+    if kind=='Pago comisión':
+        due=next((x for x in staff_dues(d) if x['kind']==kind and x['name']==seller),None)
+        if not due or amount>due['due']:raise ValueError('El pago excede la comisión pendiente de esta persona.')
     if kind=='Pago sueldo':
         employee=next((p for p in d.config['staff'] if p['name']==seller and p.get('attended',True)),None)
         if not employee: raise ValueError('Selecciona una persona con asistencia confirmada en esta jornada.')
@@ -551,6 +565,13 @@ def edit_operation(d, f):
     old_costs=[{'detail':'',**c} for c in o.costs]
     if linked_payments and (costs!=old_costs or amount!=o.amount or minor!=o.minor_cost):
         raise ValueError('Ya hay pagos a proveedores: conserva valor y costos. Puedes corregir los medios de cobro y el responsable.')
+    if kind=='Pago comisión':
+        due=next((x for x in staff_dues(d) if x['kind']==kind and x['name']==seller),None)
+        if not due or amount>due['due']:raise ValueError('El pago excede la comisión pendiente de esta persona.')
+    if kind=='Pago comisión':
+        allowed=next((x for x in staff_dues(d) if x['kind']==kind and x['name']==seller),None)
+        other=sum(x.amount for x in db.session.scalars(db.select(Op).where(Op.day_id==d.id,Op.kind==kind,Op.seller==seller,Op.voided==False,Op.id!=o.id)))
+        if not allowed or other+amount>allowed['total']:raise ValueError('La corrección excede la comisión causada de esta persona.')
     if kind=='Pago sueldo':
         employee=next((p for p in d.config['staff'] if p['name']==seller and p.get('attended',True)),None)
         if not employee:raise ValueError('El destinatario no tiene asistencia confirmada.')
@@ -604,8 +625,9 @@ def obligations(as_of=None):
     result=[]
     operations_query=db.select(Op).join(Jornada,Op.day_id==Jornada.id).where(Op.voided==False)
     if as_of: operations_query=operations_query.where(Jornada.date<=as_of)
+    origins={x.id:x for x in db.session.scalars(db.select(Jornada))}
     for o in db.session.scalars(operations_query):
-        origin=db.session.get(Jornada,o.day_id)
+        origin=origins[o.day_id]
         cash_received=sum(p['amount'] for p in o.payments if p['account']=='EFECTIVO')
         profit=max(0,o.amount-sum(c['amount'] for c in o.costs))
         cash_for_devices=max(0,cash_received-profit-paid_cash[o.id])
@@ -676,3 +698,66 @@ def update_equipment_costs(d,f):
     from .sociedad_service import refresh_result
     refresh_result(o,f.get('reason'))
     audit(d,'Costos de paquete',text(f.get('reason'),True,500),{'operation':o.id,'before':before,'after':{'costs':o.costs,'minor_cost':o.minor_cost}})
+
+
+def draft_config(day):
+    previous=db.session.scalar(db.select(Jornada).where(Jornada.date<day).order_by(Jornada.date.desc()))
+    cfg={**defaults(day),**(previous.config if previous else {})}
+    from .calendario_co import day_info
+    cfg.update(staff=[],opening=BASE_CAJA,sandra=False,holiday=day_info(day)['special'] or day in cfg.get('holidays',[]),reviewed=False,actor='',note='')
+    return cfg
+
+def start_reviewed_day(day,form):
+    if find_day(day):raise ValueError('La jornada ya existe. Recarga antes de continuar.')
+    d=Jornada(date=day,config=draft_config(day))
+    db.session.add(d);db.session.flush()
+    save_config(d,form)
+    audit(d,'Apertura confirmada','Personal y reglas revisados',{'actor':actor()})
+    commit(d)
+    return d
+
+def staff_dues(d, totals=None):
+    totals=totals or report(d)['totals']
+    paid=defaultdict(int)
+    for o in db.session.scalars(db.select(Op).where(Op.day_id==d.id,Op.voided==False,Op.kind.in_(['Pago sueldo','Pago comisión']))):paid[(o.kind,o.seller)]+=o.amount
+    result=[]
+    staff=[p for p in d.config['staff'] if p.get('attended',True)]
+    for p in staff:
+        result.append(dict(name=p['name'],kind='Pago sueldo',total=p['salary'],due=max(0,p['salary']-paid[('Pago sueldo',p['name'])])))
+    names=[p['name'] for p in staff]+(['SANDRA'] if d.config.get('sandra') else [])
+    for name in names:
+        amount=totals.get('unit_commission') or 0
+        result.append(dict(name=name,kind='Pago comisión',total=amount,due=max(0,amount-paid[('Pago comisión',name)])))
+    return result
+
+def closing_tasks(d,r,dues=None):
+    tasks=[]
+    def add(label,tab,anchor=''):tasks.append(dict(label=label,tab=tab,anchor=anchor))
+    if not d.config.get('reviewed'):add('Confirma personal y reglas','personal','config-form')
+    for x in (staff_dues(d,r['totals']) if dues is None else dues):
+        if x['due']:add(x['kind']+' pendiente: '+x['name']+' · $'+format(x['due']/100,',.2f'),'personal','pagos-personal')
+    for x in obligations(d.date):add('Pagar proveedor: '+x['cost']['name'],'proveedores','pagos-proveedores')
+    from ..models.gestion import ComisionPool
+    # La obligación pertenece a la venta, no a todas las jornadas siguientes.
+    # Su entrega posterior tiene su propio movimiento de dinero, sin otro gasto.
+    pending=db.session.scalars(db.select(ComisionPool).join(Op,Op.id==ComisionPool.operacion_id).where(Op.voided==False,Op.day_id==d.id,ComisionPool.pago_operacion_id.is_(None))).all()
+    for c in pending:add('Entregar comisión POOL de venta #'+str(c.operacion_id),'proveedores','comisiones-pool')
+    if r['pending_sales']:add('Incorporar ventas pendientes','movimientos','movimientos-jornada')
+    if r['totals']['overflow']:add('Revisar límite de comisiones','personal','config-form')
+    return tasks
+
+def pay_staff(d,form):
+    """Un solo importe por pago; la distribución se deriva y valida en servidor."""
+    if not form.get('staff_choice'):
+        # Compatibilidad con formularios abiertos antes de esta actualización.
+        return add_operation(d,form)
+    kind,_,name=form.get('staff_choice','').partition('|')
+    item=next((x for x in staff_dues(d) if x['kind']==kind and x['name']==name),None)
+    if not item or not item['due']:raise ValueError('Selecciona un sueldo o comisión pendiente de esta jornada.')
+    if form.get('payment_account') not in ('EFECTIVO','TRANSFERENCIA'):
+        raise ValueError('Selecciona efectivo o transferencia para este pago.')
+    values=form.copy()
+    for key,value in dict(kind=kind,seller=name if kind=='Pago sueldo' else '__other__',
+                          seller_other=name,description=kind+' '+name).items():values.setlist(key,[value])
+    values.setlist('payment_amount',[form.get('amount','')])
+    return add_operation(d,values)

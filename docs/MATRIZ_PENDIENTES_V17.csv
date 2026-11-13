@@ -1,0 +1,42 @@
+﻿Historia,Estado de esta entrega,Límite / siguiente validación
+HU-LOT-007,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-ESC-003,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-ESC-005,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-INV-003,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-INV-006,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-VEN-002,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-VEN-007,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-VEN-008,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-VEN-009,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-SEP-004,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-FIN-003,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-FIN-004,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-LIQ-003,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-LIQ-004,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-LIQ-005,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-LIQ-006,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-REP-001,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-REP-002,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-REP-003,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-REP-004,Avance implementado para validación; no aceptación total,Créditos por fecha de origen y saldo actual; separados aún sin reporte integral.
+HU-REP-005,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-REP-006,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-DASH-001,Avance implementado para validación; no aceptación total,Nuevo panel de comparación; no todas las métricas/perfiles administrativos.
+HU-DASH-002,Avance implementado para validación; no aceptación total,Filtros de periodo y ubicación de equipos para ventas; no reparto de cierre global.
+HU-ANA-001,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-ANA-002,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-ANA-003,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-ANA-004,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-IA-001,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-IA-002,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-IA-003,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-IA-004,Avance implementado para validación; no aceptación total,Consultas predefinidas basadas en reglas; sin conversación generativa/MCP.
+HU-IA-005,Avance implementado para validación; no aceptación total,Antigüedad configurable; no calcula rotación histórica.
+HU-IA-006,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-TRI-001,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-TRI-002,Avance implementado para validación; no aceptación total,Consignaciones por periodo exportables; falta paquete completo contable.
+HU-TRI-003,Pendiente o parcial anterior conservado,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-AUD-001,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-AUD-002,Avance implementado para validación; no aceptación total,"Revisar alcance, pruebas y límites en ENTREGA_V17.md; no se certifican todos los criterios."
+HU-AUD-003,Avance implementado para validación; no aceptación total,CLI verificado con SQLite; PostgreSQL y programación de copias pendientes.
+HU-AUD-004,Avance implementado para validación; no aceptación total,Restauración aislada SQLite probada; PostgreSQL pendiente de prueba real. No sustituye producción.

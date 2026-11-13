@@ -1,12 +1,13 @@
 """Migración versionada del esquema heredado. No se ejecuta desde las rutas."""
 import sqlite3
+from app.sqlite_resources import sqlite_connection
 from pathlib import Path
 
 
 def upgrade_v1(path):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(path) as db:
+    with sqlite_connection(path) as db:
         db.row_factory = sqlite3.Row
         db.execute('CREATE TABLE IF NOT EXISTS schema_version(version INTEGER PRIMARY KEY)')
         if db.execute('SELECT 1 FROM schema_version WHERE version=1').fetchone():
@@ -15,7 +16,7 @@ def upgrade_v1(path):
         if db.execute("SELECT 1 FROM sqlite_master WHERE name='equipment'").fetchone():
             backup_path = path.with_name(path.name + '.antes_mvc.bak')
             if not backup_path.exists():
-                with sqlite3.connect(path) as source, sqlite3.connect(backup_path) as backup:
+                with sqlite_connection(path) as source, sqlite_connection(backup_path) as backup:
                     source.backup(backup)
         db.execute('BEGIN')
         db.execute('''CREATE TABLE IF NOT EXISTS equipment (
@@ -40,7 +41,7 @@ def upgrade_v1(path):
 
 def upgrade(path):
     upgrade_v1(path)
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if not connection.execute('SELECT 1 FROM schema_version WHERE version=2').fetchone():
             connection.execute('BEGIN')
             connection.execute('ALTER TABLE equipment ADD COLUMN archived INTEGER NOT NULL DEFAULT 0')
@@ -63,10 +64,10 @@ def upgrade(path):
 
 
 def upgrade_v9(path):
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=9').fetchone():
             return
-        with sqlite3.connect(str(path) + '.antes_MOD03.bak') as backup:
+        with sqlite_connection(str(path) + '.antes_MOD03.bak') as backup:
             connection.backup(backup)
         connection.execute('BEGIN')
         connection.execute('ALTER TABLE equipment ADD COLUMN loan_handler TEXT')
@@ -98,10 +99,10 @@ def upgrade_v9(path):
 
 def upgrade_v8(path):
     """Cobertura opcional y presentación uniforme, sin borrar registros históricos."""
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=8').fetchone():
             return
-        with sqlite3.connect(str(path) + '.antes_INV12.bak') as backup:
+        with sqlite_connection(str(path) + '.antes_INV12.bak') as backup:
             connection.backup(backup)
         connection.execute('BEGIN')
         connection.execute('ALTER TABLE equipment ADD COLUMN warranty_until TEXT')
@@ -113,12 +114,12 @@ def upgrade_v8(path):
 
 
 def upgrade_v7(path):
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=7').fetchone():
             return
         backup_path = Path(str(path) + '.antes_modulos_02_03.bak')
         if not backup_path.exists():
-            with sqlite3.connect(backup_path) as backup:
+            with sqlite_connection(backup_path) as backup:
                 connection.backup(backup)
         connection.execute('BEGIN')
         connection.execute('''CREATE TABLE purchase_lot (
@@ -135,7 +136,7 @@ def upgrade_v7(path):
 
 
 def upgrade_v3(path):
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=3').fetchone():
             return
         connection.row_factory = sqlite3.Row
@@ -160,7 +161,7 @@ def upgrade_v3(path):
 
 def upgrade_v4(path):
     """Normaliza la presentación de catálogos ya creados sin modificar sus claves."""
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=4').fetchone():
             return
         connection.execute('BEGIN')
@@ -168,7 +169,7 @@ def upgrade_v4(path):
         connection.execute('INSERT INTO schema_version(version) VALUES(4)')
 
 def upgrade_v6(path):
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=6').fetchone(): return
         connection.execute('BEGIN')
         for name, definition in [('paid_cents','INTEGER NOT NULL DEFAULT 0'),('purpose','TEXT'),('due_date','TEXT'),('battery','INTEGER'),('warranty_previous','TEXT')]:
@@ -178,7 +179,7 @@ def upgrade_v6(path):
 
 def upgrade_v5(path):
     """Estados de pasamano y recaudo, sin eliminar la información existente."""
-    with sqlite3.connect(path) as connection:
+    with sqlite_connection(path) as connection:
         if connection.execute('SELECT 1 FROM schema_version WHERE version=5').fetchone(): return
         connection.execute('BEGIN')
         columns = {row[1] for row in connection.execute('PRAGMA table_info(equipment)')}

@@ -1,11 +1,12 @@
 """Migración 10, aditiva e idempotente. Conserva SQLite y datos de MOD02/03."""
 import sqlite3
+from app.sqlite_resources import sqlite_connection
 
 def upgrade(path):
-    with sqlite3.connect(path) as c:
+    with sqlite_connection(path) as c:
         if c.execute('SELECT 1 FROM schema_version WHERE version=10').fetchone():
             return
-        with sqlite3.connect(str(path)+'.antes_MOD04.bak') as backup:
+        with sqlite_connection(str(path)+'.antes_MOD04.bak') as backup:
             c.backup(backup)
         c.execute('BEGIN')
         c.execute('''CREATE TABLE finance_day(id INTEGER PRIMARY KEY,date TEXT NOT NULL UNIQUE,

@@ -1,15 +1,15 @@
 <section class="f-summary" aria-label="Resumen de la jornada">
-  <div class="f-summary-heading"><h2>Resultados de la jornada</h2><span>{{ day }} · {{ d.status }}</span></div>
+  <div class="f-summary-heading"><h2>Resumen del día</h2><span>{{ day }} · {{ d.status }}</span></div>
   <div class="f-summary-grid">
   {% for title,key,hint in [
-    ('DEBE','debe','Margen antes de costos menores'),
-    ('HABER','haber','Costos menores del día'),
-    ('Liquidación del día','liquidation','Sueldos y reglas de la jornada'),
-    ('Resultado final','owner_result','Después de comisiones y gastos PD'),
+    ('Margen de ventas','debe','Antes de costos menores · DEBE del Excel'),
+    ('Costos menores','haber','HABER del Excel'),
+    ('Sueldos y cargos','liquidation','Importes causados por personal y reglas'),
+    ('Utilidad del día','owner_result','Después de sueldos, comisiones y gastos PD'),
     ('Ventas del día','sales_count','Cantidad de ventas registradas'),
     ('Ventas netas','gross','Valor neto de las ventas'),
-    ('Comisiones','commission','Comisiones habituales de la jornada'),
-    ('Total control','control_total','Control del día después de gastos PD')
+    ('Comisiones habituales','commission','Comisiones habituales de la jornada'),
+    ('Total del control Excel','control_total','Referencia de reparto; no es efectivo en caja')
   ] if can('admin') or key in ['sales_count','gross'] %}
     {% set value=r.totals.get(key) %}
     <article data-summary="{{ key }}" class="{{ 'f-summary-primary' if key in ['debe','haber'] else '' }}">

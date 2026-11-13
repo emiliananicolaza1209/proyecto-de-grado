@@ -1,17 +1,18 @@
 """Campos aditivos para personas y operaciones; conserva registros y pagos."""
 import sqlite3
+from app.sqlite_resources import sqlite_connection
 import json
 import unicodedata
 from pathlib import Path
 
 
 def upgrade(path):
-    with sqlite3.connect(path) as conn:
+    with sqlite_connection(path) as conn:
         if conn.execute('SELECT 1 FROM schema_version WHERE version=11').fetchone():
             return
         backup=Path(str(path)+'.antes_integracion.bak')
         if not backup.exists():
-            with sqlite3.connect(backup) as safe_copy:
+            with sqlite_connection(backup) as safe_copy:
                 conn.backup(safe_copy)
         conn.execute('BEGIN')
         for table, name, definition in (
@@ -37,12 +38,12 @@ def upgrade(path):
 
 def upgrade_v12(path):
     """Retomas y conciliación financiera individual sin modificar datos anteriores."""
-    with sqlite3.connect(path) as conn:
+    with sqlite_connection(path) as conn:
         if conn.execute('SELECT 1 FROM schema_version WHERE version=12').fetchone():
             return
         backup=Path(str(path)+'.antes_pool_y_consignaciones.bak')
         if not backup.exists():
-            with sqlite3.connect(backup) as safe_copy:
+            with sqlite_connection(backup) as safe_copy:
                 conn.backup(safe_copy)
         conn.execute('BEGIN')
         for table,name,definition in (
@@ -79,12 +80,12 @@ def upgrade_v12(path):
 
 def upgrade_v13(path):
     """Asocia los bancos de consignaciones existentes con cada persona."""
-    with sqlite3.connect(path) as conn:
+    with sqlite_connection(path) as conn:
         if conn.execute('SELECT 1 FROM schema_version WHERE version=13').fetchone():
             return
         backup=Path(str(path)+'.antes_bancos_persona.bak')
         if not backup.exists():
-            with sqlite3.connect(backup) as safe_copy:
+            with sqlite_connection(backup) as safe_copy:
                 conn.backup(safe_copy)
         conn.execute('BEGIN')
         conn.execute('''CREATE TABLE IF NOT EXISTS persona_banco (
