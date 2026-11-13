@@ -22,11 +22,18 @@ def cop(value):
     return '$ '+format(value/100,',.2f').replace(',','X').replace('.',',').replace('X','.')
 
 def _sin_costos(form):
-    """Quien no es administración no define ni conoce el costo del equipo ni del artículo: el servidor lo toma de Inventario."""
+    """Solo el costo comercial POOL puede indicarlo la vendedora; no otros costos privados."""
     from werkzeug.datastructures import MultiDict
     copia=MultiDict(form);tipos=copia.getlist('cost_type');unidades=copia.getlist('cost_unit')
-    if len(tipos)==len(unidades):
-        copia.setlist('cost_unit',['' if t in ('Equipo','Artículo') else u for t,u in zip(tipos,unidades)])
+    nombres=copia.getlist('cost_name')
+    if len(tipos)==len(unidades)==len(nombres):
+        pool_imeis=set(db.session.scalars(db.select(Producto.imei).where(Producto.source_type=='Retoma',
+            Producto.status=='Disponible',Producto.archived==0)))
+        for t,n,u in zip(tipos,nombres,unidades):
+            if t=='Equipo' and n.strip().upper() in pool_imeis and not u.strip():
+                raise ValueError('Ingresa el costo comercial POOL indicado por administración.')
+        copia.setlist('cost_unit',['' if t=='Artículo' or (t=='Equipo' and n.strip().upper() not in pool_imeis) else u
+                                  for t,n,u in zip(tipos,nombres,unidades)])
     return copia
 
 @finanzas.route('/finanzas',methods=['GET','POST'])
@@ -58,9 +65,15 @@ def index():
                     elif action=='operation':svc.add_operation(d,request.form if can('admin') else _sin_costos(request.form))
                     elif action=='edit_operation':svc.edit_operation(d,request.form)
                     elif action=='pool_purchase':
-                        from ..services.sociedad_service import register_purchase
-                        from ..services.gestion_comun import get_id
-                        register_purchase(get_id(Producto,request.form.get('product_id')),request.form)
+                        if request.form.get('product_id'):
+                            if not can('admin'):abort(403)
+                            from ..services.sociedad_service import register_purchase
+                            from ..services.gestion_comun import get_id
+                            register_purchase(get_id(Producto,request.form.get('product_id')),request.form)
+                        else:
+                            from ..services.pool_compra_service import register
+                            from ..services.gestion_comun import actor
+                            register(d,request.form,svc.selected_responsible(d,request.form,'Compra POOL') if can('admin') else actor())
                     elif action=='pool_commission':
                         from ..services.sociedad_service import pay_pool_commission
                         pay_pool_commission(request.form)
@@ -149,6 +162,9 @@ def index():
         row['percentage']=round(row['sales']*100/trend_max,1) if trend_max else 0
     from ..models.gestion import AliadoCredito,ArticuloStock,UnidadStock,CompraPool
     from ..services.pool_jornada import context as pool_context
+    from ..services.pool_compra_service import pending as pool_pending
+    from ..services.catalogo_service import list_items
+    from ..services.sociedad_service import POOL_SALE_COMMISSION
     warning_links=[]
     for warning in r['totals']['warnings'] if r else []:
         lower=warning.lower();target=url_for('finanzas.index',date=day,tab='movimientos',_anchor='movimientos-jornada')
@@ -172,6 +188,10 @@ def index():
         providers=providers,provider_categories={p.name:p.supplier_category or 'Accesorios' for p in providers},drink_prices=svc.DRINK_PRICES,
         available_equipment=equipment,
         equipment_costs={p.imei:{'purchase':p.cost_cents+pool_gain.get(p.id,0),'pool':p.source_type=='Retoma'} for p in equipment} if can('admin') else {},
+        equipment_options={p.imei:{'pool':p.source_type=='Retoma'} for p in equipment},
+        pool_sale_commission=POOL_SALE_COMMISSION,
+        pool_catalog=list_items(active_only=True) if request.args.get('accion')=='compra_pool' or bool(error and request.form.get('action')=='pool_purchase') else [],
+        pool_pending=pool_pending() if can('admin') and tab=='movimientos' else [],
         accounting_people=people,
         banks_destino=db.session.scalars(db.select(BancoDestino).order_by(BancoDestino.nombre)).all() if people else [],
         person_bank_map={p.id:[link.banco_id for link in p.bancos_asociados]
@@ -183,7 +203,7 @@ def index():
         tab=tab,day_weekday=date.fromisoformat(day).weekday(),token=secrets.token_hex(16),funds=svc.FUNDS,obligations=svc.obligations(day) if d and tab=='proveedores' else [],
         history=history,form=request.form if error else {},live_totals=live_totals,payment_origins=payment_origins,
         days=db.session.scalars(db.select(Jornada).options(load_only(Jornada.date,Jornada.status)).order_by(Jornada.date.desc()).limit(60)).all(),trend=trend,
-        pool=pool_context(day,include_candidates=request.args.get('accion')=='compra_pool' or bool(error and request.form.get('action')=='pool_purchase')) if d and can('admin') and tab in ('movimientos','proveedores') else None)
+        pool=pool_context(day,include_candidates=can('admin') and (request.args.get('accion')=='compra_pool' or bool(error and request.form.get('action')=='pool_purchase'))) if d and (can('admin') or can('finanzas_pool')) and tab in ('movimientos','proveedores') else None)
 
 @finanzas.get('/finanzas/exportar')
 @require('admin')

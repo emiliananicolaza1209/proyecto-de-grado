@@ -85,6 +85,8 @@ FILAS = [
     ('GET', '/finanzas?tab=proveedores', {}, 'PAV'),
     ('POST', '/finanzas', {'action': 'open'}, 'PA'),
     ('POST', '/finanzas', {'action': 'operation', 'kind': 'Venta'}, 'PAV'),
+    ('POST', '/finanzas', {'action': 'pool_purchase'}, 'PAV'),
+    ('POST', '/inventario/{d}/revision-pool', {}, 'PA'),
     ('POST', '/finanzas', {'action': 'operation', 'kind': 'PD'}, 'PA'),
     ('POST', '/finanzas', {'action': 'config'}, 'PA'),
     ('GET', '/finanzas/exportar?date=2026-01-01', {}, 'PA'),

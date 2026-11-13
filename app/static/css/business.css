@@ -37,3 +37,25 @@ body.ui-login{background:var(--ui-bg);padding:0;display:grid;place-items:center;
 #app-loading-status{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10000;padding:9px 18px;background:#172f50;color:#fff;border-radius:8px;box-shadow:0 3px 12px #18334d26;font-size:14px}
 #app-loading-status[hidden]{display:none!important}
 button[aria-busy=true]{cursor:progress;opacity:.75}
+/* Formularios compactos, foco visible y separado de las etiquetas. */
+.business-app input:focus,.business-app select:focus,.business-app textarea:focus{outline:2px solid #4967d8;outline-offset:1px;box-shadow:none!important}
+.business-app .finance label,.business-app .retoma-cost-row>label{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
+.business-app .retoma-cost-row{display:grid;grid-template-columns:minmax(180px,2fr) minmax(140px,1fr) auto;gap:16px;align-items:end;margin:18px 0}
+.business-app .retoma-cost-row>.retoma-remove{width:auto;min-width:78px;height:48px;margin:0}
+.business-app .finance .ui-finance-form .f-cost-row{grid-template-columns:minmax(115px,.8fr) minmax(180px,1.6fr) minmax(110px,.8fr) minmax(65px,.4fr) minmax(155px,1fr) auto;gap:18px 14px}
+.business-app .finance .f-cost-row>.remove-row,.business-app .finance .f-staff-row>.remove-row{height:48px;width:auto;min-width:78px}
+.business-app .finance .f-confirmation{display:flex;flex-direction:row;align-items:flex-start;gap:12px;margin:24px 0 18px;padding:16px;background:#f1f5ff;border:1px solid #c8d4f6;border-radius:8px;line-height:1.55}
+.business-app .finance .f-confirmation input{flex:0 0 20px;width:20px;height:20px;margin:2px 0 0;accent-color:#315df5}
+.business-app .inventory-pool{padding:16px 20px}
+.business-app .inventory-pool>summary{justify-content:flex-start;gap:16px;min-height:28px;flex-wrap:wrap}
+.business-app .inventory-pool>summary strong{margin-right:auto}
+.business-app .inventory-pool>summary span{font-size:13px;color:#536682}
+.business-app .pool-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding:18px 0}
+.business-app .pool-metrics>div{display:flex;flex-direction:column;gap:8px;padding:12px;background:#f5f7fc;border-radius:6px}
+.business-app .pool-metrics span{font-size:13px;color:#536682}
+.business-app .pool-metrics strong{font-size:18px}
+.business-app .pool-review-row{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.business-app .pool-review-row small{display:block;margin-top:6px;color:#536682}
+.business-app .pool-review-row form{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+@media(max-width:1100px){.business-app .finance .ui-finance-form .f-cost-row{grid-template-columns:repeat(2,minmax(0,1fr))}.business-app .pool-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.business-app .retoma-cost-row,.business-app .finance .ui-finance-form .f-cost-row,.business-app .pool-metrics{grid-template-columns:1fr}.business-app .retoma-cost-row>.retoma-remove,.business-app .finance .f-cost-row>.remove-row{justify-self:start}.business-app .pool-review-row{align-items:stretch;flex-direction:column}}

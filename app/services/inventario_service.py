@@ -85,7 +85,7 @@ def warranty_date(data):
     return value
 
 
-def register_product(data):
+def register_product(data, *, commit=True):
     from .lote_service import get_lot
     entry_type=data.get('entry_type','Lote')
     if entry_type not in ('Lote','Retoma'):raise ValueError('Selecciona lote o retoma como origen del equipo.')
@@ -132,9 +132,9 @@ def register_product(data):
                        **{kind+'_id': items[kind].id for kind in ('reference','color','capacity','supplier','location')})
     try:
         db.session.add(product)
-        db.session.commit()
+        db.session.commit() if commit else db.session.flush()
     except IntegrityError:
-        db.session.rollback()
+        if commit:db.session.rollback()
         raise ValueError('Este IMEI ya está registrado. Búscalo en el inventario.')
     return product
 

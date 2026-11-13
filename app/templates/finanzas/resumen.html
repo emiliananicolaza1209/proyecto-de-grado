@@ -1,8 +1,8 @@
 <section class="f-summary" aria-label="Resumen de la jornada">
-  <div class="f-summary-heading"><h2>Resumen del día</h2><span>{{ day }} · {{ d.status }}</span></div>
+  <div class="f-summary-heading"><h2>Resumen de la fecha seleccionada</h2><span>{{ day }} · {{ d.status }}</span></div>
   <div class="f-summary-grid">
   {% for title,key,hint in [
-    ('Margen de ventas','debe','Antes de costos menores · DEBE del Excel'),
+    ('Margen de ventas y compras POOL','debe','Solo esta jornada · DEBE, antes de costos menores'),
     ('Costos menores','haber','HABER del Excel'),
     ('Sueldos y cargos','liquidation','Importes causados por personal y reglas'),
     ('Utilidad del día','owner_result','Después de sueldos, comisiones y gastos PD'),

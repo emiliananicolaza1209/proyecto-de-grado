@@ -126,6 +126,8 @@ def save_config(d,form):
         staff.append(dict(name=text(n),role=r,salary=money(s),attended=str(index) in attendance))
     if not staff or not any(p['attended'] for p in staff): raise ValueError('Registra y confirma la asistencia de al menos una persona.')
     if len(staff)>30 or len({p['name'] for p in staff})!=len(staff): raise ValueError('Revisa nombres repetidos o el número de personas.')
+    if sum(p['role']=='Principal' for p in staff)>1:
+        raise ValueError('Solo puede haber una persona Principal por jornada. Las demás deben ser Secundarias.')
     holiday_dates=[]
     for value in form.get('holidays','').splitlines():
         if value.strip():

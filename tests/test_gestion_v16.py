@@ -20,7 +20,7 @@ class GestionTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.app=create_app(dict(TESTING=True,DATABASE=str(Path(self.tmp.name)/'db.sqlite'),SECRET_KEY='test'))
         self.ctx=self.app.app_context();self.ctx.push();self.day=f.today();self.d=f.open_day(self.day)
-        cfg=dict(self.d.config);cfg['staff']=[dict(name=n,role='Principal',salary=0,attended=True) for n in ('ANA','LUZ','MAR')];cfg['reviewed']=True;cfg['actor']='ANA';self.d.config=cfg
+        cfg=dict(self.d.config);cfg['staff']=[dict(name=n,role='Principal' if i==0 else 'Secundaria',salary=0,attended=True) for i,n in enumerate(('ANA','LUZ','MAR'))];cfg['reviewed']=True;cfg['actor']='ANA';self.d.config=cfg
         self.person=PersonaContable(nombre='EMILY',identificacion='TEST1',tipo='Natural');self.bank=BancoDestino(nombre='BANCO PRUEBA')
         db.session.add_all([self.person,self.bank]);db.session.flush();db.session.add(PersonaBanco(persona_id=self.person.id,banco_id=self.bank.id));db.session.commit()
         self.ally=db.session.scalar(db.select(AliadoCredito).where(AliadoCredito.nombre=='SU+PAY'));self.ally.porcentaje_bp=1800

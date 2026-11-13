@@ -7,6 +7,8 @@ from ..models.gestion import (Socio,Sociedad,Participacion,PropiedadEquipo,Compr
     LiquidacionSocio,AplicacionLiquidacion,DisolucionSociedad,ComisionPool,CreditoVenta)
 from .gestion_comun import actor,audit,bp,distribute,get_id
 
+POOL_SALE_COMMISSION = 2000000  # COP 20.000, causada una sola vez en la venta.
+
 def snapshot(society_id=None):
     if not society_id:
         jon=db.session.scalar(db.select(Socio).order_by(Socio.id).limit(1))
@@ -76,7 +78,7 @@ def on_sale(day,op):
     if p.source_type=='Retoma':
         attending=[x['name'] for x in day.config.get('staff',[]) if x.get('attended',True)]
         if not attending:raise ValueError('Confirma el personal del día antes de vender un equipo del POOL.')
-        total=2000000;each,rem=divmod(total,len(attending))
+        total=POOL_SALE_COMMISSION;each,rem=divmod(total,len(attending))
         split=[dict(nombre=n,importe=each+(1 if i<rem else 0)) for i,n in enumerate(attending)]
         db.session.add(ComisionPool(operacion_id=op.id,monto=total,reparto=split))
         costs=list(op.costs)+[dict(type='Comisión POOL',name='COMISIÓN EXTRA POOL',quantity=1,unit=total,amount=total)]
@@ -195,10 +197,12 @@ def dissolve(f):
     audit('disolucion',row.id,'Confirmar '+mode,row.detalle,reference)
     return row
 
-def register_purchase(p,f):
+def register_purchase(p,f,*,buyer=None,token=None):
     from .finanzas_service import find_day,money,valid_date,text
     if p.source_type!='Retoma' or p.status!='Disponible':raise ValueError('Selecciona una retoma disponible.')
     if db.session.get(CompraPool,p.id):raise ValueError('La compra del POOL ya está registrada en Finanzas.')
+    if token is not None and (len(token)!=32 or db.session.scalar(db.select(Op.id).where(Op.token==token))):
+        raise ValueError('Esta compra ya fue registrada o el formulario venció.')
     date=valid_date(f.get('date'));d=find_day(date)
     if not d or d.status!='Abierta':raise ValueError('Abre la jornada financiera de esta compra.')
     amount=money(f.get('funding'));extra=sum(x['amount_cents'] for x in p.additional_costs or [])
@@ -215,7 +219,7 @@ def register_purchase(p,f):
     elif mode!='Compra directa':raise ValueError('Tipo de compra inválido.')
     if f.get('confirmed')!='1':raise ValueError('Confirma el aporte recibido y los pagos efectuados.')
     gain=amount-p.cost_cents
-    op=Op(day_id=d.id,token=secrets.token_hex(16),kind='Compra POOL',description='COMPRA POOL '+p.imei,seller=actor(),
+    op=Op(day_id=d.id,token=token or secrets.token_hex(16),kind='Compra POOL',description='COMPRA POOL '+p.imei,seller=buyer or actor(),
         amount=gain,minor_cost=0,costs=[],payments=[],product_id=None)
     db.session.add(op);db.session.flush()
     row=CompraPool(producto_id=p.id,tipo=mode,venta_origen_id=origin.id if origin else None,operacion_id=op.id,

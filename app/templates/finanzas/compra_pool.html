@@ -1,40 +1,48 @@
-{% if can('admin') %}
+{% if pool %}
 {% if d.status=='Abierta' and show_pool_form %}
 <section class="panel f-new ui-finance-form" id="compra-pool">
-  <div class="heading"><div><h2>Registrar compra POOL</h2><p class="muted">Jornada del {{ day }}</p></div><a class="btn btn-secondary" href="{{ url_for('finanzas.index',date=day,tab='movimientos') }}">Volver a movimientos</a></div>
-  <p>Registra el aporte de administración para una retoma ya ingresada en Compras e inventario. Su ganancia queda en esta jornada y no aumenta el contador de ventas.</p>
-  <p class="f-help">Ejemplo: administración aporta $600.000 y se pagan $500.000 al cliente, sin otros costos. Quedan $100.000 de ganancia del día. El capital del equipo es $600.000 para no contar esa ganancia otra vez al venderlo.</p>
-  {% if pool.candidates %}
+  <div class="heading"><div><h2>Registrar compra POOL</h2><p class="muted">Compra directa · Jornada {{ day }}</p></div><a class="btn btn-secondary" href="{{ url_for('finanzas.index',date=day,tab='movimientos') }}">Volver a movimientos</a></div>
+  <p>Registra la compra cuando recibes el equipo en el local. Se guardarán juntos el equipo y el movimiento; administración recibirá un pendiente para revisar sus datos adicionales.</p>
+  <script type="application/json" id="catalog-data">{{ pool_catalog|tojson }}</script>
   <form method="post" id="pool-purchase-form">
     {{ hidden('pool_purchase') }}
-    <div class="f-grid">
-      <label>Equipo POOL pendiente de registrar en Finanzas
-        <select name="product_id" required>
-          <option value="">Seleccionar equipo</option>
-          {% for p in pool.candidates %}<option value="{{ p.id }}" data-cost="{{ p.cost_cents }}" data-client="{{ p.purchase_cop_cents or p.cost_cents }}">{{ p.model }} · {{ p.imei }} · Compra y costos {{ p.cost_cents|cop }}</option>{% endfor %}
-        </select>
-      </label>
-      {{ money('funding','Aporte recibido de administración · COP') }}
-      <label>Origen de la compra<select name="purchase_mode"><option>Compra directa</option><option>Parte de pago</option></select></label>
-      <label data-pool-origin hidden>Venta que recibió el equipo como parte de pago
-        <select name="origin_sale_id"><option value="">Seleccionar venta</option>{% for sale,date in pool.sales %}<option value="{{ sale.id }}">{{ date }} · #{{ sale.id }} · {{ sale.description }}</option>{% endfor %}</select>
-      </label>
-      <label>Propiedad del equipo<select name="society_id"><option value="">100 % JONATAN</option>{% for s in pool.societies %}<option value="{{ s.id }}">{{ s.nombre }}</option>{% endfor %}</select></label>
+    <fieldset class="ui-form-section"><legend>Equipo recibido</legend><div class="f-grid">
+      <label>IMEI<input name="imei" inputmode="numeric" pattern="[0-9]{15}" maxlength="15" required autocomplete="off"></label>
+      <div><label for="brand">Marca</label><select id="brand" name="brand_id" required><option value="">Seleccionar marca</option>{% for item in pool_catalog if item.kind=='brand' %}<option value="{{ item.id }}" {{ 'selected' if form.get('brand_id')|string==item.id|string }}>{{ item.name }}</option>{% endfor %}</select></div>
+      {% with catalog=pool_catalog,data=form %}{% include 'inventario/modelo.html' %}{% endwith %}
+      <label>Color<select id="color" name="color_id" data-selected="{{ form.get('color_id','') }}" required><option value="">Selecciona el modelo</option></select></label>
+      <label>Capacidad<select id="capacity" name="capacity_id" data-selected="{{ form.get('capacity_id','') }}" required><option value="">Selecciona el modelo</option></select></label>
+      <label>Local donde queda el equipo<select name="location_id" required><option value="">Seleccionar local</option>{% for item in pool_catalog if item.kind=='location' and 'BODEGA' not in item.name|upper %}<option value="{{ item.id }}">{{ item.name }}</option>{% endfor %}</select></label>
+      {% if can('admin') %}<label>Persona que realizó la compra<select name="seller" required><option value="">Seleccionar persona</option>{% for person in d.config.staff if person.get('attended',true) %}<option>{{ person.name }}</option>{% endfor %}</select></label>{% endif %}
+    </div><p class="muted">Se registra como Usado, proveedor CP CELULARES y sin lote. Comprueba físicamente el IMEI, color y capacidad. Administración podrá completar la garantía y revisar los datos.</p></fieldset>
+    <fieldset class="ui-form-section"><legend>Importes de la compra · COP</legend><div class="f-grid">
+      {{ money('purchase_cop','Pago al cliente · COP') }}
+      {{ money('purchase_gain','Ganancia del local en esta compra · COP','0') }}
+      {{ money('purchase_commission','Comisión de compra · COP','0') }}
+      {{ money('purchase_other','Otros costos pagados · COP','0') }}
+      <label>Detalle de otros costos<input name="purchase_other_detail" maxlength="120" placeholder="Solo si hay otros costos"></label>
+      {{ money('funding','Aporte total recibido de administración · COP') }}
     </div>
-    <p class="muted">La comisión de compra se registra en Inventario → Costos adicionales del equipo. Ya integra su costo total y el aporte mínimo solicitado a administración. No es la comisión extra causada al vender.</p>
-    <div class="f-pool-cost-details">{% for p in pool.candidates %}<div data-pool-cost="{{ p.id }}" hidden><strong>Costo a financiar: {{ p.cost_cents|cop }}</strong><ul><li>Compra al cliente: {{ (p.purchase_cop_cents or p.cost_cents)|cop }}</li>{% for cost in p.additional_costs or [] %}<li>{{ cost.name }}: {{ cost.amount_cents|cop }}</li>{% endfor %}</ul></div>{% endfor %}</div>
-    <div class="f-preview" id="pool-purchase-preview" role="status" aria-live="polite">Selecciona el equipo e ingresa el aporte para consultar la ganancia.</div>
-    <p>Se registrará en la jornada del <strong>{{ day }}</strong>. El aporte debe cubrir la compra y todos los costos registrados del equipo.</p>
-    <label class="f-check"><input type="checkbox" name="confirmed" value="1" required>Confirmo el aporte recibido y el pago de la compra y sus costos. Si es parte de pago, el equipo ya se aplicó a la venta seleccionada.</label>
-    <button class="btn-primary">Registrar compra en jornada</button>
+    <div class="f-preview" id="pool-purchase-preview" role="status" aria-live="polite">Completa los importes para ver el desglose.</div>
+    <p class="muted">Ejemplo: cliente $500.000 + ganancia $100.000 = compra para administración $600.000. Con comisión de compra $20.000, el aporte total y capital del equipo son $620.000. La comisión de venta se calcula aparte cuando se venda.</p></fieldset>
+    <label class="f-check f-confirmation"><input type="checkbox" name="confirmed" value="1" required>Confirmo que recibí el aporte total y efectué los pagos de esta compra.</label>
+    <div class="ui-form-actions"><button class="btn-primary">Guardar compra y equipo</button><a class="btn btn-secondary" href="{{ url_for('finanzas.index',date=day,tab='movimientos') }}">Cancelar</a></div>
   </form>
-  {% else %}<p>No hay retomas disponibles pendientes de registrar en Finanzas. {% if can('inventario') %}<a href="{{ url_for('inventory.new') }}">Ingresar equipo en Compras e inventario</a>.{% endif %}</p>{% endif %}
+  {% if can('admin') and pool.candidates %}<details class="f-info"><summary>Conciliar equipos ingresados antes de este ajuste</summary><p>Solo para retomas que ya están en Inventario y aún no tienen movimiento de compra. No crea otro equipo.</p>
+    <form method="post" id="pool-legacy-form">{{ hidden('pool_purchase') }}<div class="f-grid">
+      <label>Equipo existente<select name="product_id" required><option value="">Seleccionar equipo</option>{% for p in pool.candidates %}<option value="{{ p.id }}">{{ p.model }} · {{ p.imei }} · Costo {{ p.cost_cents|cop }}</option>{% endfor %}</select></label>
+      {{ money('funding','Aporte total recibido · COP') }}
+      <label>Origen<select name="purchase_mode"><option>Compra directa</option><option>Parte de pago</option></select></label>
+      <label>Venta de origen, solo para parte de pago<select name="origin_sale_id"><option value="">Seleccionar venta</option>{% for sale,date in pool.sales %}<option value="{{ sale.id }}">{{ date }} · #{{ sale.id }} · {{ sale.description }}</option>{% endfor %}</select></label>
+      <label>Propiedad<select name="society_id"><option value="">100 % JONATAN</option>{% for s in pool.societies %}<option value="{{ s.id }}">{{ s.nombre }}</option>{% endfor %}</select></label>
+    </div><label class="f-check"><input name="confirmed" value="1" type="checkbox" required>Confirmo el aporte y los pagos efectuados.</label><button class="btn-secondary">Conciliar compra anterior</button></form>
+  </details>{% endif %}
 </section>
 {% endif %}
-{% if pool.purchases and not show_pool_form and not show_operation_form %}
+{% if can('admin') and pool.purchases and not show_pool_form and not show_operation_form %}
 <section class="panel"><h2>Compras POOL de esta jornada · {{ pool.purchases|length }}</h2>
-  <div class="f-table"><table><thead><tr><th>Equipo / origen</th><th>Aporte / capital</th><th>Compra al cliente</th><th>Otros costos</th><th>Ganancia del día</th></tr></thead><tbody>
-    {% for buy,p in pool.purchases %}<tr><td>{{ p.model }}<small>{{ p.imei }} · {{ buy.tipo }}</small></td><td>{{ buy.aporte|cop }}</td><td>{{ buy.pago_cliente|cop }}</td><td>{{ buy.costos_pagados|cop }}</td><td>{{ buy.ganancia|cop }}</td></tr>{% endfor %}
+  <div class="f-table"><table><thead><tr><th>Equipo / origen</th><th>Compra para administración</th><th>Pago al cliente</th><th>Comisión y otros costos de compra</th><th>Aporte total / capital</th><th>Ganancia de compra</th></tr></thead><tbody>
+    {% for buy,p in pool.purchases %}<tr><td>{{ p.model }}<small>{{ p.imei }} · {{ buy.tipo }}</small></td><td>{{ (buy.pago_cliente+buy.ganancia)|cop }}</td><td>{{ buy.pago_cliente|cop }}</td><td>{{ buy.costos_pagados|cop }}</td><td>{{ buy.aporte|cop }}</td><td>{{ buy.ganancia|cop }}</td></tr>{% endfor %}
   </tbody></table></div>
 </section>
 {% endif %}

@@ -61,3 +61,4 @@ jobs:
           else: raise SystemExit('No inició el servidor temporal de UI')
           PYCODE
           node tests/check_business_ui_v18.cjs
+          node tests/check_ajustes_pool_v19.cjs

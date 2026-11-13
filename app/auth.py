@@ -56,7 +56,7 @@ def can(capability):
     if r=='Propietario':return True
     if r=='Administrador':return capability not in ('usuarios','sociedades_config')
     if r=='Inventario':return capability in ('inventario','catalogos','consulta','traslado','costos')
-    if r=='Vendedora':return capability in ('consulta','venta','cobro','finanzas_venta','traslado')
+    if r=='Vendedora':return capability in ('consulta','venta','cobro','finanzas_venta','finanzas_pool','traslado')
     if r=='Socio':return capability=='sociedades_consulta'
     return False
 
@@ -103,6 +103,7 @@ def guard():
     capability='admin'
     if endpoint=='finanzas.index':
         capability='finanzas_venta' if action=='operation' and request.form.get('kind')=='Venta' else 'admin'
+        if action=='pool_purchase' and not request.form.get('product_id'):capability='finanzas_pool'
     elif endpoint.startswith('ventas.'):
         capability='venta' if action in ('handoff','return','reserve','sell','payment','cancel') else 'admin'
         if request.form.get('movement_date'):

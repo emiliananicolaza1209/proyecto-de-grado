@@ -18,7 +18,7 @@
   <link href="{{ url_for('static',filename='css/gestion.css',v='16.1') }}" rel="stylesheet">
   {% if reporte_panel_modulo or section=='analitica' or (request.endpoint and request.endpoint.startswith('reportes.')) %}<link href="{{ url_for('static',filename='css/reportes.css',v='19') }}" rel="stylesheet">{% endif %}
   {% if section=='chat' %}<link href="{{ url_for('static',filename='css/chat.css',v='19') }}" rel="stylesheet">{% endif %}
-  <link href="{{ url_for('static',filename='css/business.css',v='19') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='css/business.css',v='19.1') }}" rel="stylesheet">
   {% if section=='inicio' %}<link href="{{ url_for('static',filename='css/dashboard.css',v='18') }}" rel="stylesheet">{% endif %}
 </head>
 <body class="business-app" data-page-path="{{ current_page }}" data-return-to="{{ back_url }}" data-has-error="{{ 'true' if error|default(none) else 'false' }}">
@@ -60,7 +60,7 @@
 <script src="{{ url_for('static',filename='js/navigation.js',v='19') }}" defer></script>
 <script src="{{ url_for('static',filename='js/inventario.js',v='12') }}" defer></script>
 {% if section=='ventas' %}<script src="{{ url_for('static',filename='js/ventas.js',v='2') }}" defer></script>{% endif %}
-{% if section=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='19') }}" defer></script>{% endif %}
+{% if section=='finanzas' %}<script src="{{ url_for('static',filename='js/finanzas.js',v='19.1') }}" defer></script>{% endif %}
 {% if section=='tributario' %}<script src="{{ url_for('static',filename='js/contabilidad.js',v='16.2') }}" defer></script>{% endif %}
 {% if request.endpoint=='catalogos.index' %}<script src="{{ url_for('static',filename='js/catalogos.js',v='16.2') }}" defer></script>{% endif %}
 {% if reporte_panel_modulo or (request.endpoint and request.endpoint.startswith('reportes.')) %}<script src="{{ url_for('static',filename='js/reportes.js',v='19') }}" defer></script>{% endif %}

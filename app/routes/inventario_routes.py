@@ -8,6 +8,23 @@ from ..services.operacion_service import today, ALLOWED
 inventory = Blueprint('inventory', __name__)
 
 
+@inventory.post('/inventario/<int:product_id>/revision-pool')
+def review_pool(product_id):
+    from ..auth import can
+    if not can('admin'):abort(403)
+    from ..database import begin_write
+    from ..extensions import db
+    from ..services.pool_compra_service import review
+    try:
+        begin_write()
+        review(product_id, request.form.get('pending_id'), request.form.get('note'))
+        db.session.commit()
+        flash('Compra POOL revisada. Se conserva el equipo y su movimiento original.')
+    except ValueError as exc:
+        db.session.rollback();flash(str(exc), 'error')
+    return redirect(url_for('inventory.detail', product_id=product_id))
+
+
 @inventory.get('/inventario')
 def index():
     query = request.args.get('q', '').strip()
@@ -26,7 +43,9 @@ def index():
     for row in rows:
         key = row['reference_id']
         counts.setdefault(key, {'model':row['model'], 'count':0})['count'] += 1
-    context = dict(rows=rows, query=query, archived=archived, sold=sold, all_items=all_items, counts=list(counts.values()), active='inventario',pool=service.pool_summary(),
+    from ..auth import can
+    from ..services.pool_compra_service import pending
+    context = dict(rows=rows, query=query, archived=archived, sold=sold, all_items=all_items, counts=list(counts.values()), active='inventario',pool=service.pool_summary(),pool_pending=pending() if can('admin') else [],
                            total=service.stats()['total'], locations=list_items('location',True), location=location)
     if request.args.get('fragment') == '1':
         return render_template('inventario/resultados.html', **context)
@@ -98,6 +117,8 @@ def detail(product_id):
     options = list_items()
     current_ids = {getattr(product,k+'_id') for k in ('reference','color','capacity','supplier','location')}
     options = [r for r in options if r['active'] or r['id'] in current_ids]
+    from ..services.pool_compra_service import pending
     return render_template('inventario/detalle.html', product=product.to_dict(),data=data,error=error,
+                           pool_pending=pending(product_id) if can('admin') else [],
                            events=service.history(product_id),catalog=options,conditions=CONDITIONS,
                            now_date=today(),operations=ALLOWED.get(product.status,[])+([('correct_date','Corregir fecha del último movimiento')] if product.movement_date else []),active='inventario')
