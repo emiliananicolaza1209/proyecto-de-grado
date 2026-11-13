@@ -101,7 +101,9 @@ def guard():
     endpoint=request.endpoint
     if role()=='Socio' and endpoint not in ('gestion.sociedades','gestion.inversion'):
         return redirect(url_for('gestion.sociedades'))
-    params=dict(request.values)
+    # La autorización debe leer la misma fuente que procesa cada escritura.
+    # request.values prioriza la URL y permitiría ocultar el action/kind del POST.
+    params=dict(request.args if request.method in ('GET','HEAD','OPTIONS') else request.form)
     route_args=dict(request.view_args or {})
     if role()=='Socio':route_args['_socio']=True
     keys=route_keys(endpoint,request.method,params,route_args)

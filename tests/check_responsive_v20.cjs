@@ -26,7 +26,7 @@ fs.mkdirSync(out,{recursive:true});
   const browser=await launcher.launch({headless:true});
   try{
    for(const [label,width,height] of sizes.filter(s=>engine==='chromium'||[375,390,430,768,810,1024].includes(s[1]))){
-    const context=await browser.newContext({viewport:{width,height},isMobile:width<=1024,hasTouch:width<=1024,deviceScaleFactor:width===375?2:width<600?3:width<=1024?2:1});
+    const context=await browser.newContext({viewport:{width,height},locale:'es-CO',timezoneId:'America/Bogota',isMobile:width<=1024,hasTouch:width<=1024,deviceScaleFactor:width===375?2:width<600?3:width<=1024?2:1});
     await context.route('**/*',route=>['GET','HEAD','OPTIONS'].includes(route.request().method())?route.continue():route.abort());
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
@@ -59,14 +59,14 @@ fs.mkdirSync(out,{recursive:true});
         assert.equal(await page.locator('#contenido').evaluate(el=>el.inert),false);
        }
        assert.deepEqual(errors.slice(startErrors),[],'Errores JavaScript');
-       report.checks.push({engine,label,width,height,url,ok:true});
        if(['/usuarios','/modulos/tributario/','/finanzas?accion=registrar'].includes(url)&&[390,768,1366].includes(width)){
-        await page.screenshot({path:path.join(out,`${engine}-${width}-${url==='/usuarios'?'usuarios':url.startsWith('/modulos')?'contabilidad':'finanzas'}.png`),fullPage:true});
+        await page.screenshot({path:path.join(out,`${engine}-${width}-${url==='/usuarios'?'usuarios':url.startsWith('/modulos')?'contabilidad':'finanzas'}.png`),fullPage:false});
        }
+       report.checks.push({engine,label,width,height,url,ok:true});
       }catch(error){
        report.checks.push({engine,label,width,height,url,ok:false,error:error.message});
        report.errors.push({engine,label,url,error:error.message});
-       await page.screenshot({path:path.join(out,`fallo-${engine}-${width}-${report.checks.length}.png`),fullPage:true}).catch(()=>{});
+       await page.screenshot({path:path.join(out,`fallo-${engine}-${width}-${report.checks.length}.png`),fullPage:false}).catch(()=>{});
        if(report.errors.length>=15)throw new Error('Se detiene la revisión tras 15 fallos. Revisa resultado.json y las capturas.');
       }
      }

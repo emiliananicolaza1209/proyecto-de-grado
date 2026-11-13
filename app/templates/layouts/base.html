@@ -19,7 +19,7 @@
   {% if section=='usuarios' %}<link href="{{ url_for('static',filename='css/usuarios.css',v='20') }}" rel="stylesheet">{% endif %}
   {% if reporte_panel_modulo or section=='analitica' or (request.endpoint and request.endpoint.startswith('reportes.')) %}<link href="{{ url_for('static',filename='css/reportes.css',v='19') }}" rel="stylesheet">{% endif %}
   {% if section=='chat' %}<link href="{{ url_for('static',filename='css/chat.css',v='19') }}" rel="stylesheet">{% endif %}
-  <link href="{{ url_for('static',filename='css/business.css',v='20') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='css/business.css',v='20.1') }}" rel="stylesheet">
   {% if section=='inicio' %}<link href="{{ url_for('static',filename='css/dashboard.css',v='18') }}" rel="stylesheet">{% endif %}
 </head>
 <body class="business-app" data-page-path="{{ current_page }}" data-return-to="{{ back_url }}" data-has-error="{{ 'true' if error|default(none) else 'false' }}">

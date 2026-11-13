@@ -131,5 +131,23 @@ class AccessTests(unittest.TestCase):
         client=self.login(self.user(keys=['finanzas.ver','finanzas.movimientos']))
         self.assertEqual(client.post('/finanzas',data=dict(csrf='test',date=self.day,action='operation',kind='Pago sueldo')).status_code,403)
 
+    def test_query_parameters_cannot_override_post_permission(self):
+        from jornada_fixtures import opening
+        client=self.login(self.user(keys=['finanzas.ver','finanzas.compra_pool']))
+        before=self.d.config.copy()
+        form=opening(self.day)
+        form.update(csrf='test',date=self.day,revision=self.d.revision,action='config',normal_base='90000')
+        response=client.post('/finanzas?action=pool_purchase',data=form)
+        self.assertEqual(response.status_code,403)
+        db.session.refresh(self.d);self.assertEqual(self.d.config,before)
+        sales=self.login(self.user(keys=['finanzas.ver','finanzas.venta']))
+        response=sales.post('/finanzas?kind=Venta',data=dict(csrf='test',date=self.day,action='operation',kind='Pago sueldo'))
+        self.assertEqual(response.status_code,403)
+        response=sales.post('/finanzas?action=config&kind=Pago+sueldo',data=dict(csrf='test',date=self.day,
+            revision=self.d.revision,action='operation',kind='Venta',description='VENTA PERMITIDA CON URL AJENA',
+            seller='ANA',token=secrets.token_hex(16),amount='120000',minor_cost='0',
+            payment_account='EFECTIVO',payment_amount='120000'))
+        self.assertEqual(response.status_code,302)
+
 
 if __name__=='__main__':unittest.main()
