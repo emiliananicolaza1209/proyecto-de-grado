@@ -8,8 +8,10 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from ..extensions import db
 from ..auth import require,can,ROLES
+from ..passwords import validar_clave
 from ..models import Catalogo,Lote,Producto,PersonaContable,BancoDestino,PersonaBanco
 from ..models.finanzas import Jornada,OperacionFinanciera as Op
 from ..models.gestion import *
@@ -87,6 +89,7 @@ def lotes():
 @gestion.route('/inventario/compras/<int:lot_id>',methods=['GET','POST'])
 @require('inventario')
 def lote(lot_id):
+    if not db.session.get(Lote,lot_id):abort(404)
     def write():
         lot=get_id(Lote,lot_id);c=compras.control(lot_id,request.form.get('revision'));action=request.form.get('action')
         if action=='add':
@@ -142,12 +145,21 @@ def plantilla():
     out=BytesIO();w.save(out);out.seek(0)
     return send_file(out,as_attachment=True,download_name='Plantilla_lote_CP_Store.xlsx')
 
+def _factura_valida(nombre):
+    """Las facturas se guardan con 48 caracteres hexadecimales y una extensión conocida; cualquier otra cosa no se sirve."""
+    nombre=nombre or '';base=nombre[:-4] if nombre[-4:] in ('.pdf','.png','.jpg') else ''
+    return len(base)==48 and all(c in '0123456789abcdef' for c in base)
+
 @gestion.get('/inventario/facturas/<int:invoice_id>')
 @require('inventario')
 def factura(invoice_id):
-    row=get_id(FacturaLote,invoice_id);path=Path(current_app.instance_path)/'facturas'/row.archivo
-    if not path.exists():abort(404)
-    return send_file(path,mimetype=row.mime,as_attachment=True,download_name=row.nombre)
+    row=db.session.get(FacturaLote,invoice_id)
+    if not row or not _factura_valida(row.archivo):abort(404)
+    carpeta=(Path(current_app.instance_path)/'facturas').resolve();path=(carpeta/row.archivo).resolve()
+    if path.parent!=carpeta or not path.is_file():abort(404)  # nunca fuera de instance/facturas (tampoco por un enlace simbólico)
+    respuesta=send_file(path,mimetype=row.mime,as_attachment=True,download_name=secure_filename(row.nombre or '') or 'factura'+path.suffix)
+    respuesta.headers['Cache-Control']='private, no-store'
+    return respuesta
 
 @gestion.route('/inventario/articulos',methods=['GET','POST'])
 @require('inventario')
@@ -180,7 +192,7 @@ def articulos():
         categories=db.session.scalars(db.select(CategoriaStock)).all(),movements=db.session.scalars(db.select(MovimientoStock).order_by(MovimientoStock.id.desc()).limit(100)).all(),**context())
 
 @gestion.route('/finanzas/creditos',methods=['GET','POST'])
-@require('finanzas_venta')
+@require('admin')  # la lista trae comisiones y montos de todas las ventas: solo administración (pendiente 7, opción 1)
 def creditos():
     def write():
         if not can('admin'):abort(403)
@@ -261,7 +273,7 @@ def usuarios():
                 raise ValueError('Debe permanecer un propietario activo.')
         password=f.get('password','')
         if password or not u.id:
-            if len(password)<12:raise ValueError('La contraseña debe tener al menos 12 caracteres.')
+            validar_clave(password,f.get('login'),f.get('name'))
             u.password_hash=generate_password_hash(password)
         u.nombre=text(f.get('name'));u.login=f.get('login','').strip().lower()
         if not u.login or len(u.login)>120:raise ValueError('Usuario inválido.')
@@ -276,7 +288,9 @@ def usuarios():
 def historial():
     rows=db.select(RegistroGestion).order_by(RegistroGestion.id.desc())
     if request.args.get('entidad'):rows=rows.where(RegistroGestion.entidad==request.args['entidad'])
-    if request.args.get('id'):rows=rows.where(RegistroGestion.entidad_id==int(request.args['id']))
+    if request.args.get('id'):
+        try:rows=rows.where(RegistroGestion.entidad_id==int(request.args['id']))
+        except ValueError:abort(400,'El id debe ser un número.')
     return render_template('gestion/historial.html',active='finanzas',rows=db.session.scalars(rows.limit(300)).all())
 
 @gestion.get('/inventario/inversion')
@@ -287,8 +301,15 @@ def inversion():
     if user and user.rol=='Socio' and not sid:abort(403)
     from ..services.gestion_comun import distribute
     totals={}
+    # Inventario necesita saber cuántos equipos hay en cada ubicación, no cuánto capital tiene cada socio.
+    solo_ubicacion=not sid and not can('admin')
+    por_ubicacion={}
     for p in db.session.scalars(db.select(Producto).where(Producto.archived==0,Producto.status!='Vendido')):
         if p.status=='Garantía' and p.warranty_previous=='Vendido':continue
+        if solo_ubicacion:
+            nombre=p.location_item.name if p.location_item else p.location
+            por_ubicacion[nombre]=por_ubicacion.get(nombre,0)+1
+            continue
         own=db.session.get(PropiedadEquipo,p.id);parts=own.participaciones if own else sociedad.snapshot()
         amounts=distribute(own.capital if own else p.cost_cents,[x['capital_bp'] for x in parts])
         for part,amount in zip(parts,amounts):
@@ -296,4 +317,7 @@ def inversion():
             name=p.location_item.name if p.location_item else p.location
             key=(name,part['socio_id']);item=totals.setdefault(key,dict(location=name,partner=part['nombre'],capital=0,count=0))
             item['capital']+=amount;item['count']+=1
-    return render_template('gestion/inversion.html',active='ventas',rows=list(totals.values()),total=sum(x['capital'] for x in totals.values()))
+    if solo_ubicacion:
+        return render_template('gestion/inversion.html',active='ventas',solo_ubicacion=True,
+            rows=[dict(location=k,count=v) for k,v in sorted(por_ubicacion.items(),key=lambda x:str(x[0]))],total=None)
+    return render_template('gestion/inversion.html',active='ventas',solo_ubicacion=False,rows=list(totals.values()),total=sum(x['capital'] for x in totals.values()))

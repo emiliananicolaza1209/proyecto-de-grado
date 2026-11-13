@@ -1,11 +1,13 @@
 import csv
 import io
 import json
-from flask import Blueprint, request, render_template, jsonify, send_file, abort, redirect, url_for, flash
+from flask import Blueprint, request, render_template, jsonify, send_file, abort, redirect, url_for, flash, g, Response
 from openpyxl import Workbook
 from ..extensions import db
 from ..auth import require, can, role
 from ..services import reportes_service as svc, alertas_service as alerts
+from ..services import consultas_service as cs, reporte_service
+from ..services.operacion_service import today
 from ..services import reportes_presentacion as presentation
 from ..services.gestion_comun import audit
 
@@ -112,16 +114,16 @@ def user_export(kind,fmt,data):
     return send_file(io.BytesIO(out.getvalue().encode('utf-8-sig')),as_attachment=True,download_name=f'cpstore_{kind}.csv',mimetype='text/csv')
 
 
-@reportes.route('/analitica',methods=['GET','POST'])
+@reportes.route('/analitica/alertas',methods=['GET','POST'])
 @require('admin')
-def analytics():
+def alerts_page():
     error=None
     if request.method=='POST':
         try:
             if request.form.get('action')=='config':alerts.settings(request.form.get('days'),request.form.get('reason',''))
             elif request.form.get('action')=='estado':alerts.transition(request.form.get('key'),request.form.get('state'),request.form.get('reason',''))
             else:raise ValueError('Acción inválida.')
-            db.session.commit();return redirect(url_for('reportes.analytics',**request.args))
+            db.session.commit();return redirect(url_for('reportes.alerts_page',**request.args))
         except ValueError as e:db.session.rollback();error=str(e)
     try:data=svc.comparison(request.args)
     except ValueError as e:data=None;error=str(e)
@@ -138,3 +140,69 @@ def consult():
         db.session.commit()
         return render_template('reportes/consulta.html',data=data,tool=tool,active='analitica')
     except ValueError as e:db.session.rollback();abort(400,str(e))
+
+
+ACTIVOS = {'ventas': 'ventas', 'finanzas': 'finanzas', 'inventario': 'inventario'}
+# Páginas donde aparece el botón de reporte: endpoint -> módulo del reporte.
+PAGINAS_CON_PANEL = {'ventas.index': 'ventas', 'inventory.index': 'inventario', 'finanzas.index': 'finanzas'}
+
+
+@reportes.app_context_processor
+def contexto_del_panel():
+    modulo = PAGINAS_CON_PANEL.get(request.endpoint) if can('reportes') else None
+    return {'reporte_panel_modulo': modulo, 'reporte_opciones': reporte_service.OPCIONES,
+            'reporte_estados': reporte_service.ETIQUETAS_ESTADO, 'reporte_hoy': today(),
+            'reporte_seleccion_inicial': {'tipo': 'semana', 'ini': '', 'fin': '', 'umbral': '', 'comparar': False},
+            'reporte_umbral_defecto': cs.UMBRAL_PERMANENCIA_DIAS, 'reporte_umbral_maximo': cs.MAX_UMBRAL_DIAS,
+            'reporte_modulos_que_comparan': [m for m, c in reporte_service.MODULOS.items() if c['comparar']]}
+
+
+def _exportaciones(reporte):
+    """Enlaces a las exportaciones que ya existen en la aplicación, para el mismo periodo (solo si el perfil puede usarlas)."""
+    periodo, enlaces = reporte['periodo'], []
+    if reporte['modulo'] == 'ventas' and periodo and can('contabilidad'):
+        for etiqueta, endpoint in (('Paquete para el contador (Excel)', 'contabilidad.paquete_excel'),
+                                   ('Paquete para el contador (PDF)', 'contabilidad.paquete_pdf'),
+                                   ('Consolidado contable (CSV)', 'contabilidad.exportar_csv')):
+            enlaces.append({'etiqueta': etiqueta, 'url': url_for(endpoint, ini=periodo['ini'], fin=periodo['fin'])})
+    if reporte['modulo'] == 'finanzas' and can('admin'):
+        resultado = next((r for r in reporte['resultados'] if r['consulta'] == 'resumen_financiero'), None)
+        for fila in ((resultado or {}).get('detalle') or {}).get('por_jornada', [])[:62]:
+            enlaces.append({'etiqueta': f"Jornada {fila['fecha']} (CSV de Finanzas)", 'url': url_for('finanzas.export', date=fila['fecha'])})
+    return enlaces
+
+
+@reportes.get('/reportes/<modulo>')
+@require('reportes')
+def ver(modulo):
+    if modulo not in reporte_service.MODULOS:
+        abort(404)
+    usuario = getattr(g, 'usuario', None)
+    seleccion = {'tipo': request.args.get('periodo', 'semana'), 'ini': request.args.get('ini', ''), 'fin': request.args.get('fin', ''),
+                 'umbral': request.args.get('umbral', ''), 'comparar': request.args.get('comparar') == '1'}
+    error, reporte = None, None
+    try:
+        reporte = reporte_service.generar(role(), modulo, seleccion['tipo'], seleccion['ini'], seleccion['fin'],
+                                          usuario=usuario.nombre if usuario else None, usuario_id=usuario.id if usuario else 0,
+                                          comparar=seleccion['comparar'], umbral=seleccion['umbral'])
+    except reporte_service.ReporteInvalido as exc:
+        error = str(exc)
+    formato = request.args.get('formato', 'html')
+    if reporte and formato == 'csv':
+        periodo = reporte['periodo']
+        nombre = f"reporte_{modulo}_{periodo['ini']}_{periodo['fin']}.csv" if periodo else f"reporte_{modulo}_{reporte['generado_en']}.csv"
+        return Response('﻿' + reporte_service.a_csv(reporte), mimetype='text/csv; charset=utf-8',
+                        headers={'Content-Disposition': f'attachment; filename={nombre}', 'Cache-Control': 'no-store'})
+    return render_template('reportes/ver.html', active=ACTIVOS[modulo], modulo=modulo, reporte=reporte, error=error,
+                           seleccion=seleccion, tipos=reporte_service.ETIQUETAS_TIPO, conf=reporte_service.MODULOS[modulo],
+                           exportaciones=_exportaciones(reporte) if reporte else []), (400 if error else 200)
+
+
+@reportes.get('/analitica')
+@require('reportes')
+def analytics():
+    datos=reporte_service.resumen_tarjetas(role(),request.args.get('periodo','semana'))
+    for t in datos['tarjetas']:
+        modulo,tipo,ini,fin=t['enlace']
+        t['url']=url_for('reportes.ver',modulo=modulo,**{k:v for k,v in (('periodo',tipo),('ini',ini),('fin',fin)) if v})
+    return render_template('reportes/resumen_analitico.html',active='analitica',analitica=datos,analitica_tipos=reporte_service.RESUMEN_TIPOS)

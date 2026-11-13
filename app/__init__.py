@@ -82,7 +82,9 @@ def create_app(config=None):
     from .routes.gestion_routes import gestion
     app.register_blueprint(gestion)
     from .routes.reportes_routes import reportes
+    from .routes.chat_routes import chat
     app.register_blueprint(reportes)
+    app.register_blueprint(chat)
     from .respaldo import register as register_backups
     register_backups(app)
     # PostgreSQL serializa las escrituras web antes de leer saldos o existencias.

@@ -32,6 +32,7 @@ def parse_cost(name,quantity,unit):
     if not article.activo or not category.activa:raise ValueError('El artículo o su categoría no está activo.')
     q=int(quantity)
     if q<1 or q>10000:raise ValueError('Revisa la cantidad del artículo.')
+    if not str(unit).strip():unit=f'{article.costo_administracion/100:.2f}'
     if money(unit)!=article.costo_administracion:raise ValueError('El costo del artículo debe coincidir con el fijado por administración.')
     serial=parts[1].strip() if len(parts)>1 else None
     if article.serializado and (q!=1 or not serial):raise ValueError('Usa ID/SERIAL para el repuesto serializado.')

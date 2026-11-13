@@ -1,4 +1,5 @@
 """Totales por banco consistentes con el control anual y sin alterar movimientos."""
+from _cleanup import release
 import tempfile
 import unittest
 from datetime import datetime
@@ -29,7 +30,7 @@ class BankSummaryTests(unittest.TestCase):
         with self.client.session_transaction() as session:session['csrf']='test'
 
     def tearDown(self):
-        db.session.remove();db.engine.dispose();self.ctx.pop();self.tmp.cleanup()
+        release(self.app);self.ctx.pop();self.tmp.cleanup()
 
     def deposit(self,amount,bank=None,person=None,date='2026-10-01',active=True):
         row=ConsignacionBancaria(persona_id=(person or self.emily).id,banco_id=bank.id if bank else None,

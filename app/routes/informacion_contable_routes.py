@@ -1,14 +1,29 @@
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, Response, g
 from sqlalchemy.exc import IntegrityError
+from decimal import Decimal, InvalidOperation
 from app.extensions import db
 from app.models.contabilidad import PersonaContable, BancoDestino, PersonaBanco, ConsignacionBancaria, HistorialConsignacion
 from app.models.finanzas import OperacionFinanciera
-from app.services.contabilidad_service import evaluar_estado_renta, resumir_por_banco
+from app.services.contabilidad_service import (
+    evaluar_estado_renta, resumir_por_banco, consolidar_periodo,
+    generar_csv, registrar_reporte, ultimos_reportes, parse_period,
+    registrar_ingreso_gasto, corregir_clasificacion, movimientos_periodo, datos_paquete,
+    ultimas_correcciones, CATEGORIAS_INGRESO_GASTO, ACTOR_ANONIMO,
+)
 from app.services.operacion_service import today
+from app.services.paquete_contador_service import construir_modelo, generar_excel, generar_pdf
+from app.auth import require
+from app.models.contabilidad import ahora_colombia
 from app.services.personas_contables import (nueva_persona, coincidencias, banco_por_nombre,
     asociar_banco, banco_de_persona)
+
+
+def _actor():
+    """Usuario autenticado para la auditoría contable; sin login (modo local) queda anónimo."""
+    user = getattr(g, 'usuario', None)
+    return user.login if user is not None else ACTOR_ANONIMO
 
 # Definición del Blueprint con su prefijo
 contabilidad_bp = Blueprint('contabilidad', __name__, url_prefix='/modulos/tributario')
@@ -28,8 +43,19 @@ def destino_consignacion(c):
         if payment and payment.account=='DATÁFONO':return 'DATÁFONO'
     return 'Sin banco identificado'
 
-@contabilidad_bp.route('/')
+@contabilidad_bp.route('/', strict_slashes=False)
 def index(form_error=None,matched_person=None):
+    error = None
+    try:
+        ini, fin = parse_period(request.args.get('ini'), request.args.get('fin'))
+    except ValueError as exc:
+        error = str(exc)
+        ini, fin = parse_period(None, None)
+    try:
+        consolidado = consolidar_periodo(ini, fin)
+        movimientos = movimientos_periodo(ini, fin)
+    except ValueError as exc:
+        consolidado, movimientos, error = None, [], str(exc)
     personas = PersonaContable.query.order_by(PersonaContable.nombre).all()
     bancos = BancoDestino.query.order_by(BancoDestino.nombre).all()
     try: anio=int(request.args.get('anio',date.today().year))
@@ -49,10 +75,10 @@ def index(form_error=None,matched_person=None):
             "estado": estado,
             "desglose": desglose[p.id]
         })
-        
+
     return render_template(
-        'contabilidad/index.html', 
-        reporte_personal=reporte_personal, 
+        'contabilidad/index.html',
+        reporte_personal=reporte_personal,
         destinatarios=personas, # Pasamos esto para el selector del formulario
         bancos=bancos,
         persona_bancos=persona_bancos,abrir_bancos=detalle_bancos in desglose,
@@ -63,6 +89,11 @@ def index(form_error=None,matched_person=None):
         consignaciones=ConsignacionBancaria.query.order_by(ConsignacionBancaria.fecha.desc(),ConsignacionBancaria.id.desc()).limit(150).all(),
         historial=HistorialConsignacion.query.order_by(HistorialConsignacion.id.desc()).limit(100).all(),
         ventas=OperacionFinanciera.query.filter(OperacionFinanciera.person_id.isnot(None),OperacionFinanciera.voided==False).order_by(OperacionFinanciera.id.desc()).limit(50).all(),
+        consolidado=consolidado, ini=ini, fin=fin, error=error,
+        movimientos=movimientos,
+        correcciones=ultimas_correcciones(),
+        categorias=CATEGORIAS_INGRESO_GASTO,
+        reportes=ultimos_reportes(),
         active='tributario'  # Ilumina la opción en el sidebar
     )
 
@@ -78,6 +109,107 @@ def verificar_persona():
                 'bancos':[link.banco.nombre for link in person.bancos_asociados]}
     return jsonify(exact=[item(p) for p in exact],similar=[item(p) for p in similar])
 
+
+@contabilidad_bp.get('/export.csv')
+def exportar_csv():
+    """HU-TRI-002: exporta el consolidado del periodo y registra quién/cuándo."""
+    try:
+        ini, fin = parse_period(request.args.get('ini'), request.args.get('fin'))
+        consolidado = consolidar_periodo(ini, fin)
+    except ValueError as exc:
+        flash(str(exc), 'danger')
+        return redirect(url_for('contabilidad.index'))
+    registrar_reporte(ini, fin, consolidado, _actor(), formato='csv')
+    data = generar_csv(consolidado, _actor())
+    return Response(
+        data,
+        mimetype='text/csv; charset=utf-8',
+        headers={'Content-Disposition': f'attachment; filename=consolidado_{ini}_{fin}.csv'},
+    )
+
+
+_PAQUETE_TIPOS = {
+    'xlsx': ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', generar_excel),
+    'pdf': ('application/pdf', generar_pdf),
+}
+
+
+def _descargar_paquete(formato):
+    """Paquete para el contador (Excel o PDF): mismos datos que la pantalla y el CSV, en memoria.
+
+    Solo Propietario y Administrador (capacidad 'contabilidad'); queda registrado quién, cuándo y qué formato.
+    """
+    mimetype, generador = _PAQUETE_TIPOS[formato]
+    try:
+        datos = datos_paquete(request.args.get('ini'), request.args.get('fin'))
+    except ValueError as exc:
+        flash(str(exc), 'danger')
+        return redirect(url_for('contabilidad.index'))
+    actor = _actor()
+    modelo = construir_modelo(datos, actor, ahora_colombia().strftime('%Y-%m-%d %H:%M'))
+    contenido = generador(modelo)
+    registrar_reporte(datos['ini'], datos['fin'], datos['consolidado'], actor, formato=formato)
+    respuesta = Response(contenido, mimetype=mimetype, headers={
+        'Content-Disposition': f"attachment; filename=paquete_contador_{datos['ini']}_{datos['fin']}.{formato}",
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+    })
+    return respuesta
+
+
+@contabilidad_bp.get('/paquete.xlsx')
+@require('contabilidad')
+def paquete_excel():
+    return _descargar_paquete('xlsx')
+
+
+@contabilidad_bp.get('/paquete.pdf')
+@require('contabilidad')
+def paquete_pdf():
+    return _descargar_paquete('pdf')
+
+
+@contabilidad_bp.post('/ingreso-gasto/nuevo')
+def registrar_movimiento():
+    """HU-FIN-001/002: registra un ingreso o gasto para el consolidado."""
+    try:
+        registrar_ingreso_gasto({
+            'tipo': request.form.get('tipo'),
+            'concepto': request.form.get('concepto'),
+            'categoria': request.form.get('categoria'),
+            'valor': request.form.get('valor'),
+            'fecha': request.form.get('fecha'),
+            'relacion': request.form.get('relacion'),
+            'soporte_ref': request.form.get('soporte_ref'),
+            'responsable': request.form.get('responsable'),
+        }, _actor())
+        flash('Movimiento registrado exitosamente.', 'success')
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), 'danger')
+    except Exception:
+        db.session.rollback()
+        flash('No fue posible registrar el movimiento. Revisa los datos e intenta de nuevo.', 'danger')
+    return redirect(url_for('contabilidad.index'))
+
+
+@contabilidad_bp.post('/clasificacion/<int:ig_id>')
+def corregir(ig_id):
+    """HU-TRI-003: corrige la categoría conservando anterior, nueva y motivo."""
+    try:
+        corregir_clasificacion(ig_id, request.form.get('nueva_categoria'),
+                               request.form.get('motivo'), _actor())
+        flash('Clasificación corregida y registrada en auditoría.', 'success')
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), 'danger')
+    except Exception:
+        db.session.rollback()
+        flash('No fue posible corregir la clasificación.', 'danger')
+    return redirect(url_for('contabilidad.index'))
+
+
+
 @contabilidad_bp.route('/consignacion/nueva', methods=['POST'])
 def registrar_consignacion():
     try:
@@ -91,10 +223,13 @@ def registrar_consignacion():
             motivo='Registro inicial',despues=datos_consignacion(nueva_cons)))
         db.session.commit()
         flash("Consignación registrada exitosamente.", "success")
-    except (ValueError, TypeError, InvalidOperation) as e:
+    except (ValueError, TypeError, InvalidOperation) as exc:
         db.session.rollback()
-        flash(f"Error al registrar la consignación: {str(e)}", "danger")
-        
+        flash(str(exc), "danger")
+    except Exception:
+        db.session.rollback()
+        flash("No fue posible registrar la consignación. Revisa los datos e intenta de nuevo.", "danger")
+
     return redirect(url_for('contabilidad.index'))
 
 
@@ -174,8 +309,11 @@ def agregar_banco_persona_actual():
 
 @contabilidad_bp.route('/crear-banco', methods=['POST'])
 def crear_banco():
-    nombre_banco = request.form.get('nombre_banco')
+    nombre_banco = (request.form.get('nombre_banco') or '').strip()
     if nombre_banco:
+        if not 2 <= len(nombre_banco) <= 60:
+            flash('El nombre del banco debe tener entre 2 y 60 caracteres.', 'warning')
+            return redirect(url_for('contabilidad.index'))
         try:
             nuevo,created=banco_por_nombre(nombre_banco)
             db.session.commit()
@@ -183,9 +321,9 @@ def crear_banco():
         except IntegrityError:
             db.session.rollback()
             flash('Este banco ya se encuentra registrado.', 'danger')
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'Error al registrar el banco: {str(e)}', 'danger')
+            flash('No fue posible registrar el banco.', 'danger')
     else:
         flash('El nombre del banco es obligatorio.', 'warning')
         

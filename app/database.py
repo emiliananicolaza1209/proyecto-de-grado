@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 from .extensions import db
 
 WRITE_LOCK = 0x435053544f52
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+# Versión 2 del esquema PostgreSQL: agrega solo las tablas del módulo contable (v17/v18 de SQLite). Sin columnas nuevas en tablas existentes.
+SCHEMA_V2_TABLES = ('ingresos_gastos', 'correcciones_clasificacion', 'reportes_generados')
 
 
 def configure_database(app, root, config=None):
@@ -60,14 +62,20 @@ def initialize_sqlite(app):
         connection.execute('PRAGMA foreign_keys=ON')
     event.listen(db.engine, 'connect', foreign_keys)
     db.create_all()
+    # v19 repara bases con la numeración de Andres (v11/v12 distintas); debe ir antes de v13.
+    from migrations.reconciliacion_v19 import upgrade_v19
     from migrations.integracion import upgrade as integration, upgrade_v12, upgrade_v13
     from migrations.finanzas_v14 import upgrade as v14
     from migrations.finanzas_v15 import upgrade as v15
+    from migrations.contabilidad_v17 import upgrade_v17, upgrade_v18
+    upgrade_v19(database)
     integration(database)
     upgrade_v12(database)
     upgrade_v13(database)
     v14(database)
     v15(database)
+    upgrade_v17(database)
+    upgrade_v18(database)
     seed()
 
 
@@ -129,7 +137,10 @@ def seed_catalogs(connection):
     connection.execute(insert(Socio.__table__).values(nombre='JONATAN').on_conflict_do_nothing())
 
 
-def initialize_postgres():
+def initialize_postgres(allow_create=True):
+    """Prepara PostgreSQL. Devuelve False si no hizo nada, 'creada' si la base era nueva o 'actualizada' si subió de la versión 1 a la 2.
+
+    Todo ocurre en una sola transacción con el bloqueo común: si algo falla, no queda nada a medias. Nunca borra ni modifica filas."""
     if db.engine.name != 'postgresql':
         raise click.ClickException('Configura DATABASE_URL para PostgreSQL. SQLite no se modifica.')
     metadata = MetaData()
@@ -139,25 +150,48 @@ def initialize_postgres():
         tables = set(inspect(conn).get_table_names())
         if 'cp_schema_revision' in tables:
             version = conn.scalar(db.select(versions.c.version))
-            if version != SCHEMA_VERSION:
-                raise click.ClickException('Versión de esquema no compatible. No se modificó la base.')
-            if not set(db.metadata.tables).issubset(tables):
-                raise click.ClickException('Faltan tablas en un esquema existente. Requiere revisión.')
-            return False
+            if version == SCHEMA_VERSION:
+                if not set(db.metadata.tables).issubset(tables):
+                    raise click.ClickException('Faltan tablas en un esquema existente. Requiere revisión.')
+                return False
+            if version == 1:
+                # Subida 1 -> 2: solo se crean las tablas nuevas (si ya existen se respetan); el resto debe estar completo y no se toca.
+                if not (set(db.metadata.tables) - set(SCHEMA_V2_TABLES)).issubset(tables):
+                    raise click.ClickException('Faltan tablas en un esquema existente. Requiere revisión.')
+                for nombre in SCHEMA_V2_TABLES:
+                    db.metadata.tables[nombre].create(conn, checkfirst=True)
+                actualizadas = conn.execute(versions.update().where(versions.c.version == 1).values(version=2)).rowcount
+                if actualizadas != 1:
+                    raise click.ClickException('No se pudo registrar la versión 2 del esquema. No se modificó la base.')
+                return 'actualizada'
+            raise click.ClickException('Versión de esquema no compatible. No se modificó la base.')
+        if not allow_create:
+            raise click.ClickException('No existe una versión de esquema inicializada. Revisa la base seleccionada antes de continuar.')
         if tables:
             raise click.ClickException('La base no está vacía. Este comando no borra ni reemplaza tablas existentes.')
         db.metadata.create_all(conn)
         seed_catalogs(conn)
         metadata.create_all(conn)
         conn.execute(versions.insert().values(version=SCHEMA_VERSION))
-    return True
+    return 'creada'
 
 
 def register_database_commands(app):
     @app.cli.command('inicializar-postgres')
     def initialize():
-        created = initialize_postgres()
-        click.echo('PostgreSQL preparado con catálogos, sin movimientos de prueba.' if created else 'El esquema ya está inicializado. No se modificaron los datos.')
+        resultado = initialize_postgres()
+        if resultado == 'actualizada':
+            click.echo('Esquema actualizado de la versión 1 a la 2: se crearon solo las tablas contables nuevas. No se modificaron los datos.')
+        elif resultado:
+            click.echo('PostgreSQL preparado con catálogos, sin movimientos de prueba.')
+        else:
+            click.echo('El esquema ya está inicializado. No se modificaron los datos.')
+
+    @app.cli.command('actualizar-postgres')
+    def update_existing():
+        resultado=initialize_postgres(allow_create=False)
+        if resultado=='actualizada':click.echo('Esquema actualizado a versión 2: tres tablas contables nuevas; los datos anteriores se conservan.')
+        else:click.echo('El esquema ya está actualizado. No se modificaron los datos.')
 
     @app.cli.command('comprobar-db')
     def check():
@@ -168,7 +202,7 @@ def register_database_commands(app):
                 missing = set(db.metadata.tables) - tables
             click.echo(f'Motor: {db.engine.name}. Tablas del aplicativo: {len(set(db.metadata.tables) & tables)}.')
             if missing:
-                raise click.ClickException('Faltan tablas. Ejecuta inicializar-postgres en la base nueva.')
+                raise click.ClickException('Faltan tablas. Revisa la actualización del esquema antes de iniciar el aplicativo integrado.')
             click.echo('Conexión y presencia de tablas correctas. Falta validar los flujos funcionales.')
         except click.ClickException:
             raise
