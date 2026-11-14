@@ -33,7 +33,18 @@ jobs:
           python-version: "3.13"
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Ejecutar pruebas Python
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_*.py' -v 2>&1 | tee /tmp/cpstore-python.log
+      - name: Guardar registro de pruebas Python
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-python
+          retention-days: 7
+          path: /tmp/cpstore-python.log
+          if-no-files-found: warn
       - name: Validar JavaScript de navegación y gráficos
         run: |
           node --check app/static/js/dashboard.js

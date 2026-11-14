@@ -29,7 +29,7 @@
   }
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', event => {
-      event.preventDefault(); select(tab.dataset.accountingTab); history.pushState(null, '', tab.hash);
+      event.preventDefault(); select(tab.dataset.accountingTab); history.replaceState(history.state, '', tab.hash);
     });
     tab.addEventListener('keydown', event => {
       let next;

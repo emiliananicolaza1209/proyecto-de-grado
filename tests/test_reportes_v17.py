@@ -1,6 +1,5 @@
 import unittest,tempfile,io
 from pathlib import Path
-from datetime import date,timedelta
 from unittest.mock import patch
 from openpyxl import load_workbook
 from app import create_app
@@ -16,7 +15,7 @@ class ReportsTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory()
         self.app=create_app({'TESTING':True,'DATABASE':str(Path(self.tmp.name)/'test.sqlite'),'SECRET_KEY':'test'})
         self.ctx=self.app.app_context();self.ctx.push();self.client=self.app.test_client()
-        self.day=date.today().isoformat()
+        self.day=finance.today()
         d=finance.open_day(self.day);self.did=d.id
         for i in range(2):
             db.session.add(Op(day_id=d.id,token=str(i),kind='Venta',description='=SUM(A1)',seller='ANA',amount=10000000,minor_cost=0,
