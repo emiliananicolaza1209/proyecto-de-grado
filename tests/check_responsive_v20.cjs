@@ -15,7 +15,8 @@ const routes=['/','/inventario','/inventario/nuevo','/inventario/lotes','/invent
  '/inventario/1','/inventario/2','/ventas','/ventas/1','/ventas/2','/ventas/recepciones','/ventas/recepciones/1','/finanzas?tab=movimientos','/finanzas?accion=registrar',
  '/finanzas?accion=compra_pool','/finanzas?tab=proveedores','/finanzas?tab=personal','/finanzas?tab=cierre',
  '/finanzas/creditos','/ventas/sociedades','/reportes?tipo=inventario','/reportes?tipo=ventas',
- '/reportes?tipo=contable','/analitica','/chat','/modulos/tributario/','/gestion/historial',
+ '/reportes?tipo=contable','/reportes/ventas?periodo=mes','/analitica','/chat','/modulos/tributario/',
+ '/modulos/tributario/#personas','/modulos/tributario/#consignaciones','/gestion/historial',
  '/iniciar-sesion','/usuarios'];
 const report={scope:'Solo SQLite temporal. Viewports y motores emulados; no dispositivos físicos.',checks:[],errors:[]};
 fs.mkdirSync(out,{recursive:true});
@@ -36,8 +37,11 @@ fs.mkdirSync(out,{recursive:true});
       const startErrors=errors.length;
       try{
        const response=await page.goto(base+url,{waitUntil:'networkidle',timeout:30000});
-       assert.equal(response.status(),200,`HTTP ${response.status()}`);
-       assert.equal(response.headers()['x-cpstore-test-fixture'],'temporary-sqlite-loopback','Se cancela: no es el servidor temporal');
+       if(response){
+        assert.equal(response.status(),200,`HTTP ${response.status()}`);
+        assert.equal(response.headers()['x-cpstore-test-fixture'],'temporary-sqlite-loopback','Se cancela: no es el servidor temporal');
+       }else{assert.equal(new URL(page.url()).origin,base,'El cambio de sección conserva el servidor temporal');}
+       if(url.startsWith('/modulos/tributario/#'))await page.locator('#'+url.split('#')[1]).waitFor({state:'visible'});
        if(url==='/usuarios'){
         await page.locator('#crear-usuario>summary').click();
         const form=page.locator('#crear-usuario form');
@@ -47,6 +51,10 @@ fs.mkdirSync(out,{recursive:true});
         await form.locator('[value="ventas.cobrar"]').check();
         assert.equal(await form.locator('[value="ventas.ver"]').isChecked(),true,'La acción activa la consulta');
         assert.equal(await form.locator('[value="usuarios.administrar"]').isEnabled(),false,'No permite elevar el perfil');
+       }
+       if(url==='/chat'){
+        await page.locator('#chat-periodo').selectOption('rango');
+        assert.equal(await page.locator('#chat-desde').isVisible(),true,'Las fechas se pueden elegir');
        }
        const metrics=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,
         main:!!document.querySelector('main'),viewport:!!document.querySelector('meta[name=viewport]')}));
@@ -59,8 +67,9 @@ fs.mkdirSync(out,{recursive:true});
         assert.equal(await page.locator('#contenido').evaluate(el=>el.inert),false);
        }
        assert.deepEqual(errors.slice(startErrors),[],'Errores JavaScript');
-       if(['/usuarios','/modulos/tributario/','/finanzas?accion=registrar'].includes(url)&&[390,768,1366].includes(width)){
-        await page.screenshot({path:path.join(out,`${engine}-${width}-${url==='/usuarios'?'usuarios':url.startsWith('/modulos')?'contabilidad':'finanzas'}.png`),fullPage:false});
+       if(['/usuarios','/modulos/tributario/','/modulos/tributario/#personas','/modulos/tributario/#consignaciones','/chat','/analitica','/finanzas?accion=registrar'].includes(url)&&[390,768,1366].includes(width)){
+        const name=url==='/usuarios'?'usuarios':url.startsWith('/modulos')?'contabilidad-'+(url.split('#')[1]||'consolidado'):url==='/chat'?'chat':url==='/analitica'?'analitica':'finanzas';
+        await page.screenshot({path:path.join(out,`${engine}-${width}-${name}.png`),fullPage:false});
        }
        report.checks.push({engine,label,width,height,url,ok:true});
       }catch(error){

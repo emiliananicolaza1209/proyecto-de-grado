@@ -23,6 +23,7 @@ from app.services.contabilidad_service import (
     alertas_uvt, consolidar_periodo, datos_paquete, evaluar_estado_renta, generar_csv, registrar_ingreso_gasto,
 )
 from app.services.operacion_service import today
+from app.services.reportes_presentacion import cop as cop_pantalla
 
 CEDULA = '900123456'
 INI = '2025-01-01'
@@ -139,10 +140,10 @@ class PaqueteExcelTests(PaqueteBase):
             self.assertEqual(resumen[nombre][2], Decimal(csv_resumen[nombre][2]), nombre)
         # Pantalla Información contable: mismas cifras en la sección del consolidado
         html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
-        seccion = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        seccion = html.split('<div id="consolidado"', 1)[1].split('<div id="personas"', 1)[0]
         for bloque in (c['compras'], c['ventas'], c['ingresos'], c['gastos'], c['consignaciones']):
-            self.assertIn('${:,.0f}'.format(bloque['total_cents'] / 100), seccion)
-        self.assertIn('${:,.0f}'.format(c['ventas']['utilidad_cents'] / 100), seccion)
+            self.assertIn(cop_pantalla(bloque['total_cents']), seccion)
+        self.assertIn(cop_pantalla(c['ventas']['utilidad_cents']), seccion)
 
     def test_suma_del_detalle_igual_al_total_en_cada_hoja(self):
         wb, datos = self.libro()
@@ -184,7 +185,7 @@ class PaqueteExcelTests(PaqueteBase):
         self.assertNotIn('ANULADA-1', textos)
         # pantalla: la tarjeta de personas muestra el mismo total del año
         html = self.client.get(f'/modulos/tributario/?anio=2026&ini={INI}&fin={self.hoy}').get_data(as_text=True)
-        self.assertIn('$1,500,000.00', html)
+        self.assertIn(cop_pantalla(150000000), html)
 
     def test_alerta_uvt_omite_personas_sin_consignaciones_en_el_anio(self):
         with self.app.app_context():
@@ -259,10 +260,10 @@ class PaquetePdfTests(PaqueteBase):
         for bloque in (c['compras'], c['ventas'], c['ingresos'], c['gastos'], c['consignaciones']):
             self.assertIn('${:,.0f}'.format(bloque['total_cents'] / 100).encode('cp1252'), raw)
         html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
-        seccion = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        seccion = html.split('<div id="consolidado"', 1)[1].split('<div id="personas"', 1)[0]
         for bloque in (c['compras'], c['ventas'], c['ingresos'], c['gastos'], c['consignaciones']):
             cifra = '${:,.0f}'.format(bloque['total_cents'] / 100)
-            self.assertIn(cifra, seccion)   # pantalla
+            self.assertIn(cop_pantalla(bloque['total_cents']), seccion)  # pantalla en formato COP
             self.assertIn(cifra.encode('cp1252'), raw)  # PDF
 
     def test_secciones_periodo_y_avisos(self):
@@ -417,10 +418,10 @@ class PaqueteRutasTests(PaqueteBase):
     def test_descarga_por_la_ruta_coincide_con_la_pantalla_aun_con_anulada(self):
         wb = load_workbook(io.BytesIO(self.client.get(self.url('xlsx')).data))
         html = self.client.get(f'/modulos/tributario/?ini={INI}&fin={self.hoy}').get_data(as_text=True)
-        seccion = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        seccion = html.split('<div id="consolidado"', 1)[1].split('<div id="personas"', 1)[0]
         resumen = {f[0]: f for f in self.filas(wb['Resumen']) if f[0] and isinstance(f[2], (int, float, Decimal))}
         for nombre in ('Compras', 'Ventas', 'Ingresos adicionales', 'Gastos', 'Consignaciones'):
-            self.assertIn('${:,.0f}'.format(float(resumen[nombre][2])), seccion, nombre)
+            self.assertIn(cop_pantalla(Decimal(str(resumen[nombre][2])) * 100), seccion, nombre)
         self.assertEqual(Decimal(str(resumen['Consignaciones'][2])), Decimal('1900000'))  # 1.500.000 + 400.000; la anulada no suma
         self.assertNotIn('ANULADA-1', seccion)
 

@@ -15,6 +15,6 @@
   {% endif %}
   {% for n in t.notas %}<p class="reporte-nota-linea">Nota: {{ n }}</p>{% endfor %}
   {% if t.advertencias %}<ul class="reporte-advertencias">{% for a in t.advertencias %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
-  <p class="reporte-fuente">Fuente: {{ t.fuente }}</p>
+  <details class="reporte-source"><summary>Ver fuente de los datos</summary><p class="reporte-fuente">Fuente: {{ t.fuente }}</p></details>
   {% if enlace %}<p class="reporte-enlace"><a href="{{ enlace }}">Ver el reporte →</a></p>{% endif %}
 </article>

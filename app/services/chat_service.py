@@ -17,6 +17,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..extensions import db
 from ..models.gestion import RegistroGestion
+from ..models.finanzas import Jornada
 from . import consultas_service as cs
 from ..models.contabilidad import ahora_colombia
 from .operacion_service import today
@@ -84,7 +85,7 @@ PARCIAL = {
 # Botones de la pantalla: (texto del botón, pregunta que envía).
 EJEMPLOS = (('Ventas de hoy', 'ventas de hoy'), ('Inventario disponible', 'inventario disponible'),
             ('Créditos pendientes', 'créditos pendientes'), ('Resultado de esta semana', 'resultado de esta semana'))
-PERIODOS_ENTENDIDOS ='hoy, ayer, esta semana, semana pasada, este mes, mes pasado, un mes por su nombre, "del 1 al 15 de octubre"'
+PERIODOS_ENTENDIDOS ='hoy, ayer, esta semana, semana pasada, este mes, mes pasado, "12/10/2026", "del 1 al 15 de octubre" y "última jornada cerrada"'
 
 
 def normalizar(texto):
@@ -117,10 +118,46 @@ def _p(ini, fin, etiqueta, supuesto=False):
     return {'ini': ini.isoformat(), 'fin': fin.isoformat(), 'etiqueta': etiqueta, 'supuesto': supuesto}
 
 
+def _fecha_visible(dia):
+    return f'{dia.day:02d}/{dia.month:02d}/{dia.year:04d}'
+
+
 def interpretar_periodo(pregunta, hoy=None):
     """Devuelve el periodo pedido en la pregunta, o ``None`` si no menciona ninguno. Las fechas son inclusivas."""
     hoy = date.fromisoformat(hoy or today())
     t = normalizar(pregunta)
+
+    # En Colombia las fechas numéricas son día/mes/año. No ignorar una fecha
+    # escrita por el usuario para consultar hoy de forma silenciosa.
+    tokens = list(re.finditer(r'(?<![\d/-])(?:\d{4}-\d{2}-\d{2}|\d{1,2}([/-])\d{1,2}(?:\1\d{4})?)(?![\d/-])', t))
+    if tokens:
+        if len(tokens) > 2:
+            raise PeriodoInvalido('Indica una fecha o un rango de dos fechas.')
+        fechas = []
+        for token in tokens:
+            valor = token.group(0)
+            try:
+                if re.fullmatch(r'\d{4}-\d{2}-\d{2}', valor):
+                    dia = date.fromisoformat(valor)
+                else:
+                    partes = re.split(r'[/-]', valor)
+                    dia = date(int(partes[2]) if len(partes) == 3 else hoy.year, int(partes[1]), int(partes[0]))
+            except ValueError:
+                raise PeriodoInvalido(f'La fecha {valor} no existe. Usa día/mes/año, por ejemplo 12/10/2026.')
+            fechas.append(dia)
+        if len(fechas) == 2 and not re.fullmatch(r'\s*(?:al?|hasta(?: el)?|y)\s*', t[tokens[0].end():tokens[1].start()]):
+            raise PeriodoInvalido('Para consultar un rango escribe «del 01/10/2026 al 12/10/2026».')
+        ini, fin = fechas[0], fechas[-1]
+        if len(fechas) == 1:
+            inicio_corto = re.search(r'\b(?:del?|entre(?: el)?) (\d{1,2}) (?:al?|hasta(?: el)?|y)\s*$', t[:tokens[0].start()])
+            final_corto = re.match(r'\s*(?:al?|hasta(?: el)?|y)\s*(\d{1,2})\b', t[tokens[0].end():])
+            if inicio_corto:
+                ini = _fecha(fin.year, fin.month, int(inicio_corto.group(1)))
+            elif final_corto:
+                fin = _fecha(ini.year, ini.month, int(final_corto.group(1)))
+        return _p(ini, fin, _fecha_visible(ini) if ini == fin else f"del {_fecha_visible(ini)} al {_fecha_visible(fin)}")
+    if re.search(r'\b\d+[/-]\d+', t):
+        raise PeriodoInvalido('No pude reconocer esa fecha. Usa día/mes/año con el año completo, por ejemplo 12/10/2026.')
 
     m = re.search(r'(\d{4}-\d{2}-\d{2}) (?:al?|hasta|y) (\d{4}-\d{2}-\d{2})', t)
     if m:
@@ -200,7 +237,13 @@ def interpretar_umbral(pregunta):
 
 def detectar_intenciones(pregunta):
     t = normalizar(pregunta)
-    return [nombre for nombre, palabras in INTENCIONES if any(re.search(r'\b' + re.escape(p), t) for p in palabras)]
+    encontradas = [nombre for nombre, palabras in INTENCIONES if any(re.search(r'\b' + re.escape(p), t) for p in palabras)]
+    # «Ventas del último cierre» pide ventas; cierre aquí describe la fecha.
+    if 'resumen_ventas' in encontradas and 'resumen_financiero' in encontradas:
+        otras = next(palabras for nombre, palabras in INTENCIONES if nombre == 'resumen_financiero')
+        if not any(re.search(r'\b' + re.escape(p), t) for p in otras if p != 'cierre'):
+            encontradas.remove('resumen_financiero')
+    return encontradas
 
 
 def _pide_algo_privado(pregunta):
@@ -335,6 +378,8 @@ def redactar_respuesta(resultado, notas=()):
     lineas = []
     if estado == 'sin_datos':
         lineas.append(f'{titulo}: no hay datos para responder esto.')
+        if periodo.get('ini'):
+            lineas.append(f"Periodo consultado: {periodo['ini']} a {periodo['fin']}.")
         if resultado.get('mensaje'):
             lineas.append(resultado['mensaje'])
         lineas.append('Eso no significa cero: significa que no hay registros que consultar.')
@@ -392,7 +437,15 @@ def fuera_de_alcance(motivo=None):
     return '\n'.join(lineas)
 
 
-def responder(rol, pregunta, usuario=None, usuario_id=0, hoy=None):
+def ultima_jornada_cerrada(rol, herramienta='resumen_ventas'):
+    """Fecha disponible, solo para un perfil autorizado a consultar esa fuente."""
+    if rol not in cs.ROLES_CONSULTAS.get(herramienta, ()):
+        return None
+    return db.session.scalar(db.select(Jornada.date).where(Jornada.status == 'Cerrada', Jornada.date <= today())
+                             .order_by(Jornada.date.desc()).limit(1))
+
+
+def responder(rol, pregunta, usuario=None, usuario_id=0, hoy=None, ini=None, fin=None):
     """Interpreta la pregunta, ejecuta la consulta autorizada y devuelve la respuesta redactada y su tarjeta."""
     pregunta = (pregunta or '').strip()
     base = {'pregunta': pregunta, 'intencion': None, 'herramienta': None, 'periodo': None, 'estado': None, 'respuesta': '',
@@ -426,6 +479,27 @@ def responder(rol, pregunta, usuario=None, usuario_id=0, hoy=None):
     except PeriodoInvalido as exc:
         return cerrar('periodo_invalido', f'No pude usar ese periodo: {exc}', herramienta, intencion=herramienta)
     if herramienta in TIENEN_PERIODO:
+        if pedido is None and re.search(r'\b(?:ultima jornada cerrada|ultimo cierre|ultimo dia cerrado)\b', normalizar(pregunta)):
+            try:
+                ultimo = ultima_jornada_cerrada(rol, herramienta)
+            except SQLAlchemyError:
+                db.session.rollback()
+                return cerrar('error_temporal', 'No pude leer los cierres en este momento. Intenta de nuevo en unos segundos.', herramienta)
+            if ultimo is None:
+                # La consulta común decide la autorización antes de entregar datos.
+                if rol not in cs.ROLES_CONSULTAS.get(herramienta, ()):
+                    return cerrar('sin_autorizacion', 'Tu perfil no tiene permiso para esta consulta.', herramienta)
+                return cerrar('sin_datos', 'Todavía no hay una jornada cerrada que consultar. Puedes elegir una fecha o un rango.', herramienta)
+            dia = date.fromisoformat(ultimo)
+            pedido = _p(dia, dia, f"última jornada cerrada ({_fecha_visible(dia)})")
+        if pedido is None and (ini or fin):
+            try:
+                inicio, final, _ = cs._periodo(ini, fin)
+            except cs.ParametroInvalido as exc:
+                return cerrar('periodo_invalido', f'No pude usar ese periodo: {exc}', herramienta, intencion=herramienta)
+            pedido = _p(date.fromisoformat(inicio), date.fromisoformat(final),
+                        f"{_fecha_visible(date.fromisoformat(inicio))} a {_fecha_visible(date.fromisoformat(final))}")
+            notas.append('Usé las fechas seleccionadas en el formulario.')
         if pedido is None:
             hoy_ = hoy or today()
             pedido = _p(date.fromisoformat(hoy_), date.fromisoformat(hoy_), 'hoy', supuesto=True)

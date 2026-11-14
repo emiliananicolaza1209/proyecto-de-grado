@@ -46,10 +46,12 @@
     if (t && t.provisional) cabecera.appendChild(el('span', 'chat-estado estado-provisional', 'Provisional'));
     entrada.appendChild(cabecera);
 
-    if (t && t.cifras && t.cifras.length) {
+    if (t) {
       entrada.appendChild(el('h3', 'chat-titulo', t.titulo));
       const periodo = t.periodo && (t.periodo.etiqueta || t.periodo.fecha_corte);
       if (periodo) entrada.appendChild(el('p', 'chat-periodo', 'Periodo: ' + periodo + (t.periodo.ini ? ' (' + t.periodo.ini + (t.periodo.fin && t.periodo.fin !== t.periodo.ini ? ' a ' + t.periodo.fin : '') + ')' : '')));
+    }
+    if (t && t.cifras && t.cifras.length) {
       const lista = el('dl', 'chat-cifras');
       t.cifras.forEach((c) => {
         const fila = el('div', 'chat-cifra');
@@ -58,15 +60,20 @@
         lista.appendChild(fila);
       });
       entrada.appendChild(lista);
+    } else {
+      entrada.appendChild(el('p', 'chat-texto chat-linea', datos.respuesta));
+    }
+    if (t) {
       (t.notas || []).forEach((n) => entrada.appendChild(el('p', 'chat-nota', 'Nota: ' + n)));
-      if (t.advertencias && t.advertencias.length) {
+      if (t.advertencias && t.advertencias.length && t.cifras.length) {
         const aviso = el('ul', 'chat-advertencias');
         t.advertencias.forEach((a) => aviso.appendChild(el('li', '', a)));
         entrada.appendChild(aviso);
       }
-      entrada.appendChild(el('p', 'chat-fuente', 'Fuente: ' + t.fuente));
-    } else {
-      entrada.appendChild(el('p', 'chat-texto chat-linea', datos.respuesta));
+      const fuente = el('details', 'chat-source');
+      fuente.appendChild(el('summary', '', 'Ver fuente de la respuesta'));
+      fuente.appendChild(el('p', 'chat-fuente', t.fuente));
+      entrada.appendChild(fuente);
     }
     agregar(entrada);
   }
@@ -80,6 +87,7 @@
   }
 
   async function preguntar(texto) {
+    if (campo.disabled) return;
     burbujaUsuario(texto);
     boton.disabled = true;
     campo.disabled = true;
@@ -124,4 +132,44 @@
       form.requestSubmit();
     });
   });
+
+  document.querySelectorAll('[data-chat-quick]').forEach((quick) => quick.addEventListener('click', () => {
+    if (!campo.disabled) { campo.value = quick.dataset.chatQuick; form.requestSubmit(); }
+  }));
+
+  const selector = document.getElementById('chat-periodo');
+  const rango = document.getElementById('chat-rango');
+  const desde = document.getElementById('chat-desde');
+  const hasta = document.getElementById('chat-hasta');
+  const ayuda = document.getElementById('chat-periodo-ayuda');
+  const controls = document.querySelector('.chat-period-controls');
+  if (selector && rango && desde && hasta && controls) {
+    function ajustarPeriodo() {
+      const tipo = selector.value, hoy = controls.dataset.hoy;
+      rango.hidden = tipo !== 'rango';
+      desde.disabled = hasta.disabled = tipo === 'auto';
+      desde.required = hasta.required = tipo !== 'auto';
+      hasta.setCustomValidity('');
+      if (tipo !== 'rango' && tipo !== 'auto') {
+        let inicio = hoy, fin = hoy;
+        if (tipo === 'cierre') inicio = fin = controls.dataset.ultimoCierre;
+        if (tipo === 'mes') inicio = hoy.slice(0, 8) + '01';
+        if (tipo === 'ayer') {
+          const ayer = new Date(hoy + 'T12:00:00Z');
+          ayer.setUTCDate(ayer.getUTCDate() - 1);
+          inicio = fin = ayer.toISOString().slice(0, 10);
+        }
+        desde.value = inicio; hasta.value = fin;
+      }
+      const format = (fecha) => fecha.split('-').reverse().join('/');
+      ayuda.textContent = tipo === 'auto' ? 'Si no escribes una fecha, se consulta hoy. Una fecha escrita en tu pregunta tiene prioridad.' :
+        'Fechas seleccionadas: ' + format(desde.value) + ' a ' + format(hasta.value) + '. Una fecha escrita en tu pregunta tiene prioridad.';
+    }
+    selector.addEventListener('change', ajustarPeriodo);
+    for (const input of [desde, hasta]) input.addEventListener('change', () => {
+      ajustarPeriodo();
+      if (desde.value && hasta.value && desde.value > hasta.value) hasta.setCustomValidity('La fecha final no puede ser anterior a la inicial.');
+    });
+    ajustarPeriodo();
+  }
 })();

@@ -1,16 +1,17 @@
-{% extends 'layouts/base.html' %}{% block content %}<div class="home-dashboard"><div class="heading"><div><h1>Analítica del negocio</h1><p class="muted">Consultas con las mismas fuentes del chat y los reportes.</p></div><a class="btn btn-primary" href="{{ url_for('chat.index') }}">Abrir chat de consultas</a></div>
+{% extends 'layouts/base.html' %}
+{% block title %}Analítica del negocio · CP Store{% endblock %}
+{% block content %}
+<div class="home-dashboard analytics-page">
+  <div class="heading analytics-heading"><div><p class="eyebrow">UNA VISTA PARA DECIDIR</p><h1>Analítica del negocio</h1><p class="muted">Revisa las cifras y abre su detalle cuando necesites profundizar.</p></div><a class="btn btn-outline-primary" href="{{ url_for('chat.index') }}">{{ icon('report') }} Abrir chat de consultas</a></div>
   {% if analitica %}
   <section class="home-analitica" aria-labelledby="home-analitica-titulo">
-    <div class="home-section-head"><div><p class="eyebrow">ANALÍTICA · SOLO PROPIETARIO</p><h2 id="home-analitica-titulo">Indicadores del negocio</h2></div>
-      <form class="home-analitica-form" method="get" action="{{ url_for('reportes.analytics') }}">
-        <label for="home-periodo">Periodo</label>
-        <select id="home-periodo" name="periodo" class="form-select">{% for clave, etiqueta in reporte_opciones if clave in analitica_tipos %}<option value="{{ clave }}"{% if analitica.tipo == clave %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
-        <button class="btn btn-outline-primary" type="submit">Actualizar</button>
-      </form></div>
-    <p class="muted">{{ analitica.periodo.etiqueta }}. El periodo aplica a las ventas; el resultado es el de hoy y el inventario y los créditos son el estado de hoy. Son las mismas cifras del chat y de los reportes.</p>
-    <div class="home-analitica-tarjetas">
-      {% for a in analitica.tarjetas %}{% with t=a.tarjeta, texto=a.texto, enlace=a.url %}{% include 'reportes/tarjeta.html' %}{% endwith %}{% endfor %}
-    </div>
+    <div class="panel analytics-period"><div><h2 id="home-analitica-titulo">Indicadores del negocio</h2><p>Elige el periodo para consultar las ventas.</p></div><form class="home-analitica-form" method="get" action="{{ url_for('reportes.analytics') }}"><label for="home-periodo">Periodo de ventas</label><select id="home-periodo" name="periodo" class="form-select">{% for clave, etiqueta in reporte_opciones if clave in analitica_tipos %}<option value="{{ clave }}"{% if analitica.tipo == clave %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select><button class="btn btn-primary" type="submit">Consultar</button></form></div>
+    <div class="analytics-section-heading"><h2>Ventas del periodo</h2><p>{{ analitica.periodo.etiqueta }}. Abre el reporte para elegir otras fechas o comparar periodos.</p></div>
+    <div class="analytics-period-card">{% with a=analitica.tarjetas[0] %}{% with t=a.tarjeta, texto=a.texto, enlace=a.url %}{% include 'reportes/tarjeta.html' %}{% endwith %}{% endwith %}</div>
+    <div class="analytics-section-heading"><h2>Estado actual del negocio</h2><p>El resultado corresponde a hoy; el inventario y los créditos muestran su estado actual.</p></div>
+    <div class="analytics-current-grid">{% for a in analitica.tarjetas[1:] %}{% with t=a.tarjeta, texto=a.texto, enlace=a.url %}{% include 'reportes/tarjeta.html' %}{% endwith %}{% endfor %}</div>
   </section>
   {% endif %}
-<section class="panel home-columns"><a href="{{ url_for('reportes.index') }}">Exportaciones y reportes detallados</a></section></div>{% endblock %}
+  <section class="panel home-columns"><a href="{{ url_for('reportes.index') }}">Exportaciones y reportes detallados →</a><p class="muted">Las cifras utilizan las mismas fuentes del chat y de los reportes.</p></section>
+</div>
+{% endblock %}

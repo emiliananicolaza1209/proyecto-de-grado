@@ -1,3 +1,61 @@
+// Navegación de tareas. Sin JavaScript, las tres secciones siguen disponibles.
+(() => {
+  'use strict';
+  const tabs = [...document.querySelectorAll('[data-accounting-tab]')];
+  const panels = [...document.querySelectorAll('[data-accounting-panel]')];
+  if (!tabs.length || !panels.length) return;
+  const nav = tabs[0].parentElement;
+  nav.setAttribute('role', 'tablist');
+  tabs.forEach(tab => { tab.setAttribute('role', 'tab'); tab.setAttribute('aria-controls', tab.dataset.accountingTab); });
+  panels.forEach(panel => {
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', 'tab-' + panel.dataset.accountingPanel);
+    panel.tabIndex = 0;
+  });
+  function select(name) {
+    if (!panels.some(panel => panel.dataset.accountingPanel === name)) return;
+    panels.forEach(panel => panel.hidden = panel.dataset.accountingPanel !== name);
+    tabs.forEach(tab => { const active = tab.dataset.accountingTab === name; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+  }
+  function fromHash() {
+    let target;
+    try { target = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (_) { return; }
+    const panel = target?.closest('[data-accounting-panel]');
+    if (panel) {
+      select(panel.dataset.accountingPanel);
+      if (target.tagName === 'DETAILS') target.open = true;
+      if (target !== panel) requestAnimationFrame(() => target.scrollIntoView({block: 'start'}));
+    }
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', event => {
+      event.preventDefault(); select(tab.dataset.accountingTab); history.pushState(null, '', tab.hash);
+    });
+    tab.addEventListener('keydown', event => {
+      let next;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = tabs.length - 1;
+      if (next !== undefined) { event.preventDefault(); tabs[next].click(); tabs[next].focus(); }
+    });
+  });
+  document.addEventListener('click', event => {
+    const opener = event.target.closest('[data-open-details]');
+    if (opener) { const details = document.getElementById(opener.dataset.openDetails); if (details) details.open = true; }
+    const link = event.target.closest('a[href^="#"]');
+    if (link && !link.hasAttribute('data-accounting-tab')) {
+      const target = document.getElementById(link.hash.slice(1));
+      const panel = target?.closest('[data-accounting-panel]');
+      if (panel) select(panel.dataset.accountingPanel);
+    }
+  });
+  window.addEventListener('hashchange', fromHash);
+  window.addEventListener('popstate', () => { if (!location.hash) select('consolidado'); else fromHash(); });
+  select(document.querySelector('.accounting')?.dataset.formError === 'true' ? 'personas' : 'consolidado');
+  fromHash();
+})();
+
 (()=>{'use strict';
 const byId=id=>document.getElementById(id);
 const links=JSON.parse(byId('person-bank-data')?.textContent||'{}');

@@ -230,7 +230,7 @@ def registrar_consignacion():
         db.session.rollback()
         flash("No fue posible registrar la consignación. Revisa los datos e intenta de nuevo.", "danger")
 
-    return redirect(url_for('contabilidad.index'))
+    return redirect(url_for('contabilidad.index',_anchor='consignaciones'))
 
 
 def datos_consignacion(c):
@@ -271,7 +271,7 @@ def editar_consignacion(record_id):
         flash('Consignación corregida. Las ventas no se modificaron.','success')
     except (ValueError,TypeError,InvalidOperation) as exc:
         db.session.rollback();flash(str(exc),'danger')
-    return redirect(url_for('contabilidad.index',anio=request.form.get('anio',date.today().year)))
+    return redirect(url_for('contabilidad.index',anio=request.form.get('anio',date.today().year),_anchor='consignaciones'))
 
 @contabilidad_bp.route('/crear-destinatario', methods=['POST'])
 def crear_destinatario():
@@ -337,4 +337,4 @@ def actualizar_antecedente(person_id):
         persona.declaro_renta_antes=request.form.get('declaro_renta_antes')=='1'
         db.session.commit()
         flash('Antecedente actualizado. El umbral de consignaciones no se altera automáticamente.','success')
-    return redirect(url_for('contabilidad.index'))
+    return redirect(url_for('contabilidad.index',_anchor='personas'))

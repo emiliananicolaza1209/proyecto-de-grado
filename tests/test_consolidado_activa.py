@@ -11,6 +11,7 @@ from app.extensions import db
 from app.models.contabilidad import BancoDestino, ConsignacionBancaria, PersonaBanco, PersonaContable
 from app.services.contabilidad_service import consolidar_periodo, evaluar_estado_renta
 from app.services.operacion_service import today
+from app.services.reportes_presentacion import cop as cop_pantalla
 
 
 class ConsolidadoSoloActivasTests(unittest.TestCase):
@@ -47,9 +48,9 @@ class ConsolidadoSoloActivasTests(unittest.TestCase):
         self.assertEqual(Decimal(cons['total_cents']) / 100, alerta['total_consignado'])  # consolidado == alerta UVT
         html = self.client.get('/modulos/tributario/?ini=2000-01-01&fin=' + today()).get_data(as_text=True)
         # Solo la sección del consolidado: el Historial sí lista la anulada, marcada "ANULADA — no suma".
-        consolidado = html[html.index('accounting-consolidado'):html.index('</section>', html.index('accounting-consolidado'))]
+        consolidado = html.split('<div id="consolidado"', 1)[1].split('<div id="personas"', 1)[0]
         self.assertIn('Consignaciones (1)', consolidado)
-        self.assertIn('${:,.0f}'.format(cons['total_cents'] / 100), consolidado)  # pantalla == consolidado
+        self.assertIn(cop_pantalla(cons['total_cents']), consolidado)  # pantalla == consolidado
         self.assertIn('ACTIVA-1', consolidado)
         self.assertNotIn('ANULADA-1', consolidado)
         self.assertNotIn('2,200,000', consolidado)

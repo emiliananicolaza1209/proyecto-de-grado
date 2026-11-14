@@ -5,6 +5,7 @@ import atexit
 import secrets
 import sys
 import tempfile
+from datetime import date, timedelta
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from app import create_app
@@ -48,6 +49,18 @@ def main():
         finance.add_operation(day,MultiDict(dict(kind='Venta',description='TRANSFERENCIA TEMPORAL UI',
             seller='__other__',seller_other='PRUEBA UI',token=secrets.token_hex(16),amount='120000.25',minor_cost='',
             payment_account='TRANSFERENCIA',payment_amount='120000.25',payment_person_id=str(person.id),payment_bank_id=str(bank.id))))
+        db.session.commit()
+        # Cierre ficticio para comprobar las consultas históricas desde el chat.
+        historic=finance.open_day((date.fromisoformat(today())-timedelta(days=3)).isoformat())
+        historic.config={**historic.config,'reviewed':True,'actor':'PRUEBA UI',
+            'staff':[dict(name='PRUEBA',role='Principal',salary=0,attended=True)]}
+        db.session.flush()
+        for amount in ['70000']*11+['83000']:
+            finance.add_operation(historic,MultiDict(dict(kind='Venta',description='VENTA HISTÓRICA TEMPORAL',
+                seller='PRUEBA',token=secrets.token_hex(16),amount=amount,minor_cost='',
+                payment_account='EFECTIVO',payment_amount=amount)))
+        historic.snapshot={'totals':finance.report(historic)['totals']}
+        historic.status='Cerrada'
         db.session.commit()
     @app.after_request
     def fixture_header(response):
