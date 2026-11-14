@@ -1,0 +1,25 @@
+<section class="panel" id="pagos-personal">
+  <h2>Pagar sueldos y comisiones</h2>
+  <p class="muted">Pendientes de esta jornada. Cada entrega se registra una sola vez y no vuelve a descontar la ganancia.</p>
+  <div class="f-table"><table class="f-staff-payments"><thead><tr><th>Persona</th><th>Concepto</th><th>Por pagar</th><th>Acción</th></tr></thead><tbody>
+  {% for item in staff_dues if item.total %}<tr>
+    <td>{{ item.name }}</td><td>{{ 'Sueldo' if item.kind=='Pago sueldo' else 'Comisión habitual' }}</td><td class="f-money">{{ item.due|cop }}</td>
+    <td>{% if item.due and d.status=='Abierta' %}<a class="btn btn-secondary f-select-staff" data-choice="{{ item.kind }}|{{ item.name }}" data-amount="{{ item.due/100 }}" href="{{ url_for('finanzas.index',date=day,tab='personal',pago=item.kind,persona=item.name,_anchor='pago-personal-form') }}">Pagar a {{ item.name }}</a>{% else %}<span class="pill">Pagado</span>{% endif %}</td>
+  </tr>{% else %}<tr><td colspan="4">No hay importes causados. Revisa asistencia y reglas.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if d.status=='Abierta' and staff_dues|selectattr('due')|list %}
+  <form method="post" id="pago-personal-form" class="f-compact-payment" {% if not request.args.get('pago') and not (error and form.get('action')=='staff_payment') %}hidden{% endif %}>
+    {{ hidden('staff_payment') }}
+    <div class="table-heading"><h3>Registrar entrega al personal</h3><button type="button" class="btn-secondary" id="cancel-staff-payment">Cerrar formulario</button></div>
+    <div class="f-grid f-staff-payment-fields">
+      <label>Persona y concepto<select name="staff_choice" required>{% for item in staff_dues if item.due %}<option value="{{ item.kind }}|{{ item.name }}" data-amount="{{ item.due/100 }}" {% if request.args.get('pago')==item.kind and request.args.get('persona')==item.name %}selected{% endif %}>{{ item.name }} · {{ 'Sueldo' if item.kind=='Pago sueldo' else 'Comisión habitual' }} · {{ item.due|cop }}</option>{% endfor %}</select></label>
+      {{ money('amount','Importe a entregar · COP') }}
+      <label>Medio de pago<select name="payment_account"><option>EFECTIVO</option><option>TRANSFERENCIA</option></select></label>
+      <label>Persona titular de la cuenta<select name="payment_person_id"><option value="">Seleccionar persona</option>{% for p in accounting_people %}<option value="{{ p.id }}">{{ p.nombre }}</option>{% endfor %}</select></label>
+      <label>Banco de la cuenta<select name="payment_bank_id"><option value="">Seleccionar banco</option>{% for b in banks_destino %}<option value="{{ b.id }}">{{ b.nombre }}</option>{% endfor %}</select></label>
+    </div>
+    <button class="btn-primary">Registrar pago</button>
+    <noscript><p>En efectivo deja persona y banco vacíos. Para una transferencia selecciona ambos.</p></noscript>
+  </form>
+  {% endif %}
+</section>

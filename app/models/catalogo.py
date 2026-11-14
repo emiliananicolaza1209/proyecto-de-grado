@@ -11,6 +11,7 @@ class Catalogo(db.Model):
     normal_key = db.Column(db.String(120), nullable=False)
     parent_id = db.Column(db.Integer, nullable=False, default=0)
     active = db.Column(db.Integer, nullable=False, default=1)
+    supplier_category = db.Column(db.String(20), nullable=True)
     parent = db.relationship('Catalogo', primaryjoin=lambda: foreign(Catalogo.parent_id) == Catalogo.id, remote_side=[id], viewonly=True, lazy='joined')
 
     @property

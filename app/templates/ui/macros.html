@@ -1,0 +1,2 @@
+{% macro icon(name) -%}<svg class="ui-icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="{{ url_for('static',filename='img/ui.svg') }}#{{ name }}"></use></svg>{%- endmacro %}
+{% macro status(text) -%}<span class="ui-status {{ {'Disponible':'is-blue','Vendido':'is-green','Pagado':'is-green','Abono':'is-amber','Parcial':'is-amber','Separado':'is-amber','En pasamano':'is-slate','Garantía':'is-amber','Pendiente':'is-red','Por verificar':'is-red','No aplica':'is-slate'}.get(text,'is-slate') }}">{{ text }}</span>{%- endmacro %}

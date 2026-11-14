@@ -1,0 +1,54 @@
+<section class="accounting-consolidado" aria-labelledby="consolidado-titulo">
+  <div class="accounting-section-heading"><div><h2 id="consolidado-titulo">Consolidado por periodo</h2><p>Compras, ventas y registros complementarios del periodo seleccionado.</p></div></div>
+  {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+  <section class="panel accounting-period-panel">
+    <form method="get" class="accounting-period-form">
+      <input type="hidden" name="anio" value="{{ anio }}">
+      <label for="contable-desde">Desde<input id="contable-desde" type="date" name="ini" value="{{ ini }}" required></label>
+      <label for="contable-hasta">Hasta<input id="contable-hasta" type="date" name="fin" value="{{ fin }}" required></label>
+      <button class="btn btn-primary" type="submit">Consultar periodo</button>
+    </form>
+    {% if allowed('contabilidad.exportar') %}<details class="accounting-export"><summary>Descargar reporte {{ icon('report') }}</summary><div><a href="{{ url_for('contabilidad.paquete_excel', ini=ini, fin=fin) }}">Paquete Excel · hojas detalladas</a><a href="{{ url_for('contabilidad.paquete_pdf', ini=ini, fin=fin) }}">Paquete PDF · informe para el contador</a><a href="{{ url_for('contabilidad.exportar_csv', ini=ini, fin=fin) }}">CSV · consolidado de movimientos</a></div></details>{% endif %}
+  </section>
+  {% if consolidado %}
+  <div class="accounting-metrics">
+    {% for titulo, valor, ayuda in [
+      ('Compras', consolidado.compras.total_cents, consolidado.compras.count|string + ' registros del periodo'),
+      ('Ventas de equipos', consolidado.ventas.total_cents, consolidado.ventas.count|string + ' registros del periodo'),
+      ('Margen bruto de equipos', consolidado.ventas.utilidad_cents, 'Antes de gastos y sueldos de la jornada'),
+      ('Ingresos complementarios', consolidado.ingresos.total_cents, consolidado.ingresos.count|string + ' registros informativos'),
+      ('Gastos complementarios', consolidado.gastos.total_cents, consolidado.gastos.count|string + ' registros informativos'),
+      ('Consignaciones (' + consolidado.consignaciones.count|string + ')', consolidado.consignaciones.total_cents, consolidado.consignaciones.count|string + ' consignaciones del periodo')
+    ] %}<article><span>{{ titulo }}</span><strong>{{ valor|cop }}</strong><small>{{ ayuda }}</small></article>{% endfor %}
+  </div>
+  <p class="accounting-context">El margen de equipos y la utilidad de la jornada son conceptos distintos. Para revisar sueldos, comisiones y utilidad final, consulta <a href="{{ url_for('finanzas.index') }}">Finanzas</a>.</p>
+  <details class="panel accounting-disclosure"><summary><span>Detalle del consolidado<small>{{ ini[8:10] }}/{{ ini[5:7] }}/{{ ini[:4] }} al {{ fin[8:10] }}/{{ fin[5:7] }}/{{ fin[:4] }} · fuente de cada registro</small></span></summary>
+    <div class="accounting-disclosure-body"><p class="muted">Cobrado de ventas de equipos: {{ consolidado.ventas.cobrado_cents|cop }} · saldo: {{ consolidado.ventas.saldo_cents|cop }}.</p><div class="table-responsive"><table class="table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Fuente</th><th class="accounting-money">Valor COP</th></tr></thead><tbody>
+    {% for r in consolidado.compras.detalle + consolidado.ventas.detalle + consolidado.ingresos.detalle + consolidado.gastos.detalle + consolidado.consignaciones.detalle %}<tr><td>{{ r.fecha }}</td><td>{{ r.tipo }}</td><td>{{ r.detalle }}</td><td>{{ r.fuente }}</td><td class="accounting-money">{{ r.valor_cents|cop }}</td></tr>{% else %}<tr><td class="accounting-empty" colspan="5">Sin movimientos en este periodo. Prueba con otras fechas.</td></tr>{% endfor %}
+    </tbody></table></div></div>
+  </details>
+  {% if consolidado.faltantes %}<details class="accounting-review"><summary>{{ consolidado.faltantes|length }} observaciones para revisar</summary><ul>{% for f in consolidado.faltantes %}<li>{{ f }}</li>{% endfor %}</ul></details>{% else %}<p class="accounting-clear">Sin datos pendientes de clasificar en este periodo.</p>{% endif %}
+
+  <section class="panel accounting-records"><div class="accounting-section-heading"><div><h2>Ingresos y gastos complementarios</h2><p>Registros adicionales que acompañan el informe contable.</p></div>{% if allowed('contabilidad.registrar') %}<a class="btn btn-outline-primary" href="#nuevo-complementario" data-open-details="nuevo-complementario">+ Agregar registro</a>{% endif %}</div>
+    <p class="accounting-context">Estos registros complementan el informe contable. No registran una entrada o salida de caja ni cambian la utilidad de Finanzas. Los movimientos de la jornada se registran en Finanzas, sin repetirlos aquí.</p>
+    <details class="accounting-new-record" id="nuevo-complementario"><summary>Registrar ingreso o gasto complementario</summary>
+      <form action="{{ url_for('contabilidad.registrar_movimiento') }}" method="post" class="accounting-entry-form">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}">
+        <label>Tipo<select name="tipo" required><option value="">Seleccionar tipo</option><option value="INGRESO">Ingreso</option><option value="GASTO">Gasto</option></select></label>
+        <label class="accounting-wide">Concepto<input name="concepto" required minlength="3" maxlength="120" placeholder="Describe el motivo del registro"></label>
+        <label>Categoría<select name="categoria" required><option value="">Seleccionar categoría</option>{% for c in categorias %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
+        <label>Valor · COP<input type="number" name="valor" min="0.01" step="0.01" required></label><label>Fecha<input type="date" name="fecha" value="{{ hoy }}" required></label>
+        <label>Relación <small>Opcional</small><input name="relacion" placeholder="Lote, equipo o periodo" maxlength="120"></label><label>Soporte <small>Opcional</small><input name="soporte_ref" placeholder="Referencia de factura" maxlength="120"></label><label>Responsable <small>Opcional</small><input name="responsable" maxlength="120"></label>
+        <div class="accounting-form-footer"><button type="submit" class="btn btn-primary">Guardar registro</button></div>
+      </form>
+    </details>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Categoría</th><th class="accounting-money">Valor COP</th><th>Acciones</th></tr></thead><tbody>
+    {% for m in movimientos %}<tr><td>{{ m.fecha }}</td><td><span class="accounting-tag">{{ m.tipo|title }}</span></td><td>{{ m.concepto }}</td><td>{{ m.categoria }}</td><td class="accounting-money">{{ m.valor_cents|cop }}</td><td><details class="accounting-edit"><summary>Corregir categoría</summary><form action="{{ url_for('contabilidad.corregir', ig_id=m.id) }}" method="post" class="accounting-form"><input type="hidden" name="csrf" value="{{ session.csrf }}"><label>Nueva categoría<select name="nueva_categoria" required>{% for c in categorias if c != m.categoria %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label><label>Motivo del cambio<input name="motivo" required minlength="3" maxlength="500"></label><button class="btn btn-outline-primary" type="submit">Guardar corrección</button></form></details></td></tr>{% else %}<tr><td class="accounting-empty" colspan="6">Sin ingresos ni gastos complementarios en este periodo.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <div class="accounting-audit-grid">
+    <details class="panel accounting-disclosure"><summary><span>Historial de clasificaciones<small>Registro de cada cambio y su responsable</small></span></summary><div class="accounting-disclosure-body table-responsive"><table class="table"><thead><tr><th>Registro</th><th>Anterior</th><th>Nueva</th><th>Motivo</th><th>Responsable</th></tr></thead><tbody>{% for c in correcciones %}<tr><td>{{ c.entidad }} #{{ c.entidad_id }}</td><td>{{ c.anterior }}</td><td>{{ c.nueva }}</td><td>{{ c.motivo }}</td><td>{{ c.actor }}</td></tr>{% else %}<tr><td class="accounting-empty" colspan="5">Sin correcciones registradas.</td></tr>{% endfor %}</tbody></table></div></details>
+    <details class="panel accounting-disclosure"><summary><span>Reportes descargados<small>Quién los generó y para qué periodo</small></span></summary><div class="accounting-disclosure-body table-responsive"><table class="table"><thead><tr><th>Periodo</th><th>Responsable</th><th>Fecha</th></tr></thead><tbody>{% for r in reportes %}<tr><td>{{ r.fecha_ini }} a {{ r.fecha_fin }}</td><td>{{ r.actor }}</td><td>{{ r.created_at }}</td></tr>{% else %}<tr><td class="accounting-empty" colspan="3">Aún no se ha exportado ningún reporte.</td></tr>{% endfor %}</tbody></table></div></details>
+  </div>
+  {% endif %}
+</section>

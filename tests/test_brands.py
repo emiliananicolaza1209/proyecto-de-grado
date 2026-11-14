@@ -22,8 +22,8 @@ class BrandTests(unittest.TestCase):
     def test_similar_model_needs_confirmation(self):
         response=self.client.post('/inventario/catalogos?kind=reference', data={'csrf':self.csrf,'name':'iPxhone 17 Pro Max','active':'1','parent_id':self.brand})
         page=response.get_data(as_text=True)
-        self.assertIn('Alerta de modelo parecido',page)
-        self.assertIn('Confirmo que es un modelo',page)
+        self.assertIn('Encontramos nombres similares',page)
+        self.assertIn('Es distinto: guardar',page)
         response=self.client.post('/inventario/catalogos?kind=reference', data={'csrf':self.csrf,'name':'iPxhone 17 Pro Max','active':'1','parent_id':self.brand,'confirm_similar':'1'})
         self.assertEqual(response.status_code,302)
 

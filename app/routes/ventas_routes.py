@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from ..services import inventario_service as inventory
 from ..services.operacion_service import operate, ALLOWED, today
 from ..services.catalogo_service import list_items, CONDITIONS
+from ..models import PersonaContable
 
 ventas = Blueprint('ventas', __name__)
 
@@ -12,10 +13,20 @@ ventas = Blueprint('ventas', __name__)
 def index():
     query = request.args.get('q', '').strip()
     state = request.args.get('estado', '')
+    pending_only = request.args.get('saldo') == '1'
     rows = inventory.list_products(query)
+    counts = dict(available=sum(r['status']=='Disponible' for r in rows),
+                  loaned=sum(r['status']=='En pasamano' for r in rows),
+                  sold=sum(r['status']=='Vendido' for r in rows),
+                  pending=sum(r['status']=='Vendido' and r.get('sale_value_cents') is not None
+                              and r['sale_value_cents'] > (r.get('paid_cents') or 0) for r in rows))
     if state:
         rows = [r for r in rows if r['status'] == state]
-    return render_template('ventas/index.html', rows=rows, query=query, state=state, states=ALLOWED, active='ventas')
+    if pending_only:
+        rows = [r for r in rows if r['status']=='Vendido' and r.get('sale_value_cents') is not None
+                and r['sale_value_cents'] > (r.get('paid_cents') or 0)]
+    return render_template('ventas/index.html', rows=rows, query=query, state=state, states=ALLOWED,
+                           counts=counts, pending_only=pending_only, active='ventas')
 
 
 @ventas.route('/ventas/<int:product_id>', methods=['GET', 'POST'])
@@ -36,9 +47,13 @@ def detail(product_id):
         except ValueError as exc:
             db.session.rollback()
             error = str(exc)
-    return render_template('ventas/detalle.html', product=product.to_dict(), error=error,
+    from ..models.gestion import CreditoVenta
+    from ..models.finanzas import OperacionFinanciera
+    credits=db.session.scalars(db.select(CreditoVenta).join(OperacionFinanciera,OperacionFinanciera.id==CreditoVenta.operacion_id).where(OperacionFinanciera.product_id==product.id,CreditoVenta.estado!='Anulado')).all()
+    return render_template('ventas/detalle.html', product=product.to_dict(), error=error,credits=credits,
                            money=payments.summary(product), methods=payments.METHODS, admin=False,
                            events=inventory.history(product_id), catalog=list_items(active_only=True),
+                           accounting_people=db.session.scalars(db.select(PersonaContable).order_by(PersonaContable.nombre)).all(),
                            conditions=CONDITIONS, now_date=today(),
                            operations=ALLOWED.get(product.status, []) + ([('correct_date','Corregir fecha del último movimiento')] if product.movement_date else []), active='ventas')
 

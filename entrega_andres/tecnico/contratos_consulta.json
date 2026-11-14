@@ -1,0 +1,97 @@
+{
+  "version": "propuesta-1",
+  "currency": "COP",
+  "money_unit": "centavos",
+  "timezone": "America/Bogota",
+  "max_days_proposal": 366,
+  "max_detail_rows_proposal": 100,
+  "tools": [
+    {
+      "name": "resumen_ventas",
+      "status": "propuesto_no_implementado",
+      "read_only": true,
+      "initial_access_proposal": [
+        "Propietario"
+      ],
+      "parameters": {
+        "desde": "date",
+        "hasta": "date"
+      },
+      "fields": [
+        "cantidad_operaciones",
+        "venta_neta_centavos"
+      ],
+      "source": "finance_operation + finance_day",
+      "grain": "operacion",
+      "authorization": "Identidad verificada por servidor; no parámetro del modelo",
+      "rules_document": "03_CONTRATOS_CHATBOT.md"
+    },
+    {
+      "name": "estado_inventario",
+      "status": "propuesto_no_implementado",
+      "read_only": true,
+      "initial_access_proposal": [
+        "Propietario"
+      ],
+      "parameters": {
+        "ubicacion_id": "integer?",
+        "referencia_id": "integer?"
+      },
+      "fields": [
+        "cantidad_disponible",
+        "grupos"
+      ],
+      "source": "equipment",
+      "grain": "equipo actual",
+      "authorization": "Identidad verificada por servidor; no parámetro del modelo",
+      "rules_document": "03_CONTRATOS_CHATBOT.md"
+    },
+    {
+      "name": "resumen_financiero",
+      "status": "propuesto_no_implementado",
+      "read_only": true,
+      "initial_access_proposal": [
+        "Propietario"
+      ],
+      "parameters": {
+        "desde": "date",
+        "hasta": "date",
+        "incluir_abiertas": "boolean=false"
+      },
+      "fields": [
+        "debe",
+        "haber",
+        "service",
+        "pd",
+        "liquidation",
+        "commission",
+        "owner_result"
+      ],
+      "source": "snapshot.totals / finanzas_service.report",
+      "grain": "jornada",
+      "authorization": "Identidad verificada por servidor; no parámetro del modelo",
+      "rules_document": "03_CONTRATOS_CHATBOT.md"
+    },
+    {
+      "name": "creditos_pendientes",
+      "status": "propuesto_no_implementado",
+      "read_only": true,
+      "initial_access_proposal": [
+        "Propietario"
+      ],
+      "parameters": {
+        "aliado_id": "integer?"
+      },
+      "fields": [
+        "cantidad_creditos",
+        "neto_centavos",
+        "recibido_centavos",
+        "pendiente_centavos"
+      ],
+      "source": "creditos_venta + finance_operation",
+      "grain": "credito actual",
+      "authorization": "Identidad verificada por servidor; no parámetro del modelo",
+      "rules_document": "03_CONTRATOS_CHATBOT.md"
+    }
+  ]
+}

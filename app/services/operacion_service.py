@@ -1,5 +1,7 @@
+from .gestion_comun import actor
 """Transiciones y dinero: una transacción por operación, con revisión optimista."""
 import json
+import secrets
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal, InvalidOperation
 from sqlalchemy.orm.exc import StaleDataError
@@ -35,7 +37,7 @@ ALLOWED = {
     'Disponible': [('handoff','Entregar equipo'),('reserve','Crear separado'),('sell','Confirmar venta'),('warranty','Ingresar a garantía')],
     'En pasamano': [('return','Registrar devolución'),('sell','Confirmar venta')],
     'Separado': [('payment','Registrar abono'),('sell','Convertir en venta'),('cancel','Cancelar separado sin cobros')],
-    'Vendido': [('payment','Registrar cobro del cliente'),('warranty','Ingresar a garantía')],
+    'Vendido': [('payment','Registrar cobro del cliente'),('edit_sale','Corregir venta'),('reverse_sale','Anular venta y volver a disponible'),('warranty','Ingresar a garantía')],
     'Garantía': [('close_warranty','Cerrar garantía')],
 }
 
@@ -71,7 +73,46 @@ def operate(pid, action, data):
         seller = data.get('seller','').strip().upper()
         if not 2 <= len(seller) <= 120:
             raise ValueError('Indica quién realizó la venta (entre 2 y 120 caracteres).')
-        values.update(seller=seller, sale_date=effective)
+        person_id=data.get('person_id','').strip()
+        if person_id:
+            from ..models import PersonaContable
+            try: person_id=int(person_id)
+            except ValueError: raise ValueError('Selecciona una persona del registro contable.')
+            if not db.session.get(PersonaContable,person_id): raise ValueError('La persona no existe en información contable.')
+        values.update(seller=seller, sale_date=effective,person_id=person_id or None)
+    if action == 'edit_sale':
+        from ..models.finanzas import Jornada, OperacionFinanciera, AuditoriaFinanciera
+        amount=money(data.get('sale_value'))
+        if amount<p.paid_cents:raise ValueError('El precio corregido no puede ser inferior a los cobros vigentes.')
+        seller=' '.join(data.get('seller','').upper().split())
+        if not 2<=len(seller)<=120:raise ValueError('Indica el vendedor de esta venta.')
+        responsible=' '.join(data.get('responsible','').upper().split())
+        if not 2<=len(responsible)<=120:raise ValueError('Indica la persona o negocio responsable.')
+        linked=db.session.scalar(db.select(OperacionFinanciera).where(OperacionFinanciera.product_id==pid))
+        if linked:
+            finance_day=db.session.get(Jornada,linked.day_id)
+            if finance_day.status!='Abierta':raise ValueError('Reabre primero la jornada cerrada para corregir esta venta.')
+            from ..models.gestion import CreditoVenta,ResultadoSocio
+            if db.session.scalar(db.select(CreditoVenta.id).where(CreditoVenta.operacion_id==linked.id)):
+                raise ValueError('Esta venta tiene un crédito asociado. Conserva su contrato y corrige desde Finanzas.')
+            before_finance={'amount':linked.amount,'seller':linked.seller}
+            linked.amount=amount;linked.seller=seller
+            from .sociedad_service import refresh_result
+            refresh_result(linked,reason)
+            finance_day.revision+=1
+            db.session.add(AuditoriaFinanciera(day_id=finance_day.id,action='Corrección de venta MOD03',
+                reason=reason,detail={'product_id':pid,'operation_id':linked.id,'before':before_finance,
+                    'after':{'amount':amount,'seller':seller}}))
+        person_id=data.get('person_id','').strip()
+        if person_id:
+            from ..models import PersonaContable
+            try: person_id=int(person_id)
+            except ValueError: raise ValueError('Selecciona una persona del registro contable.')
+            if not db.session.get(PersonaContable,person_id): raise ValueError('La persona no existe en información contable.')
+        if linked:
+            linked.person_id=person_id or None
+        values.update(sale_value_cents=amount,seller=seller,responsible=responsible,person_id=person_id or None,
+                      payment_status='Pagado' if amount==p.paid_cents else 'Parcial' if p.paid_cents else 'Pendiente')
     if action=='correct_date':
         event = db.session.scalar(db.select(Movimiento).where(Movimiento.product_id==pid, Movimiento.action.notin_(['Corrección de fecha','Edición','Traslado','Eliminación del inventario','Restauración'])).order_by(Movimiento.id.desc()))
         if not event: raise ValueError('No hay un movimiento para corregir.')
@@ -120,6 +161,31 @@ def operate(pid, action, data):
         if not responsible or len(responsible)>120: raise ValueError('Indica el vendedor responsable.')
         values.update(status='Vendido',sale_value_cents=amount,responsible=responsible,due_date=None,purpose=None,
                       payment_status='Pagado' if p.paid_cents==amount else 'Parcial' if p.paid_cents else 'Pendiente')
+    elif action == 'reverse_sale':
+        from ..models import Cobro
+        from ..models.finanzas import Jornada, OperacionFinanciera, PagoProveedor, AuditoriaFinanciera
+        if p.paid_cents or db.session.scalar(db.select(Cobro.id).where(Cobro.product_id==pid,Cobro.voided==False)):
+            raise ValueError('La venta tiene cobros. Concilia y anula los cobros antes de anular la venta; la anulación no devuelve dinero automáticamente.')
+        linked=db.session.scalar(db.select(OperacionFinanciera).where(OperacionFinanciera.product_id==pid,OperacionFinanciera.voided==False))
+        if linked:
+            finance_day=db.session.get(Jornada,linked.day_id)
+            if finance_day.status!='Abierta':raise ValueError('Reabre la jornada financiera de la venta antes de anularla.')
+            if any(x['account']!='CRÉDITO' for x in linked.payments) or db.session.scalar(db.select(PagoProveedor.id).where(PagoProveedor.operation_id==linked.id)):
+                raise ValueError('La venta tiene pagos vinculados en Finanzas. Concílialos antes de anularla.')
+            from ..models.gestion import AplicacionLiquidacion,ResultadoSocio,ComisionPool
+            if db.session.scalar(db.select(AplicacionLiquidacion.id).join(ResultadoSocio,ResultadoSocio.id==AplicacionLiquidacion.resultado_id).where(ResultadoSocio.operacion_id==linked.id)):
+                raise ValueError('Hay pagos a socios asociados a esta venta.')
+            if db.session.scalar(db.select(ComisionPool.id).where(ComisionPool.operacion_id==linked.id,ComisionPool.pago_operacion_id.is_not(None))):
+                raise ValueError('La comisión extra del POOL ya fue entregada. Concilia el reintegro antes de anular.')
+            from .credito_service import cancel_unreceived
+            from .stock_service import reverse_sale
+            cancel_unreceived(linked,reason);reverse_sale(linked,reason)
+            linked.voided=True;linked.product_id=None;finance_day.revision+=1
+            db.session.add(AuditoriaFinanciera(day_id=finance_day.id,action='Anulación de venta MOD03',reason=reason,
+                detail={'product_id':pid,'operation_id':linked.id,'amount':linked.amount}))
+        values.update(status='Disponible',sale_date=None,sale_value_cents=None,paid_cents=0,payment_status='No aplica',
+                      payment_date=None,responsible=None,seller=None,person_id=None,due_date=None,purpose=None,
+                      loan_handler=None,loan_price_cents=None,pool_assigned_cost_cents=None,pool_admin_gain_cents=0)
     elif action == 'cancel':
         from ..models import Cobro
         if db.session.scalar(db.select(Cobro.id).where(Cobro.product_id==pid,Cobro.voided==False)):
@@ -130,12 +196,20 @@ def operate(pid, action, data):
         values.update(status='Garantía',warranty_previous=p.status)
     try:
         for k,v in values.items(): setattr(p,k,v)
+        if action=='sell':
+            from ..models.finanzas import Jornada, OperacionFinanciera
+            from .finanzas_service import incorporate
+            finance_day=db.session.scalar(db.select(Jornada).where(Jornada.date==p.sale_date))
+            if finance_day and finance_day.status=='Abierta' and not db.session.scalar(
+                    db.select(OperacionFinanciera.id).where(OperacionFinanciera.product_id==pid)):
+                incorporate(finance_day,pid,secrets.token_hex(16))
+                finance_day.revision+=1
         # Incrementa incluso si un movimiento solo añade una observación.
         p.revision += 1
         db.session.flush()
         db.session.add(Movimiento(product_id=pid,action='Corrección de fecha' if action=='correct_date' else dict(ALLOWED[before['status']])[action],
             reason=reason + (' | Motivo de fecha: '+correction if correction else ''),
-            actor='Sesión local sin autenticación',before_data=json.dumps(before,ensure_ascii=False),after_data=json.dumps(p.to_dict(),ensure_ascii=False)))
+            actor=actor(),before_data=json.dumps(before,ensure_ascii=False),after_data=json.dumps(p.to_dict(),ensure_ascii=False)))
         db.session.commit()
     except StaleDataError:
         db.session.rollback()

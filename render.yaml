@@ -1,0 +1,28 @@
+# Solo crea un servicio web. Reutiliza PostgreSQL existente; no crea ni borra bases.
+# Antes de sincronizar, elige la MISMA región que cp-store-db.
+# Si la base no está en Oregon, añade region con su región real.
+services:
+  - type: web
+    name: cp-store-web
+    runtime: python
+    plan: free
+    branch: integracion/cp-store-v19
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -c gunicorn.conf.py run:app
+    healthCheckPath: /healthz
+    autoDeployTrigger: "off"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: UPLOADS_ENABLED
+        value: "false"
+      - key: PERSISTENT_INSTANCE
+        value: "false"

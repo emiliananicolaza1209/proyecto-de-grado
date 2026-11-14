@@ -1,0 +1,11 @@
+# Conciliación de Finanzas con la hoja de prueba del 23 de octubre
+
+La hoja `13` del libro de prueba tiene nueve movimientos, hasta «ST CAMBIO DE PIN». Los valores guardados por Excel que sirven como control son: DEBE $285.000 (`Y5`), HABER total $664.000 (`Z5`, incluye la liquidación de $639.000), resultado −$379.000 (`AA5`), CP VARIOS $10.000 (`AC22`), ganancia bancaria $40.000 (`Z30`), fondo propio bancario $10.000 (`AA30`), TOTAL TRANSFER $50.000 (`Z38`), total de control $67.000 (`AB57`) y efectivo de control $17.000 (`AB58`).
+
+El error era sumar a TOTAL TRANSFER únicamente la parte bancaria de la ganancia ($40.000). El Excel suma también el costo de CP VARIOS que entró por datáfono ($10.000). Ahora el reporte asigna los fondos propios a los costos cubiertos por medios bancarios, hasta el importe disponible en esos medios, y los incluye en TOTAL TRANSFER. Así, con los importes del ejemplo, `67.000 − 50.000 = 17.000`. Esta clasificación no crea un pago a proveedor ni una salida de caja.
+
+La cifra $665.000 de «Cobros por medio EFECTIVO» de la captura corresponde a los pagos registrados con ese medio. La celda `A19` de la hoja de prueba muestra $675.000, pero su fórmula es `H13+H11+Q7+A18`: suma $40.000 de Jandel, $10.000 de CP VARIOS, $380.000 del equipo y $245.000 de márgenes asignados al efectivo. No es una suma directa de cobros en efectivo y no se debe forzar el saldo físico de caja a coincidir con ella. El programa distingue esta suma de «Efectivo esperado incluyendo base», que solo baja cuando se registra un pago efectivo, y del «Efectivo control» calculado con las reglas de la hoja.
+
+«Efectivo a entregar sin base» deja de mostrarse como indicador separado. El cierre sigue solicitando cuánto se entregó, dejando los $200.000 de base, para comparar ese valor con la caja esperada y conservar el sobrante o faltante. En «Movimientos» se muestran los medios y valores de cada operación; los cobros de equipos se consultan en el módulo 03 si no fueron registrados en esta misma jornada.
+
+Esta prueba concilia la segunda hoja hasta el cambio de pin. La hoja original contiene más movimientos y requiere registrarlos en la aplicación para comprobar cada paso de la jornada completa.

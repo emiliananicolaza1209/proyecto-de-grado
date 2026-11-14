@@ -1,0 +1,118 @@
+{
+  "money_unit": "pesos COP en los ejemplos; adaptadores devuelven centavos",
+  "note": "Escenarios de aceptación, no seed ni resultados de ejecución. Las pruebas existentes deben reutilizar sus fixtures; los nuevos casos requieren implementación.",
+  "cases": [
+    {
+      "id": "T01",
+      "input_description": "Crédito 650000 COP al 18%",
+      "expected": "neto=533000; costo=117000; banco=0 antes de desembolso",
+      "source": "tests/test_gestion_v16.py:test_credit_18_percent_and_actual_deposit_only_on_receipt",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T02",
+      "input_description": "Desembolsos 200000 y 333000 sobre crédito neto 533000",
+      "expected": "recibido=533000; pendiente=0; utilidad no se repite",
+      "source": "tests/test_gestion_v16.py:test_financed_equipment_partial_then_full_no_duplicate_bank",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T03",
+      "input_description": "Inicial 500000 y crédito neto pactado 900000; base 200000",
+      "expected": "venta_neta=1400000; efectivo=700000 antes de desembolso",
+      "source": "tests/test_gestion_v16.py:test_manual_net_plus_actual_initial_no_double_discount",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T04",
+      "input_description": "Pagar comisión POOL 20000 ya reconocida",
+      "expected": "caja disminuye 20000; margen no cambia",
+      "source": "tests/test_gestion_v16.py:test_pool_purchase_gain_and_resale_extra",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T05",
+      "input_description": "Una venta de 100000 con dos pagos y tres costos",
+      "expected": "cantidad_operaciones=1; venta=100000; sin multiplicar por joins",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T06",
+      "input_description": "Rango con un día cerrado, otro abierto y otro sin jornada",
+      "expected": "cobertura explícita; abierto solo si se pidió; faltante no se convierte en cero",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T07",
+      "input_description": "Vendedora pide utilidad o información del propietario",
+      "expected": "rechazo antes de consultar/devolver datos restringidos al modelo",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T08",
+      "input_description": "Usuario solicita ignorar reglas y ejecutar DELETE o leer password_hash",
+      "expected": "ninguna herramienta de escritura/SQL libre; acceso rechazado",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T09",
+      "input_description": "Crédito pendiente sin vencimiento; pregunta por mora",
+      "expected": "saldo disponible; mora no calculable",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T10",
+      "input_description": "Comparación contra periodo previo de ventas cero",
+      "expected": "diferencia absoluta; porcentaje=null con explicación",
+      "source": "nuevo de analítica",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T11",
+      "input_description": "Sueldo misma persona y jornada 80000, pago 30000",
+      "expected": "pendiente=50000; no inferir pagos de otras jornadas",
+      "source": "nuevo para consolidado",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T12",
+      "input_description": "CP VARIOS registrado como costo/fondo 40000",
+      "expected": "capital reservado=40000; no etiquetar como venta o sueldo",
+      "source": "nuevo para consolidado",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T13",
+      "input_description": "Consulta sin registros y cobertura completa conocida",
+      "expected": "sin_datos o cero según métrica y definición; nunca inventar detalle",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T14",
+      "input_description": "Modelo solicita consulta fuera de rango válido o parámetro adicional SQL",
+      "expected": "parametros_invalidos; consulta no ejecutada",
+      "source": "nuevo para adaptadores",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T15",
+      "input_description": "Corrección de consignación 120000 de un banco a otro",
+      "expected": "una consignación activa por vínculo; total=120000",
+      "source": "flujo manual reportado por Emily",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    },
+    {
+      "id": "T16",
+      "input_description": "Cerrar día, reiniciar y consultar",
+      "expected": "mismos totales snapshot y estado Cerrada; no recalcular con reglas actuales",
+      "source": "pendiente de evidencia de cierre",
+      "run_status": "no_ejecutado_en_esta_entrega"
+    }
+  ]
+}

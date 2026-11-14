@@ -1,0 +1,27 @@
+<section class="panel" id="comisiones-pool">
+  <h2>Comisiones extra por ventas del POOL</h2>
+  <p class="muted">Los $20.000 ya se descuentan de la ganancia en la fecha de la venta. Las pendientes de fechas anteriores se conservan aquí y no bloquean el cierre de hoy.</p>
+  <div class="f-table"><table><thead><tr><th>Venta y fecha de origen</th><th>Comisión</th><th>Estado de la entrega</th><th>Detalle</th></tr></thead><tbody>
+  {% for c,origin_date,paid_date in pool.commissions %}
+    {% set payment=pool.commission_payments.get(c.id) %}
+    {% set source=payment.payments[0].account if payment else '' %}
+    <tr><td>Venta #{{ c.operacion_id }}<small>{{ origin_date }}{% if origin_date<day and not paid_date %} · Pendiente anterior{% endif %}</small></td><td class="f-money">{{ c.monto|cop }}</td>
+    <td>{% if paid_date %}Entregada el {{ paid_date }}<small>{{ 'Caja de la jornada' if source=='EFECTIVO' else 'Pago directo de administración' }} · Pago #{{ payment.id }}</small>{% else %}Por entregar{% endif %}</td>
+    <td><details {% if error and form.get('commission_id')==c.id|string %}open{% endif %}><summary>{{ 'Registrar entrega' if not paid_date else 'Ver pago' }}</summary>
+      <ul>{% for person in c.reparto %}<li>{{ person.nombre }}: {{ person.importe|cop }}</li>{% endfor %}</ul>
+      {% if not c.pago_operacion_id and d.status=='Abierta' %}
+      <form method="post" class="f-pool-payment">{{ hidden('pool_commission') }}<input type="hidden" name="commission_id" value="{{ c.id }}">
+        <p>Gasto de la venta: {{ origin_date }}. Entrega real del dinero: {{ day }}.</p>
+        <label>¿De dónde salió el dinero?<select name="payment_source" required><option value="EFECTIVO">Caja de esta jornada (reduce el efectivo a entregar)</option><option value="ADMINISTRACIÓN DIRECTA">Administración pagó directamente (no sale de esta caja)</option></select></label>
+        <label>Quién pagó / comprobante<input name="reference" maxlength="300" placeholder="Obligatorio si pagó administración directamente"></label>
+        <label class="f-check"><input type="checkbox" name="confirmed" value="1" required>Confirmo la entrega real al personal, con la fuente indicada.</label>
+        <button class="btn-primary">Registrar entrega</button>
+      </form>
+      {% elif payment and paid_date==day and d.status=='Abierta' %}
+      {% if payment.payments[0].get('reference') %}<p>{{ payment.payments[0].reference }}</p>{% endif %}
+      <form method="post">{{ hidden('void_pool_commission') }}<input type="hidden" name="commission_id" value="{{ c.id }}"><label>Motivo del reintegro<input name="reason" required maxlength="500"></label><label class="f-check"><input name="returned" value="1" type="checkbox" required>Confirmo que el dinero regresó a {{ 'la caja de esta jornada' if source=='EFECTIVO' else 'administración' }}.</label><button class="btn-secondary">Anular entrega y dejar pendiente</button></form>
+      {% endif %}
+    </details></td></tr>
+  {% else %}<tr><td colspan="4">No hay comisiones extra pendientes ni entregadas en esta fecha.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>

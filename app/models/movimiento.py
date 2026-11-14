@@ -11,4 +11,4 @@ class Movimiento(db.Model):
     before_data = db.Column(db.Text, nullable=False)
     after_data = db.Column(db.Text, nullable=False)
     actor = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.String, server_default=text('CURRENT_TIMESTAMP'))
+    created_at = db.Column(db.String, server_default=text('CAST(CURRENT_TIMESTAMP AS TEXT)'))

@@ -1,0 +1,45 @@
+{% extends 'layouts/base.html' %}
+{% from 'ui/macros.html' import status as ui_status %}
+{% macro only(types) %}data-report-types="{{ types }}" {% if kind not in types.split(' ') %}hidden{% endif %}{% endmacro %}
+{% macro result_table(t) %}
+<div class="table-responsive report-table-wrap"><table class="table report-table" data-ui-responsive>
+  <thead><tr>{% for column in t.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for row in t.rows %}<tr>{% for cell in row %}<td class="{{ 'report-money' if cell.kind=='money' }}">{% if cell.kind=='status' %}{{ ui_status(cell.text) }}{% else %}{{ cell.text }}{% endif %}</td>{% endfor %}</tr>{% else %}<tr><td colspan="{{ t.columns|length }}" class="app-empty">No hay registros para los filtros seleccionados.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endmacro %}
+{% block content %}
+<div class="heading"><div><p class="eyebrow">CONSULTAS DEL NEGOCIO</p><h1>Reportes</h1><p class="muted">Selecciona un reporte y el periodo que necesitas. Los valores monetarios se muestran en pesos colombianos.</p></div></div>
+<section class="panel reportes-panel" aria-labelledby="report-filter-title">
+<h2 id="report-filter-title">Preparar reporte</h2>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+<form method="get" class="report-filters" id="report-filters">
+  <label class="report-kind">Reporte<select name="tipo" id="report-kind">{% for key,title in kinds.items() %}{% if key=='inventario' or can('admin') %}<option value="{{ key }}" {{ 'selected' if kind==key }}>{{ title }}</option>{% endif %}{% endfor %}</select></label>
+  <label {{ only('ventas creditos finanzas compras contable auditoria consolidado_adicional') }}>Desde<input type="date" name="desde" value="{{ args.get('desde') or (r.desde if r and r.desde is defined else '') }}"></label>
+  <label {{ only('ventas creditos finanzas compras contable auditoria consolidado_adicional') }}>Hasta<input type="date" name="hasta" value="{{ args.get('hasta') or (r.hasta if r and r.hasta is defined else '') }}"></label>
+  <label {{ only('inventario ventas') }}>Ubicación<select name="ubicacion"><option value="">Todas las ubicaciones</option>{% for value in filters.locations if value %}<option value="{{ value }}" {{ 'selected' if args.get('ubicacion')==value }}>{{ value }}</option>{% endfor %}</select></label>
+  <label {{ only('ventas') }}>Vendedor<select name="vendedor"><option value="">Todos los vendedores</option>{% for value in filters.sellers if value %}<option value="{{ value }}" {{ 'selected' if args.get('vendedor')==value }}>{{ value }}</option>{% endfor %}</select></label>
+  <label {{ only('inventario creditos') }}>Estado<select name="estado"><option value="">Todos los estados</option>{% for value in ['Disponible','En pasamano','Separado','Vendido','Garantía','Pendiente','Parcial','Pagado'] %}<option value="{{ value }}" data-state-types="{{ 'creditos' if value in ['Pendiente','Parcial','Pagado'] else 'inventario' }}" {{ 'selected' if args.get('estado')==value }}>{{ value }}</option>{% endfor %}</select></label>
+  <label {{ only('inventario') }}>Buscar equipo<input name="q" type="search" value="{{ args.get('q','') }}" placeholder="IMEI o referencia"></label>
+  <label {{ only('creditos') }}>Aliado<select name="aliado"><option value="">Todos los aliados</option>{% for ally in filters.allies %}<option value="{{ ally.id }}" {{ 'selected' if args.get('aliado')==ally.id|string }}>{{ ally.nombre }}</option>{% endfor %}</select></label>
+  <label {{ only('auditoria') }}>Área<input name="entidad" value="{{ args.get('entidad','') }}" placeholder="Área de gestión"></label>
+  <label {{ only('auditoria') }}>Responsable<input name="actor" value="{{ args.get('actor','') }}"></label>
+  <label {{ only('consolidado_adicional') }}>Concepto<select name="concepto"><option value="fondos">Capital reservado por fondo</option><option value="sueldos" {{ 'selected' if args.get('concepto')=='sueldos' }}>Sueldos por persona y jornada</option></select></label>
+  <label {{ only('consolidado_adicional') }}>Persona o fondo<input name="persona" value="{{ args.get('persona','') }}" placeholder="Vacío para consultar todos"></label>
+  <div class="report-options">
+    <label class="report-check" {{ only('ventas') }}><input type="checkbox" name="anuladas" value="1" {{ 'checked' if args.get('anuladas')=='1' }}>Mostrar ventas anuladas, sin sumarlas al total</label>
+    <label class="report-check" {{ only('finanzas consolidado_adicional') }}><input type="checkbox" name="abiertas" value="1" {{ 'checked' if args.get('abiertas')=='1' }}>Incluir jornadas abiertas como provisionales</label>
+  </div>
+  <div class="report-filter-actions"><button class="btn btn-primary" type="submit">Consultar reporte</button><a class="btn btn-secondary" href="{{ url_for('reportes.index',tipo=kind) }}">Limpiar filtros</a></div>
+</form>
+</section>
+{% if view %}
+<section class="panel reportes-panel" aria-labelledby="report-result-title">
+  <div class="heading report-result-heading"><div><h2 id="report-result-title">{{ view.title }}</h2><p class="muted">{% if r.desde is defined %}{{ r.desde }} al {{ r.hasta }} · {% endif %}{{ view.rows|length }} registros · Valores en COP</p></div><div class="report-export-actions">{% for fmt in ['xlsx','csv'] %}<a class="btn btn-outline-primary" href="{{ export_urls[fmt] }}">Exportar {{ fmt|upper }}</a>{% endfor %}</div></div>
+  <div class="report-metrics">{% for metric in view.metrics %}<article><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong></article>{% endfor %}</div>
+  {% for warning in r.advertencias %}<p class="report-note" role="status">{{ warning }}</p>{% endfor %}
+  {{ result_table(view) }}
+  {% for t in view.additional %}<section class="report-additional"><h3>{{ t.title }}</h3>{{ result_table(t) }}</section>{% endfor %}
+  <p class="muted report-generated">Generado: {{ view.generated }} · Hora de Colombia</p>
+</section>
+{% endif %}
+{% endblock %}

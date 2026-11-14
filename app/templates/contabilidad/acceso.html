@@ -1,0 +1,8 @@
+{% extends 'layouts/base.html' %}{% block content %}
+<section class="panel" style="max-width:540px;margin:2rem auto"><h1>Acceso a registro contable</h1>
+<p>Solo administración y propietario pueden registrar personas y bancos.</p>
+<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}">
+<label>Clave de administrador o propietario<input type="password" name="password" required autocomplete="current-password"></label>
+<button class="btn btn-primary">Ingresar</button></form>
+<p><a href="{{ url_for('contabilidad.index') }}">Volver a Información contable</a></p></section>
+{% endblock %}

@@ -19,4 +19,14 @@
 .sales-form [hidden]{display:none!important}
 .sales-table td{vertical-align:middle;padding:16px 12px!important}.sales-table th{white-space:nowrap}
 .sales-table .device-meta{display:block;margin-top:4px;font-size:12px}.sales-state{display:inline-block;padding:5px 10px;border-radius:20px;background:#edf2ff;color:#244895;font-size:12px;font-weight:600}
+.sales-state.status-sold{background:#fee9e9;color:#a11c24;border:1px solid #f1babc}
+.sales-balance-filter{display:flex;align-items:center;gap:8px;min-height:34px;margin:0;font-size:12px;cursor:pointer}
+.sales-balance-filter input{accent-color:var(--blue)}
 @media(max-width:800px){.sales-form{grid-template-columns:1fr;gap:16px}.operation-card[open]{padding:16px}.sales-form>label{grid-column:1}.heading{flex-wrap:wrap;gap:12px}}
+
+.sales-filters>label{display:flex;flex-direction:column;gap:8px;min-width:0}.sales-filters>label input,.sales-filters>label select{width:100%;min-width:0;min-height:44px}
+
+/* Botón y enlace comparten fila, altura y separación. */
+.sales-filters>div{grid-column:1/-1}.sales-filter-actions{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin-top:16px}.sales-filter-actions>.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin:0;line-height:1.5}
+.sales-filter-actions>.btn-primary{color:#fff}
+@media(max-width:480px){.sales-filter-actions>.btn{flex:1;white-space:normal;text-align:center}}

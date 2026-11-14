@@ -1,0 +1,2 @@
+{% extends 'layouts/base.html' %}
+{% block content %}<section class="panel ui-error"><h1>{{ title }}</h1><p>{{ message }}</p><div class="ui-error-actions"><a class="btn btn-primary" data-app-back href="{{ back_url }}">Volver al apartado anterior</a>{% if usuario %}<a class="btn btn-secondary" href="{{ url_for('main.home') }}">Ir al resumen</a>{% else %}<a class="btn btn-secondary" href="{{ url_for('auth.login') }}">Iniciar sesión</a>{% endif %}</div></section>{% endblock %}

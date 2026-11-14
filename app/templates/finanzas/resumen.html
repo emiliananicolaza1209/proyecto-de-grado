@@ -1,0 +1,23 @@
+<section class="f-summary" aria-label="Resumen de la jornada">
+  <div class="f-summary-heading"><h2>Resumen de la fecha seleccionada</h2><span>{{ day }} · {{ d.status }}</span></div>
+  <div class="f-summary-grid">
+  {% for title,key,hint in [
+    ('Margen de ventas y compras POOL','debe','Solo esta jornada · DEBE, antes de costos menores'),
+    ('Costos menores','haber','HABER del Excel'),
+    ('Sueldos y cargos','liquidation','Importes causados por personal y reglas'),
+    ('Utilidad del día','owner_result','Después de sueldos, comisiones y gastos PD'),
+    ('Ventas del día','sales_count','Cantidad de ventas registradas'),
+    ('Ventas netas','gross','Valor neto de las ventas'),
+    ('Comisiones habituales','commission','Comisiones habituales de la jornada'),
+    ('Total del control Excel','control_total','Referencia de reparto; no es efectivo en caja')
+  ] if can('admin') or key in ['sales_count','gross'] %}
+    {% set value=r.totals.get(key) %}
+    <article data-summary="{{ key }}" class="{{ 'f-summary-primary' if key in ['debe','haber'] else '' }}">
+      <h3>{{ title }}</h3>
+      <strong class="{{ 'f-summary-negative' if value is not none and value < 0 else '' }}">{{ value if key=='sales_count' else (value|cop) }}</strong>
+      <small>{{ hint }}</small>
+    </article>
+  {% endfor %}
+  </div>
+  {% if can('admin') %}<p class="muted">El detalle de bancos, créditos y caja está en <a href="{{ url_for('finanzas.index',date=day,tab='cierre') }}">Cierre</a>. El total control es distinto del efectivo físico.</p>{% endif %}
+</section>

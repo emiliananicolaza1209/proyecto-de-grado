@@ -1,4 +1,5 @@
 """Regresión de búsqueda, compras consecutivas, costos y cobertura opcional."""
+from app.sqlite_resources import sqlite_connection
 import unittest
 import json
 import sqlite3
@@ -102,6 +103,6 @@ class Inventory12Tests(unittest.TestCase):
         self.create()
         upgrade(self.database)
         upgrade(self.database)
-        with sqlite3.connect(self.database) as connection:
+        with sqlite_connection(self.database) as connection:
             self.assertEqual(connection.execute('SELECT COUNT(*) FROM equipment').fetchone()[0],1)
             self.assertEqual(connection.execute('SELECT COUNT(*) FROM schema_version WHERE version=8').fetchone()[0],1)

@@ -1,3 +1,5 @@
+from app.extensions import db
+from _cleanup import release
 import sqlite3
 import tempfile
 import unittest
@@ -46,6 +48,7 @@ class CatalogTests(unittest.TestCase):
             self.fields['lot_id'] = lot.id
 
     def tearDown(self):
+        release(self.app)
         self.temp.cleanup()
 
     def imei(self, n):
@@ -92,6 +95,9 @@ class CatalogTests(unittest.TestCase):
         db.commit(); db.close()
         for _ in range(2):
             app = create_app({'TESTING':True,'DATABASE':path})
+            with app.app_context():
+                from app.extensions import db as orm_db
+                orm_db.session.remove();orm_db.engine.dispose()
         with app.app_context(), connection() as db:
             row = db.execute('SELECT * FROM equipment').fetchone()
             self.assertEqual(row['cost_cents'],10050)

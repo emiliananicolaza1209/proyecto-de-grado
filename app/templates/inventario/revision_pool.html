@@ -1,0 +1,9 @@
+{% if pool_pending %}
+<section class="panel pool-review" id="revision-pool" aria-label="Compras POOL pendientes de revisión">
+  <h2>{{ pool_pending|length }} compra{{ 's' if pool_pending|length!=1 }} POOL por revisar</h2>
+  <p class="muted">El equipo y la ganancia de compra ya están registrados. Completa o comprueba los datos del mismo equipo; revisarlo no genera otro movimiento.</p>
+  {% for event,p in pool_pending %}<div class="pool-review-row"><div><strong>{{ p.model }} · {{ p.imei }}</strong><small>Compra {{ event.datos.fecha_compra }} · {{ event.datos.compradora }}</small></div>
+  {% if request.endpoint=='inventory.detail' %}<form method="post" action="{{ url_for('inventory.review_pool',product_id=p.id) }}"><input type="hidden" name="csrf" value="{{ session.csrf }}"><input type="hidden" name="pending_id" value="{{ event.id }}"><label>Resultado de la revisión<input name="note" required maxlength="500" placeholder="Datos comprobados y completados"></label><button class="btn btn-secondary">Marcar como revisada</button></form>
+  {% else %}<a class="btn btn-secondary" href="{{ url_for('inventory.detail',product_id=p.id,_anchor='revision-pool') }}">Revisar equipo</a>{% endif %}</div>{% endfor %}
+</section>
+{% endif %}

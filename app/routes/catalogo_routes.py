@@ -12,6 +12,8 @@ def index():
     edit = service.get_item(request.args.get('edit'), kind)
     data = edit.to_dict() if edit else {}
     error = None
+    suggestions = []
+    exact_duplicate = False
     if request.method == 'POST':
         data = request.form.to_dict()
         try:
@@ -19,11 +21,12 @@ def index():
             flash('Catálogo actualizado.')
             return redirect(url_for('catalogos.index', kind=kind))
         except service.SimilarReferenceError as exc:
-            error = str(exc)
             suggestions = exc.suggestions
+            exact_duplicate = exc.exact
         except ValueError as exc:
             error = str(exc)
     return render_template('catalogos/index.html', kinds=service.KINDS, kind=kind,
                            rows=service.list_items(kind), references=service.list_items('reference'),
                            brands=service.list_items('brand'), data=data, error=error,
-                           suggestions=locals().get('suggestions', []), audit_alerts=service.catalog_alerts() if kind == 'reference' else [], capacities=service.CAPACITY_OPTIONS, active='inventario')
+                           suggestions=suggestions, exact_duplicate=exact_duplicate,
+                           capacities=service.CAPACITY_OPTIONS, active='inventario')

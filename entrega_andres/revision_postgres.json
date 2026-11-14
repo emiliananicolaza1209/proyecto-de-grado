@@ -1,0 +1,7526 @@
+{
+  "mode": "postgresql_metadatos",
+  "status": "estructura_basica_coincide",
+  "schema": "public",
+  "read_only_confirmed": true,
+  "schema_revisions": [
+    1
+  ],
+  "comparison": {
+    "missing_tables": [],
+    "additional_tables": [],
+    "missing_columns": [],
+    "additional_columns": [],
+    "different_types": [],
+    "different_nullability": [],
+    "expected_app_tables": 40,
+    "visible_expected_app_tables": 40
+  },
+  "columns": [
+    {
+      "table_name": "admin_receipt",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "collection_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "amount_cents",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "administrator",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "method",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "reference",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "effective_date",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "note",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "voided",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "admin_receipt",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "porcentaje_bp",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "persona_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "banco_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aliados_credito",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "alias_referencia",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "alias_referencia",
+      "column_name": "clave",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 200,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "alias_referencia",
+      "column_name": "descripcion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 200,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "alias_referencia",
+      "column_name": "referencia_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "alias_referencia",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "column_name": "desembolso_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "column_name": "credito_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "column_name": "monto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "column_name": "cobro_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "column_name": "liquidacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "column_name": "resultado_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "column_name": "utilidad",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "column_name": "capital",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "categoria_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "serializado",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "minimo",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "costo_administracion",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "fondo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 40,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "articulos_stock",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "bancos_destino",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "bancos_destino",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 60,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "kind",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "name",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "normal_key",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "parent_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "active",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "catalog",
+      "column_name": "supplier_category",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "categorias_stock",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "categorias_stock",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "categorias_stock",
+      "column_name": "activa",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "comisiones_pool",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "comisiones_pool",
+      "column_name": "operacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "comisiones_pool",
+      "column_name": "monto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "comisiones_pool",
+      "column_name": "reparto",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "comisiones_pool",
+      "column_name": "pago_operacion_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "producto_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "tipo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "venta_origen_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "operacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "aporte",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "pago_cliente",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "costos_pagados",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "compras_pool",
+      "column_name": "ganancia",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "persona_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "banco_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "monto",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 14,
+      "numeric_scale": 2
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "fecha",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "referencia",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": 100,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "finance_operation_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "payment_index",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "supplier_payment_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "column_name": "activa",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "lote_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "estado",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "moneda",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 3,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "sociedad_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "heredado",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "control_lote",
+      "column_name": "revision",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "cp_schema_revision",
+      "column_name": "version",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "operacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "indice",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "aliado_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "bruto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "costo",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "neto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "recibido",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "condiciones",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "creditos_venta",
+      "column_name": "estado",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "product_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "amount_cents",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "destination",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "collector",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "method",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "reference",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "effective_date",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "note",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "legacy",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "voided",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "customer_collection",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "datos_proveedor",
+      "column_name": "proveedor_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "datos_proveedor",
+      "column_name": "identificacion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 40,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "datos_proveedor",
+      "column_name": "telefono",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 40,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "datos_proveedor",
+      "column_name": "correo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "datos_proveedor",
+      "column_name": "direccion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 200,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "aliado_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "fecha",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "monto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "persona_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "banco_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "referencia",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 100,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "consignacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "token",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "sociedad_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "socio_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "producto_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "fecha",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "modalidad",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "valor_equipo",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "dinero",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "detalle",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "column_name": "token",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "lot_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "archived",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "revision",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "imei",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 15,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "model",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "capacity",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "color",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "condition",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "cost_cents",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "location",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "supplier",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "responsible",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "seller",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "loan_handler",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "loan_price_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "loan_date",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "sale_date",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "last_note",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "movement_date",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "payment_status",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "sale_value_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "payment_date",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "paid_cents",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "purpose",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "due_date",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "battery",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "warranty_previous",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "warranty_until",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "reference_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "color_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "capacity_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "supplier_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "person_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "location_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "purchase_usd",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "source_type",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "purchase_cop_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "additional_costs",
+      "data_type": "json",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "pool_assigned_cost_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "pool_admin_gain_cents",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "exchange_rate",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "shipping_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment",
+      "column_name": "subtotal_cents",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "product_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "action",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "reason",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "before_data",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "after_data",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "actor",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "equipment_event",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "lote_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 200,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "archivo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 80,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "mime",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 80,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "facturas_lote",
+      "column_name": "sha256",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "day_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "action",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 60,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "reason",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "detail",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_audit",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "date",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 12,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "revision",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "config",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_day",
+      "column_name": "snapshot",
+      "data_type": "json",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "day_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "token",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "kind",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "description",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 300,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "seller",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "amount",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "minor_cost",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "product_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "person_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "costs",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "payments",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_operation",
+      "column_name": "voided",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "day_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "operation_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "cost_index",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "amount",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "account",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "person_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "bank_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "column_name": "token",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "consignacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "accion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "motivo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "antes",
+      "data_type": "json",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "despues",
+      "data_type": "json",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "column_name": "fecha",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "lote_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "tipo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "datos",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "producto_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "lineas_lote",
+      "column_name": "articulo_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "socio_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "desde",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "hasta",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "fecha",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 10,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "monto",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "capital",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "anticipo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "fuente",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "referencia",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 150,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "detalle",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "column_name": "token",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 64,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "articulo_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "cantidad",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "costo_unitario",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "lote_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "operacion_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "unidad_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "motivo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "actor",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "movimientos_stock",
+      "column_name": "fecha",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "sociedad_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "socio_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "capital_bp",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "utilidad_bp",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "column_name": "aportado",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "persona_banco",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "persona_banco",
+      "column_name": "persona_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "persona_banco",
+      "column_name": "banco_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "personas_contables",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "personas_contables",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "personas_contables",
+      "column_name": "identificacion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 20,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "personas_contables",
+      "column_name": "tipo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 50,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "personas_contables",
+      "column_name": "declaro_renta_antes",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "column_name": "producto_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "column_name": "sociedad_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "column_name": "participaciones",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "column_name": "capital",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "entry_date",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "created_at",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "supplier_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "exchange_rate",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "expected_count",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "purchase_lot",
+      "column_name": "note",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "entidad",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 40,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "entidad_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "accion",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 100,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "motivo",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 500,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "actor",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "datos",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "registro_gestion",
+      "column_name": "fecha",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "producto_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "operacion_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "sociedad_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "socio_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "capital",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "utilidad",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 64,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "resultados_socio",
+      "column_name": "condiciones",
+      "data_type": "json",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "sociedades",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "sociedades",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "sociedades",
+      "column_name": "activa",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "socios",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "socios",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "socios",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "unidades_stock",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "unidades_stock",
+      "column_name": "articulo_id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "unidades_stock",
+      "column_name": "serial",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 100,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "unidades_stock",
+      "column_name": "disponible",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "nombre",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "login",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 120,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "password_hash",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 255,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "rol",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "character_maximum_length": 30,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "socio_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "activo",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": null,
+      "numeric_scale": null
+    },
+    {
+      "table_name": "usuarios",
+      "column_name": "session_version",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "character_maximum_length": null,
+      "numeric_precision": 32,
+      "numeric_scale": 0
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_administrator_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "administrator"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_amount_cents_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "amount_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_collection_id_fkey",
+      "constraint_type": "f",
+      "target_table": "customer_collection",
+      "columns": [
+        "collection_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_collection_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "collection_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_effective_date_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "effective_date"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_method_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "method"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_note_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "note"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_reference_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "reference"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "admin_receipt_voided_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "voided"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "admin_receipt",
+      "constraint_name": "ck_receipt_amount",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "amount_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_banco_id_fkey",
+      "constraint_type": "f",
+      "target_table": "bancos_destino",
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_persona_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aliados_credito",
+      "constraint_name": "aliados_credito_porcentaje_bp_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "porcentaje_bp"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_clave_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "clave"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_clave_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "clave"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_descripcion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "descripcion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_referencia_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "referencia_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "alias_referencia",
+      "constraint_name": "alias_referencia_referencia_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "referencia_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_cobro_id_fkey",
+      "constraint_type": "f",
+      "target_table": "customer_collection",
+      "columns": [
+        "cobro_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_credito_id_fkey",
+      "constraint_type": "f",
+      "target_table": "creditos_venta",
+      "columns": [
+        "credito_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_credito_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "credito_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_desembolso_id_credito_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "desembolso_id",
+        "credito_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_desembolso_id_fkey",
+      "constraint_type": "f",
+      "target_table": "desembolsos_credito",
+      "columns": [
+        "desembolso_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_desembolso_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "desembolso_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_monto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "monto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "constraint_name": "aplicaciones_credito_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_capital_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capital"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_liquidacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "liquidaciones_socio",
+      "columns": [
+        "liquidacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_liquidacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "liquidacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_resultado_id_fkey",
+      "constraint_type": "f",
+      "target_table": "resultados_socio",
+      "columns": [
+        "resultado_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_resultado_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "resultado_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "constraint_name": "aplicaciones_liquidacion_utilidad_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "utilidad"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_categoria_id_fkey",
+      "constraint_type": "f",
+      "target_table": "categorias_stock",
+      "columns": [
+        "categoria_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_categoria_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "categoria_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_costo_administracion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "costo_administracion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_fondo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fondo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_minimo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "minimo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "articulos_stock",
+      "constraint_name": "articulos_stock_serializado_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "serializado"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "bancos_destino",
+      "constraint_name": "bancos_destino_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "bancos_destino",
+      "constraint_name": "bancos_destino_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "bancos_destino",
+      "constraint_name": "bancos_destino_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "bancos_destino",
+      "constraint_name": "bancos_destino_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_active_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "active"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_kind_normal_key_parent_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "kind",
+        "normal_key",
+        "parent_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_kind_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "kind"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_name_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "name"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_normal_key_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "normal_key"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_parent_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "parent_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "catalog",
+      "constraint_name": "catalog_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "categorias_stock",
+      "constraint_name": "categorias_stock_activa_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activa"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "categorias_stock",
+      "constraint_name": "categorias_stock_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "categorias_stock",
+      "constraint_name": "categorias_stock_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "categorias_stock",
+      "constraint_name": "categorias_stock_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "categorias_stock",
+      "constraint_name": "categorias_stock_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_monto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "monto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_operacion_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_operacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_pago_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "pago_operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_pago_operacion_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "pago_operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "comisiones_pool",
+      "constraint_name": "comisiones_pool_reparto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "reparto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_aporte_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "aporte"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_costos_pagados_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "costos_pagados"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_ganancia_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "ganancia"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_operacion_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_operacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_pago_cliente_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "pago_cliente"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_producto_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_producto_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_tipo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "tipo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "compras_pool",
+      "constraint_name": "compras_pool_venta_origen_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "venta_origen_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_activa_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activa"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_banco_id_fkey",
+      "constraint_type": "f",
+      "target_table": "bancos_destino",
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_fecha_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fecha"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_finance_operation_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "finance_operation_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_monto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "monto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_persona_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_persona_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_supplier_payment_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_supplier_payment",
+      "columns": [
+        "supplier_payment_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "consignaciones_bancarias_supplier_payment_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "supplier_payment_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "constraint_name": "uq_consignacion_operacion_medio",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "finance_operation_id",
+        "payment_index"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_estado_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "estado"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_heredado_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "heredado"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_lote_id_fkey",
+      "constraint_type": "f",
+      "target_table": "purchase_lot",
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_lote_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_moneda_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "moneda"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_revision_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "revision"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "control_lote",
+      "constraint_name": "control_lote_sociedad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "sociedades",
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "cp_schema_revision",
+      "constraint_name": "cp_schema_revision_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "version"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "cp_schema_revision",
+      "constraint_name": "cp_schema_revision_version_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "version"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_aliado_id_fkey",
+      "constraint_type": "f",
+      "target_table": "aliados_credito",
+      "columns": [
+        "aliado_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_aliado_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "aliado_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_bruto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "bruto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_condiciones_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "condiciones"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_costo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "costo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_estado_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "estado"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_indice_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "indice"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_neto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "neto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_operacion_id_indice_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "operacion_id",
+        "indice"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_operacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "creditos_venta",
+      "constraint_name": "creditos_venta_recibido_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "recibido"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "ck_collection_amount",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "amount_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_amount_cents_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "amount_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_collector_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "collector"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_destination_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "destination"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_effective_date_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "effective_date"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_legacy_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "legacy"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_method_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "method"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_note_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "note"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_product_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_product_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_reference_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "reference"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "customer_collection",
+      "constraint_name": "customer_collection_voided_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "voided"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_correo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "correo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_direccion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "direccion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_identificacion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "identificacion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "proveedor_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_proveedor_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "proveedor_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_proveedor_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "proveedor_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "datos_proveedor",
+      "constraint_name": "datos_proveedor_telefono_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "telefono"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_aliado_id_fkey",
+      "constraint_type": "f",
+      "target_table": "aliados_credito",
+      "columns": [
+        "aliado_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_aliado_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "aliado_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_banco_id_fkey",
+      "constraint_type": "f",
+      "target_table": "bancos_destino",
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_banco_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_consignacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "consignaciones_bancarias",
+      "columns": [
+        "consignacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_consignacion_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "consignacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_consignacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "consignacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_fecha_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fecha"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_monto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "monto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_persona_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_persona_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_referencia_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "referencia"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_token_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "constraint_name": "desembolsos_credito_token_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_detalle_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "detalle"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_dinero_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "dinero"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_fecha_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fecha"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_modalidad_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "modalidad"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_producto_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_producto_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_sociedad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "sociedades",
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_sociedad_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_socio_id_fkey",
+      "constraint_type": "f",
+      "target_table": "socios",
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_token_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_token_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "constraint_name": "disoluciones_sociedad_valor_equipo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "valor_equipo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "ck_equipment_capacity",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "capacity"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "ck_equipment_cost",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "cost_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_archived_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "archived"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_capacity_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "capacity_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_capacity_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capacity"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_color_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "color_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_color_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "color"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_condition_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "condition"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_cost_cents_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "cost_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_imei_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "imei"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_imei_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "imei"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_location_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "location_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_location_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "location"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_lot_id_fkey",
+      "constraint_type": "f",
+      "target_table": "purchase_lot",
+      "columns": [
+        "lot_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_model_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "model"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_paid_cents_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "paid_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_payment_status_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "payment_status"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_person_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "person_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_pool_admin_gain_cents_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "pool_admin_gain_cents"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_reference_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "reference_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_revision_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "revision"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_source_type_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "source_type"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_status_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "status"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_supplier_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "supplier_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "constraint_name": "equipment_supplier_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "supplier"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_action_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "action"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_actor_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "actor"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_after_data_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "after_data"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_before_data_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "before_data"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_product_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_product_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "equipment_event",
+      "constraint_name": "equipment_event_reason_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "reason"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_archivo_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "archivo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_archivo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "archivo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_lote_id_fkey",
+      "constraint_type": "f",
+      "target_table": "purchase_lot",
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_lote_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_mime_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "mime"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "facturas_lote",
+      "constraint_name": "facturas_lote_sha256_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "sha256"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_action_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "action"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_day_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_day",
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_day_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_detail_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "detail"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_audit",
+      "constraint_name": "finance_audit_reason_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "reason"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_config_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "config"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_date_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "date"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_date_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "date"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_revision_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "revision"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_day",
+      "constraint_name": "finance_day_status_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "status"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "ck_operation_amount",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "amount"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "ck_operation_minor_cost",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "minor_cost"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_amount_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "amount"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_costs_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "costs"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_day_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_day",
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_day_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_description_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "description"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_kind_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "kind"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_minor_cost_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "minor_cost"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_payments_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "payments"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_person_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "person_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_product_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_product_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "product_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_seller_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "seller"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_token_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_token_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_operation",
+      "constraint_name": "finance_operation_voided_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "voided"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "ck_supplier_payment_amount",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "amount"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_account_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "account"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_amount_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "amount"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_bank_id_fkey",
+      "constraint_type": "f",
+      "target_table": "bancos_destino",
+      "columns": [
+        "bank_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_cost_index_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "cost_index"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_day_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_day",
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_day_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "day_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_operation_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operation_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_operation_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "operation_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_person_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "person_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_token_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "constraint_name": "finance_supplier_payment_token_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_accion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "accion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_consignacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "consignaciones_bancarias",
+      "columns": [
+        "consignacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_consignacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "consignacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_fecha_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fecha"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_motivo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "motivo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "constraint_name": "historial_consignaciones_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_articulo_id_fkey",
+      "constraint_type": "f",
+      "target_table": "articulos_stock",
+      "columns": [
+        "articulo_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_datos_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "datos"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_lote_id_fkey",
+      "constraint_type": "f",
+      "target_table": "purchase_lot",
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_lote_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_producto_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "lineas_lote",
+      "constraint_name": "lineas_lote_tipo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "tipo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_anticipo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "anticipo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_capital_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capital"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_desde_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "desde"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_detalle_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "detalle"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_fecha_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fecha"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_fuente_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "fuente"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_hasta_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "hasta"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_monto_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "monto"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_referencia_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "referencia"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_socio_id_fkey",
+      "constraint_type": "f",
+      "target_table": "socios",
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_token_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "constraint_name": "liquidaciones_socio_token_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "token"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_actor_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "actor"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_articulo_id_fkey",
+      "constraint_type": "f",
+      "target_table": "articulos_stock",
+      "columns": [
+        "articulo_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_articulo_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "articulo_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_cantidad_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "cantidad"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_costo_unitario_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "costo_unitario"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_lote_id_fkey",
+      "constraint_type": "f",
+      "target_table": "purchase_lot",
+      "columns": [
+        "lote_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_motivo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "motivo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "movimientos_stock",
+      "constraint_name": "movimientos_stock_unidad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "unidades_stock",
+      "columns": [
+        "unidad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_aportado_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "aportado"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_capital_bp_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capital_bp"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_sociedad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "sociedades",
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_sociedad_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_sociedad_id_socio_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "sociedad_id",
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_socio_id_fkey",
+      "constraint_type": "f",
+      "target_table": "socios",
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "constraint_name": "participaciones_sociedad_utilidad_bp_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "utilidad_bp"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_banco_id_fkey",
+      "constraint_type": "f",
+      "target_table": "bancos_destino",
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_banco_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "banco_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_persona_id_fkey",
+      "constraint_type": "f",
+      "target_table": "personas_contables",
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_persona_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "persona_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "persona_banco_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "persona_banco",
+      "constraint_name": "uq_persona_banco",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "persona_id",
+        "banco_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_declaro_renta_antes_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "declaro_renta_antes"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_identificacion_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "identificacion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_identificacion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "identificacion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "personas_contables",
+      "constraint_name": "personas_contables_tipo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "tipo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_capital_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capital"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_participaciones_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "participaciones"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_producto_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_producto_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "constraint_name": "propiedad_equipo_sociedad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "sociedades",
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "ck_purchase_lot_count",
+      "constraint_type": "c",
+      "target_table": null,
+      "columns": [
+        "expected_count"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_entry_date_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "entry_date"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_exchange_rate_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "exchange_rate"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_expected_count_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "expected_count"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_note_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "note"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_supplier_id_fkey",
+      "constraint_type": "f",
+      "target_table": "catalog",
+      "columns": [
+        "supplier_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "purchase_lot",
+      "constraint_name": "purchase_lot_supplier_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "supplier_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_accion_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "accion"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_actor_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "actor"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_datos_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "datos"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_entidad_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "entidad_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_entidad_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "entidad"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_motivo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "motivo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "registro_gestion",
+      "constraint_name": "registro_gestion_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_capital_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "capital"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_condiciones_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "condiciones"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_operacion_id_fkey",
+      "constraint_type": "f",
+      "target_table": "finance_operation",
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_operacion_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "operacion_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_operacion_id_socio_id_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "operacion_id",
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_producto_id_fkey",
+      "constraint_type": "f",
+      "target_table": "equipment",
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_producto_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "producto_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_sociedad_id_fkey",
+      "constraint_type": "f",
+      "target_table": "sociedades",
+      "columns": [
+        "sociedad_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_socio_id_fkey",
+      "constraint_type": "f",
+      "target_table": "socios",
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_socio_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "resultados_socio",
+      "constraint_name": "resultados_socio_utilidad_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "utilidad"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "sociedades",
+      "constraint_name": "sociedades_activa_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activa"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "sociedades",
+      "constraint_name": "sociedades_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "sociedades",
+      "constraint_name": "sociedades_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "sociedades",
+      "constraint_name": "sociedades_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "sociedades",
+      "constraint_name": "sociedades_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "socios",
+      "constraint_name": "socios_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "socios",
+      "constraint_name": "socios_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "socios",
+      "constraint_name": "socios_nombre_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "socios",
+      "constraint_name": "socios_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "socios",
+      "constraint_name": "socios_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_articulo_id_fkey",
+      "constraint_type": "f",
+      "target_table": "articulos_stock",
+      "columns": [
+        "articulo_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_articulo_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "articulo_id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_articulo_id_serial_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "articulo_id",
+        "serial"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_disponible_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "disponible"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "unidades_stock",
+      "constraint_name": "unidades_stock_serial_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "serial"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_activo_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "activo"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_id_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_login_key",
+      "constraint_type": "u",
+      "target_table": null,
+      "columns": [
+        "login"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_login_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "login"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_nombre_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "nombre"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_password_hash_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "password_hash"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_pkey",
+      "constraint_type": "p",
+      "target_table": null,
+      "columns": [
+        "id"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_rol_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "rol"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_session_version_not_null",
+      "constraint_type": "n",
+      "target_table": null,
+      "columns": [
+        "session_version"
+      ],
+      "target_columns": []
+    },
+    {
+      "table_name": "usuarios",
+      "constraint_name": "usuarios_socio_id_fkey",
+      "constraint_type": "f",
+      "target_table": "socios",
+      "columns": [
+        "socio_id"
+      ],
+      "target_columns": [
+        "id"
+      ]
+    }
+  ],
+  "indexes": [
+    {
+      "table_name": "admin_receipt",
+      "index_name": "admin_receipt_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "admin_receipt",
+      "index_name": "ix_admin_receipt_collection_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "aliados_credito",
+      "index_name": "aliados_credito_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "aliados_credito",
+      "index_name": "aliados_credito_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "alias_referencia",
+      "index_name": "alias_referencia_clave_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "alias_referencia",
+      "index_name": "alias_referencia_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "index_name": "aplicaciones_credito_desembolso_id_credito_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "aplicaciones_credito",
+      "index_name": "aplicaciones_credito_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "aplicaciones_liquidacion",
+      "index_name": "aplicaciones_liquidacion_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "articulos_stock",
+      "index_name": "articulos_stock_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "articulos_stock",
+      "index_name": "articulos_stock_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "bancos_destino",
+      "index_name": "bancos_destino_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "bancos_destino",
+      "index_name": "bancos_destino_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "catalog",
+      "index_name": "catalog_kind_normal_key_parent_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "catalog",
+      "index_name": "catalog_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "categorias_stock",
+      "index_name": "categorias_stock_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "categorias_stock",
+      "index_name": "categorias_stock_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "comisiones_pool",
+      "index_name": "comisiones_pool_operacion_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "comisiones_pool",
+      "index_name": "comisiones_pool_pago_operacion_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "comisiones_pool",
+      "index_name": "comisiones_pool_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "compras_pool",
+      "index_name": "compras_pool_operacion_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "compras_pool",
+      "index_name": "compras_pool_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "index_name": "consignaciones_bancarias_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "index_name": "consignaciones_bancarias_supplier_payment_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "consignaciones_bancarias",
+      "index_name": "uq_consignacion_operacion_medio",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "control_lote",
+      "index_name": "control_lote_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "cp_schema_revision",
+      "index_name": "cp_schema_revision_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "creditos_venta",
+      "index_name": "creditos_venta_operacion_id_indice_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "creditos_venta",
+      "index_name": "creditos_venta_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "customer_collection",
+      "index_name": "customer_collection_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "customer_collection",
+      "index_name": "ix_customer_collection_product_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "datos_proveedor",
+      "index_name": "datos_proveedor_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "index_name": "desembolsos_credito_consignacion_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "index_name": "desembolsos_credito_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "desembolsos_credito",
+      "index_name": "desembolsos_credito_token_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "index_name": "disoluciones_sociedad_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "disoluciones_sociedad",
+      "index_name": "disoluciones_sociedad_token_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "equipment",
+      "index_name": "equipment_imei_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "equipment",
+      "index_name": "equipment_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "equipment_event",
+      "index_name": "equipment_event_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "facturas_lote",
+      "index_name": "facturas_lote_archivo_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "facturas_lote",
+      "index_name": "facturas_lote_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_audit",
+      "index_name": "finance_audit_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_day",
+      "index_name": "finance_day_date_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_day",
+      "index_name": "finance_day_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_operation",
+      "index_name": "finance_operation_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_operation",
+      "index_name": "finance_operation_product_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_operation",
+      "index_name": "finance_operation_token_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_operation",
+      "index_name": "ix_finance_operation_day_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "index_name": "finance_supplier_payment_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "finance_supplier_payment",
+      "index_name": "finance_supplier_payment_token_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "historial_consignaciones",
+      "index_name": "historial_consignaciones_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "lineas_lote",
+      "index_name": "ix_lineas_lote_lote_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "lineas_lote",
+      "index_name": "lineas_lote_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "index_name": "liquidaciones_socio_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "liquidaciones_socio",
+      "index_name": "liquidaciones_socio_token_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "movimientos_stock",
+      "index_name": "ix_movimientos_stock_articulo_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "movimientos_stock",
+      "index_name": "movimientos_stock_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "index_name": "participaciones_sociedad_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "participaciones_sociedad",
+      "index_name": "participaciones_sociedad_sociedad_id_socio_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "persona_banco",
+      "index_name": "ix_persona_banco_persona_id",
+      "unique_index": false,
+      "valid_index": true
+    },
+    {
+      "table_name": "persona_banco",
+      "index_name": "persona_banco_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "persona_banco",
+      "index_name": "uq_persona_banco",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "personas_contables",
+      "index_name": "personas_contables_identificacion_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "personas_contables",
+      "index_name": "personas_contables_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "propiedad_equipo",
+      "index_name": "propiedad_equipo_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "purchase_lot",
+      "index_name": "purchase_lot_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "registro_gestion",
+      "index_name": "registro_gestion_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "resultados_socio",
+      "index_name": "resultados_socio_operacion_id_socio_id_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "resultados_socio",
+      "index_name": "resultados_socio_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "sociedades",
+      "index_name": "sociedades_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "sociedades",
+      "index_name": "sociedades_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "socios",
+      "index_name": "socios_nombre_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "socios",
+      "index_name": "socios_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "unidades_stock",
+      "index_name": "unidades_stock_articulo_id_serial_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "unidades_stock",
+      "index_name": "unidades_stock_pkey",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "usuarios",
+      "index_name": "usuarios_login_key",
+      "unique_index": true,
+      "valid_index": true
+    },
+    {
+      "table_name": "usuarios",
+      "index_name": "usuarios_pkey",
+      "unique_index": true,
+      "valid_index": true
+    }
+  ],
+  "limitations": [
+    "No inspecciona filas comerciales ni datos JSON.",
+    "Permisos insuficientes pueden ocultar tablas o columnas.",
+    "Restricciones e índices se listan para revisión; no se comparan automáticamente con todos los modelos.",
+    "Longitudes y precisión se listan; no se validan automáticamente.",
+    "No comprueba reglas, rendimiento, integridad de datos, privilegios de roles ni disponibilidad de respaldos."
+  ],
+  "generated_at_utc": "2026-11-10T21:13:43.971955+00:00"
+}

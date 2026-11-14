@@ -1,0 +1,31 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Chat de consultas · CP Store{% endblock %}
+{% block content %}
+<div class="chat-page">
+  <div class="heading chat-heading"><div><p class="eyebrow">TU NEGOCIO, EN CIFRAS</p><h1>Chat de consultas</h1><p class="muted">Consulta ventas, resultados, inventario y créditos en un solo lugar.</p></div><span class="chat-safe">{{ icon('report') }} Solo consulta</span></div>
+  <div class="chat-layout">
+    <section class="panel chat-panel" aria-labelledby="chat-titulo">
+      <div class="chat-panel-heading"><div><h2 id="chat-titulo">¿Qué necesitas consultar?</h2><p>Las respuestas usan los registros de CP Store.</p></div><span class="chat-online">Datos del aplicativo</span></div>
+      <div class="chat-period-controls" data-hoy="{{ hoy }}" data-ultimo-cierre="{{ ultimo_cierre or '' }}">
+        <label for="chat-periodo">Periodo para ventas y resultados<select id="chat-periodo"><option value="auto">Usar la fecha de mi pregunta</option><option value="hoy">Hoy</option><option value="ayer">Ayer</option><option value="mes">Este mes</option>{% if ultimo_cierre %}<option value="cierre">Última jornada cerrada</option>{% endif %}<option value="rango">Elegir fechas</option></select></label>
+        <div id="chat-rango" class="chat-rango" hidden><label for="chat-desde">Desde<input id="chat-desde" name="ini" type="date" form="chat-form" max="{{ hoy }}" value="{{ hoy }}" disabled></label><label for="chat-hasta">Hasta<input id="chat-hasta" name="fin" type="date" form="chat-form" max="{{ hoy }}" value="{{ hoy }}" disabled></label></div>
+        <p id="chat-periodo-ayuda" class="chat-periodo-ayuda" aria-live="polite">Si no escribes una fecha, se consulta hoy. Una fecha escrita en tu pregunta tiene prioridad.</p>
+      </div>
+      <div id="chat-historial" class="chat-historial" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
+        <div class="chat-vacio" id="chat-vacio"><span class="chat-empty-icon">{{ icon('chart') }}</span><h3>Empieza con una pregunta</h3><p>Elige un ejemplo o escribe lo que necesitas saber.</p>
+          <div class="chat-ejemplos" role="group" aria-label="Preguntas de ejemplo">{% for etiqueta, pregunta in ejemplos %}<button type="button" class="btn btn-light chat-ejemplo" data-pregunta="{{ pregunta }}">{{ etiqueta }}</button>{% endfor %}</div>
+        </div>
+      </div>
+      <form id="chat-form" class="chat-form" data-no-dirty method="post" action="{{ url_for('chat.consultar') }}" autocomplete="off">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}">
+        <label for="chat-pregunta">Tu pregunta</label><div class="chat-composer"><input id="chat-pregunta" name="pregunta" class="form-control" type="text" maxlength="{{ max_pregunta }}" required placeholder="Ej.: ventas del 12/10/2026"><button class="btn btn-primary" id="chat-enviar" type="submit">Preguntar</button></div>
+        <p class="chat-ayuda">El chat solo consulta: no cambia datos. El historial se borra al recargar.</p>
+      </form>
+    </section>
+    <div class="chat-guide" role="complementary" aria-label="Ayuda para consultar">
+      {% if ultimo_cierre %}<section class="panel chat-last-close"><p class="eyebrow">ÚLTIMA JORNADA CERRADA</p><strong>{{ ultimo_cierre[8:10] }}/{{ ultimo_cierre[5:7] }}/{{ ultimo_cierre[:4] }}</strong><p>Consulta las ventas guardadas en ese cierre.</p><button type="button" class="btn btn-outline-primary" data-chat-quick="ventas de la última jornada cerrada">Consultar ventas {{ icon('back') }}</button></section>{% endif %}
+      <section class="panel"><h2>Cómo preguntar</h2><ul><li>«Ventas del 12/10/2026»</li><li>«Ventas del 1 al 15 de octubre»</li><li>«Resultado de la última jornada cerrada»</li><li>«Comparar esta semana con el periodo anterior»</li></ul><p class="chat-guide-note">Inventario y créditos muestran su estado actual. Ventas y resultados usan el periodo indicado.</p><details><summary>Fechas y fuentes</summary><p>Puedes escribir: {{ periodos }}.</p><p>Sin periodo, las ventas y el resultado usan hoy. Cada respuesta muestra el periodo consultado y su fuente.</p></details></section>
+    </div>
+  </div>
+</div>
+{% endblock %}

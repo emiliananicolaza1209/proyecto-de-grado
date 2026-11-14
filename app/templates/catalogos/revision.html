@@ -1,0 +1,15 @@
+<section class="catalog-review" id="catalog-review" aria-labelledby="catalog-review-title">
+  <p class="catalog-review-eyebrow">REVISIÓN ANTES DE GUARDAR</p>
+  <h2 id="catalog-review-title">{{ 'Esta opción ya está registrada' if exact_duplicate else 'Encontramos nombres similares' }}</h2>
+  <p id="catalog-review-description">{% if exact_duplicate %}Ya existe esta opción. Puedes abrir el registro existente o corregir el nombre que escribiste.{% else %}Antes de guardar <strong>{{ data.get('name') }}</strong>, revisa si alguna de estas opciones es la que necesitas. Un nombre parecido puede corresponder a un registro diferente.{% endif %}</p>
+  <ul class="catalog-review-list">
+    {% for item in suggestions %}
+    <li><div><strong>{{ item.name }}</strong><small>{{ 'Disponible en este catálogo' if item.active else 'Inactiva · puedes revisar el registro y reactivarlo' }}</small></div><a class="btn btn-light" href="{{ url_for('catalogos.index',kind=kind,edit=item.id) }}#catalog-form">{{ 'Usar existente' if item.active else 'Revisar existente' }}</a></li>
+    {% endfor %}
+  </ul>
+  <p class="catalog-review-note">{{ 'No se creará un segundo registro con el mismo nombre.' if exact_duplicate else 'Todavía no se guardó ningún cambio. Solo confirma si se trata de una opción distinta.' }}</p>
+  <div class="catalog-review-actions">
+    <a href="#catalog-form" class="btn btn-light" data-review-cancel>Revisar nombre</a>
+    {% if not exact_duplicate %}<button type="submit" class="btn btn-primary" form="catalog-form" name="confirm_similar" value="1">Es distinto: guardar</button>{% endif %}
+  </div>
+</section>

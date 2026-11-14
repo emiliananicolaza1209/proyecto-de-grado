@@ -1,0 +1,3617 @@
+{
+  "provenance": "Declaraciones ORM del ZIP de preparación; no introspección de Render. No incluye cp_schema_revision, creada fuera del ORM.",
+  "tables": [
+    {
+      "table": "catalog",
+      "model": "Catalogo",
+      "source": "app/models/catalogo.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "kind",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "name",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "normal_key",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "parent_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "active",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "1"
+        },
+        {
+          "name": "supplier_category",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('kind', 'normal_key', 'parent_id'),)"
+    },
+    {
+      "table": "personas_contables",
+      "model": "PersonaContable",
+      "source": "app/models/contabilidad.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "identificacion",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "tipo",
+          "type_declaration": "db.String(50)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "declaro_renta_antes",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "bancos_destino",
+      "model": "BancoDestino",
+      "source": "app/models/contabilidad.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(60)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "persona_banco",
+      "model": "PersonaBanco",
+      "source": "app/models/contabilidad.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "persona_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "banco_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "bancos_destino.id"
+          ],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('persona_id', 'banco_id', name='uq_persona_banco'),)"
+    },
+    {
+      "table": "consignaciones_bancarias",
+      "model": "ConsignacionBancaria",
+      "source": "app/models/contabilidad.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "persona_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "banco_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "bancos_destino.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "monto",
+          "type_declaration": "db.Numeric(14, 2)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.DateTime",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "datetime.utcnow"
+        },
+        {
+          "name": "referencia",
+          "type_declaration": "db.String(100)",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "finance_operation_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "payment_index",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "supplier_payment_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "finance_supplier_payment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "activa",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('finance_operation_id', 'payment_index', name='uq_consignacion_operacion_medio'),)"
+    },
+    {
+      "table": "historial_consignaciones",
+      "model": "HistorialConsignacion",
+      "source": "app/models/contabilidad.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "consignacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "consignaciones_bancarias.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "accion",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "motivo",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "antes",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "despues",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.DateTime",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "datetime.utcnow"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "finance_day",
+      "model": "Jornada",
+      "source": "app/models/finanzas.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "date",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "status",
+          "type_declaration": "db.String(12)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Abierta'"
+        },
+        {
+          "name": "revision",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "1"
+        },
+        {
+          "name": "config",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "snapshot",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "finance_operation",
+      "model": "OperacionFinanciera",
+      "source": "app/models/finanzas.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "day_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "finance_day.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "token",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "kind",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "description",
+          "type_declaration": "db.String(300)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "seller",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "amount",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "minor_cost",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "product_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "person_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "costs",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "payments",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "voided",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('amount >= 0', name='ck_operation_amount'), db.CheckConstraint('minor_cost >= 0', name='ck_operation_minor_cost'))"
+    },
+    {
+      "table": "finance_supplier_payment",
+      "model": "PagoProveedor",
+      "source": "app/models/finanzas.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "day_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_day.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "operation_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "cost_index",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "amount",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "account",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "person_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "bank_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "bancos_destino.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "token",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('amount > 0', name='ck_supplier_payment_amount'),)"
+    },
+    {
+      "table": "finance_audit",
+      "model": "AuditoriaFinanciera",
+      "source": "app/models/finanzas.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "day_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_day.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "action",
+          "type_declaration": "db.String(60)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "reason",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "detail",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "db.text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "usuarios",
+      "model": "Usuario",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "login",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "password_hash",
+          "type_declaration": "db.String(255)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "rol",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "socio_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "socios.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        },
+        {
+          "name": "session_version",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "1"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "registro_gestion",
+      "model": "RegistroGestion",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "entidad",
+          "type_declaration": "db.String(40)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "entidad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "accion",
+          "type_declaration": "db.String(100)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "motivo",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "actor",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "datos",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "db.text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "datos_proveedor",
+      "model": "DatosProveedor",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "proveedor_id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "identificacion",
+          "type_declaration": "db.String(40)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        },
+        {
+          "name": "telefono",
+          "type_declaration": "db.String(40)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        },
+        {
+          "name": "correo",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        },
+        {
+          "name": "direccion",
+          "type_declaration": "db.String(200)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "alias_referencia",
+      "model": "AliasReferencia",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "clave",
+          "type_declaration": "db.String(200)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "descripcion",
+          "type_declaration": "db.String(200)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "referencia_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "control_lote",
+      "model": "ControlLote",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "lote_id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "purchase_lot.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "estado",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Borrador'"
+        },
+        {
+          "name": "moneda",
+          "type_declaration": "db.String(3)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'USD'"
+        },
+        {
+          "name": "sociedad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "sociedades.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "heredado",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "revision",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "1"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "lineas_lote",
+      "model": "LineaLote",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "lote_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "purchase_lot.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "tipo",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Equipo'"
+        },
+        {
+          "name": "datos",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "producto_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "articulo_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "articulos_stock.id"
+          ],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "facturas_lote",
+      "model": "FacturaLote",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "lote_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "purchase_lot.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(200)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "archivo",
+          "type_declaration": "db.String(80)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "mime",
+          "type_declaration": "db.String(80)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "sha256",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "categorias_stock",
+      "model": "CategoriaStock",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "activa",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "articulos_stock",
+      "model": "ArticuloStock",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "categoria_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "categorias_stock.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "serializado",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "minimo",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "costo_administracion",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "fondo",
+          "type_declaration": "db.String(40)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'CP VARIOS'"
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "unidades_stock",
+      "model": "UnidadStock",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "articulo_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "articulos_stock.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "serial",
+          "type_declaration": "db.String(100)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "disponible",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('articulo_id', 'serial'),)"
+    },
+    {
+      "table": "movimientos_stock",
+      "model": "MovimientoStock",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "articulo_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "articulos_stock.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "cantidad",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "costo_unitario",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "lote_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "purchase_lot.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "unidad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "unidades_stock.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "motivo",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "actor",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "db.text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "aliados_credito",
+      "model": "AliadoCredito",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "porcentaje_bp",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "persona_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "banco_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "bancos_destino.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "creditos_venta",
+      "model": "CreditoVenta",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "indice",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "aliado_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "aliados_credito.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "bruto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "costo",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "neto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "recibido",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "condiciones",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "estado",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Pendiente'"
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('operacion_id', 'indice'),)"
+    },
+    {
+      "table": "desembolsos_credito",
+      "model": "DesembolsoCredito",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "aliado_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "aliados_credito.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "monto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "persona_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "banco_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "bancos_destino.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "referencia",
+          "type_declaration": "db.String(100)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "consignacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "consignaciones_bancarias.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "token",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "aplicaciones_credito",
+      "model": "AplicacionCredito",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "desembolso_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "desembolsos_credito.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "credito_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "creditos_venta.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "monto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "cobro_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "customer_collection.id"
+          ],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('desembolso_id', 'credito_id'),)"
+    },
+    {
+      "table": "socios",
+      "model": "Socio",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "activo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "sociedades",
+      "model": "Sociedad",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "nombre",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "activa",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "True"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "participaciones_sociedad",
+      "model": "Participacion",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "sociedad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "sociedades.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "socio_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "socios.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "capital_bp",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "utilidad_bp",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "aportado",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('sociedad_id', 'socio_id'),)"
+    },
+    {
+      "table": "propiedad_equipo",
+      "model": "PropiedadEquipo",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "producto_id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "sociedad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "sociedades.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "participaciones",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "capital",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "compras_pool",
+      "model": "CompraPool",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "producto_id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "tipo",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "venta_origen_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "aporte",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "pago_cliente",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "costos_pagados",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "ganancia",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "comisiones_pool",
+      "model": "ComisionPool",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "monto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "reparto",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "pago_operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "resultados_socio",
+      "model": "ResultadoSocio",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "producto_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "operacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "finance_operation.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "sociedad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "sociedades.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "socio_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "socios.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "capital",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "utilidad",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "condiciones",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.UniqueConstraint('operacion_id', 'socio_id'),)"
+    },
+    {
+      "table": "liquidaciones_socio",
+      "model": "LiquidacionSocio",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "socio_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "socios.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "desde",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "hasta",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "monto",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "capital",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "anticipo",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "fuente",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "referencia",
+          "type_declaration": "db.String(150)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "detalle",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "token",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "aplicaciones_liquidacion",
+      "model": "AplicacionLiquidacion",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "liquidacion_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "liquidaciones_socio.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "resultado_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "resultados_socio.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "utilidad",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "capital",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "disoluciones_sociedad",
+      "model": "DisolucionSociedad",
+      "source": "app/models/gestion.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "sociedad_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "sociedades.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "socio_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "socios.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "producto_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "fecha",
+          "type_declaration": "db.String(10)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "modalidad",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "valor_equipo",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "dinero",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "detalle",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "token",
+          "type_declaration": "db.String(64)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "purchase_lot",
+      "model": "Lote",
+      "source": "app/models/lote.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "entry_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        },
+        {
+          "name": "supplier_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "exchange_rate",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "expected_count",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "note",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('expected_count > 0', name='ck_purchase_lot_count'),)"
+    },
+    {
+      "table": "equipment_event",
+      "model": "Movimiento",
+      "source": "app/models/movimiento.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "product_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "action",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "reason",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "before_data",
+          "type_declaration": "db.Text",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "after_data",
+          "type_declaration": "db.Text",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "actor",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": ""
+    },
+    {
+      "table": "customer_collection",
+      "model": "Cobro",
+      "source": "app/models/pago.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "product_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "equipment.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "amount_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "destination",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "collector",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "method",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "reference",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        },
+        {
+          "name": "effective_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "note",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "legacy",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "voided",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('amount_cents > 0', name='ck_collection_amount'),)"
+    },
+    {
+      "table": "admin_receipt",
+      "model": "Recepcion",
+      "source": "app/models/pago.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "collection_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": true,
+          "foreign_keys": [
+            "customer_collection.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "amount_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "administrator",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "method",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "reference",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "''"
+        },
+        {
+          "name": "effective_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "note",
+          "type_declaration": "db.String(500)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "voided",
+          "type_declaration": "db.Boolean",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "False"
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('amount_cents > 0', name='ck_receipt_amount'),)"
+    },
+    {
+      "table": "equipment",
+      "model": "Producto",
+      "source": "app/models/producto.py",
+      "columns": [
+        {
+          "name": "id",
+          "type_declaration": "db.Integer",
+          "primary_key": true,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "lot_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "purchase_lot.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "archived",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "revision",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "1"
+        },
+        {
+          "name": "imei",
+          "type_declaration": "db.String(15)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": true,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "model",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "capacity",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "color",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "condition",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "cost_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "location",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "supplier",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "status",
+          "type_declaration": "db.String(30)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Disponible'"
+        },
+        {
+          "name": "responsible",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "seller",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "loan_handler",
+          "type_declaration": "db.String(120)",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "loan_price_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "loan_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "sale_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "last_note",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "movement_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "payment_status",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'No aplica'"
+        },
+        {
+          "name": "sale_value_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "payment_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "paid_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "purpose",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "due_date",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "battery",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "warranty_previous",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "warranty_until",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "created_at",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "text('CAST(CURRENT_TIMESTAMP AS TEXT)')"
+        },
+        {
+          "name": "reference_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "color_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "capacity_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "supplier_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "person_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "personas_contables.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "location_id",
+          "type_declaration": "db.Integer",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [
+            "catalog.id"
+          ],
+          "default_declaration": ""
+        },
+        {
+          "name": "purchase_usd",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "source_type",
+          "type_declaration": "db.String(20)",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "'Lote'"
+        },
+        {
+          "name": "purchase_cop_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "additional_costs",
+          "type_declaration": "db.JSON",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "pool_assigned_cost_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "pool_admin_gain_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": false,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": "0"
+        },
+        {
+          "name": "exchange_rate",
+          "type_declaration": "db.String",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "shipping_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        },
+        {
+          "name": "subtotal_cents",
+          "type_declaration": "db.BigInteger",
+          "primary_key": false,
+          "nullable": true,
+          "unique": false,
+          "index": false,
+          "foreign_keys": [],
+          "default_declaration": ""
+        }
+      ],
+      "table_constraints": "(db.CheckConstraint('capacity > 0', name='ck_equipment_capacity'), db.CheckConstraint('cost_cents >= 0', name='ck_equipment_cost'))"
+    }
+  ]
+}

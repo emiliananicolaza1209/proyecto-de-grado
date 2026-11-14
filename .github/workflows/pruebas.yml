@@ -1,0 +1,117 @@
+name: Pruebas CP Store
+on:
+  push:
+    branches: [migracion/postgresql]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  funcionales:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cp_ci
+          POSTGRES_PASSWORD: solo_ci_temporal
+          POSTGRES_DB: cpstore_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cp_ci -d cpstore_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Credenciales de un contenedor efímero de pruebas, no de Render.
+      CPSTORE_TEST_PG_URL: postgresql://cp_ci:solo_ci_temporal@127.0.0.1:5432/cpstore_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Ejecutar pruebas Python
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p 'test_*.py' -v 2>&1 | tee /tmp/cpstore-python.log
+      - name: Guardar registro de pruebas Python
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-python
+          retention-days: 7
+          path: /tmp/cpstore-python.log
+          if-no-files-found: warn
+      - name: Validar JavaScript de navegación y gráficos
+        run: |
+          node --check app/static/js/dashboard.js
+          node --check app/static/js/experiencia.js
+          node --check app/static/js/reportes.js
+          node --check app/static/js/finanzas.js
+          node --check app/static/js/usuarios.js
+          node --check app/static/js/chat.js
+          node --check app/static/js/contabilidad.js
+          node --test tests/test_navigation_v18.cjs tests/test_sidebar_v18_1.cjs
+
+      - name: Preparar navegador de pruebas
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Revisar UI con datos temporales
+        run: |
+          python scripts/preview_ui.py > /tmp/cpstore-ui.log 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          python - <<'PYCODE'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:5018/healthz',timeout=2) as r:
+                      if r.status==200: break
+              except OSError: time.sleep(1)
+          else: raise SystemExit('No inició el servidor temporal de UI')
+          PYCODE
+          node tests/check_business_ui_v18.cjs
+          node tests/check_ajustes_pool_v19.cjs
+          node tests/check_consultas_v21.cjs
+
+  responsive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Preparar Chromium y WebKit
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium webkit
+      - name: Revisar módulos en móviles, tabletas y escritorio
+        run: |
+          python scripts/preview_ui.py > /tmp/cpstore-responsive.log 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          python - <<'PYCODE'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:5018/healthz',timeout=2) as r:
+                      if r.status==200: break
+              except OSError: time.sleep(1)
+          else: raise SystemExit('No inició el servidor temporal')
+          PYCODE
+          node tests/check_responsive_v20.cjs
+      - name: Guardar resultados y capturas de datos ficticios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-v20
+          retention-days: 7
+          path: instance/responsive-v20/
+          if-no-files-found: warn
